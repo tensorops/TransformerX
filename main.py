@@ -72,3 +72,43 @@ class DotProductAttention(tf.keras.layers.Layer):
             scores = tf.reshape(scores, (n, num_queries, num_kv_pairs))
         self.attention_weights = masked_softmax(scores, valid_lens)
         return tf.matmul(self.dropout(self.attention_weights, **kwargs), values)
+
+
+class MultiHeadAttention(tf.keras.layers.Layer):
+    """Multi-head attention."""
+
+    def __init__(
+        self,
+        key_size,
+        query_size,
+        value_size,
+        num_hiddens,
+        num_heads,
+        dropout,
+        bias=False,
+        **kwargs,
+    ):
+        super(MultiHeadAttention, self).__init__()
+        self.num_heads = num_heads
+
+        self.attention = DotProductAttention(dropout, num_heads)
+        self.W_q = tf.keras.layers.Dense(num_hiddens, use_bias=bias)
+        self.W_k = tf.keras.layers.Dense(num_hiddens, use_bias=bias)
+        self.W_v = tf.keras.layers.Dense(num_hiddens, use_bias=bias)
+        self.W_o = tf.keras.layers.Dense(num_hiddens, use_bias=bias)
+
+    def transpose_qkv(self, X):
+        """Transposition for parallel computation of multiple attention heads."""
+        # Shape of input X: (batch_size, no. of queries or key-value pairs,
+        # num_hiddens). Shape of output X: (batch_size, no. of queries or
+        # key-value pairs, num_heads, num_hiddens / num_heads)
+        X = rearrange(X, "n h (heads hidden) -> n h heads hidden", heads=self.num_heads)
+        # X = tf.reshape(X, shape=(X.shape[0], X.shape[1], self.num_heads, -1))
+        # Shape of output X: (batch_size, num_heads, no. of queries or key-value
+        # pairs, num_hiddens / num_heads)
+        # X = tf.transpose(X, perm=(0, 2, 1, 3))
+        X = rearrange(X, "b d1 d2 d3 -> b d2 d1 d3")
+        # Shape of output: (batch_size * num_heads, no. of queries or key-value
+        # pairs, num_hiddens / num_heads)
+        return rearrange(X, "b d1 d2 d3 -> (b d1) d2 d3")
+        # return tf.reshape(X, shape=(-1, X.shape[2], X.shape[3]))
