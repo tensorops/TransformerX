@@ -112,3 +112,9 @@ class MultiHeadAttention(tf.keras.layers.Layer):
         # pairs, num_hiddens / num_heads)
         return rearrange(X, "b d1 d2 d3 -> (b d1) d2 d3")
         # return tf.reshape(X, shape=(-1, X.shape[2], X.shape[3]))
+
+    def inverse_transpose_qkv(self, X):
+        """Reverse the operation of transpose_qkv."""
+        X = tf.reshape(X, shape=(-1, self.num_heads, X.shape[1], X.shape[2]))
+        X = tf.transpose(X, perm=(0, 2, 1, 3))
+        return tf.reshape(X, shape=(X.shape[0], X.shape[1], -1))
