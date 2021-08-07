@@ -97,21 +97,31 @@ class MultiHeadAttention(tf.keras.layers.Layer):
         self.W_v = tf.keras.layers.Dense(num_hiddens, use_bias=bias)
         self.W_o = tf.keras.layers.Dense(num_hiddens, use_bias=bias)
 
-    def transpose_qkv(self, X):
-        """Transposition for parallel computation of multiple attention heads."""
-        # Shape of input X: (batch_size, no. of queries or key-value pairs,
-        # num_hiddens). Shape of output X: (batch_size, no. of queries or
-        # key-value pairs, num_heads, num_hiddens / num_heads)
-        X = rearrange(X, "n h (heads hidden) -> n h heads hidden", heads=self.num_heads)
+    def transpose_qkv(self, X: tf.Tensor) -> tf.Tensor:
+        """Transpose tensors for parallel computation of attention heads.
+
+        First transposition produces a tensor of shape X: (batch_size, num_heads, no. of queries or key-value pairs,
+        num_hiddens / num_heads).
+        Next it is rearranged to a new order (batch_size * num_heads, no. of queries or key-value pairs,
+        num_hiddens / num_heads) which is then passed to the last rearrangement and returned.
+
+        Parameters
+        ----------
+        X : Shape (batch_size, no. of queries or key-value pairs, num_hiddens). Shape of output X: (batch_size, no. of
+        queries or key-value pairs, num_heads, num_hiddens / num_heads)
+
+        Returns
+        -------
+        X : Transposed tensor of shape ((batch_size * num_heads, no. of queries or key-value pairs,
+        num_hiddens / num_heads)
+        """
+
         # X = tf.reshape(X, shape=(X.shape[0], X.shape[1], self.num_heads, -1))
-        # Shape of output X: (batch_size, num_heads, no. of queries or key-value
-        # pairs, num_hiddens / num_heads)
+        X = rearrange(X, "n h (heads hidden) -> n h heads hidden", heads=self.num_heads)
         # X = tf.transpose(X, perm=(0, 2, 1, 3))
         X = rearrange(X, "b d1 d2 d3 -> b d2 d1 d3")
-        # Shape of output: (batch_size * num_heads, no. of queries or key-value
-        # pairs, num_hiddens / num_heads)
-        return rearrange(X, "b d1 d2 d3 -> (b d1) d2 d3")
         # return tf.reshape(X, shape=(-1, X.shape[2], X.shape[3]))
+        return rearrange(X, "b d1 d2 d3 -> (b d1) d2 d3")
 
     def inverse_transpose_qkv(self, X):
         """Reverse the operation of transpose_qkv."""
