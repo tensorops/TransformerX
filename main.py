@@ -107,13 +107,13 @@ class MultiHeadAttention(tf.keras.layers.Layer):
 
         Parameters
         ----------
-        X : Shape (batch_size, no. of queries or key-value pairs, num_hiddens). Shape of output X: (batch_size, no. of
-        queries or key-value pairs, num_heads, num_hiddens / num_heads)
+        X : Shape (batch_size, no. of queries or key-value pairs, num_hiddens).
 
         Returns
         -------
         X : Transposed tensor of shape ((batch_size * num_heads, no. of queries or key-value pairs,
         num_hiddens / num_heads)
+                    hape of output X: (batch_size, no. of queries or key-value pairs, num_heads, num_hiddens / num_heads)
         """
 
         # X = tf.reshape(X, shape=(X.shape[0], X.shape[1], self.num_heads, -1))
@@ -121,6 +121,7 @@ class MultiHeadAttention(tf.keras.layers.Layer):
         # X = tf.transpose(X, perm=(0, 2, 1, 3))
         X = rearrange(X, "b d1 d2 d3 -> b d2 d1 d3")
         # return tf.reshape(X, shape=(-1, X.shape[2], X.shape[3]))
+        # fixme: the output shape may need correction
         return rearrange(X, "b d1 d2 d3 -> (b d1) d2 d3")
 
     def inverse_transpose_qkv(self, X):
