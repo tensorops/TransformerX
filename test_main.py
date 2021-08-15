@@ -1,6 +1,10 @@
-from unittest import TestCase
+import pytest
+from main import MultiHeadAttention
+import numpy as np
 
 
-class TestMultiHeadAttention(TestCase):
-    def test_transpose_qkv(self):
-        self.fail()
+@pytest.fixture()
+def test_transpose_qkv():
+
+    x = np.random.random([100, 10, 5])
+    assert MultiHeadAttention.transpose_qkv(x, x)
