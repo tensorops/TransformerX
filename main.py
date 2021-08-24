@@ -176,3 +176,7 @@ class PositionalEncoding(tf.keras.layers.Layer):
         )
         self.P[:, :, 0::2] = np.sin(X)
         self.P[:, :, 1::2] = np.cos(X)
+
+    def call(self, X, **kwargs):
+        X = X + self.P[:, : X.shape[1], :]
+        return self.dropout(X, **kwargs)
