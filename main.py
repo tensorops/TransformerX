@@ -1,8 +1,10 @@
 import os
+from typing import Tuple
 
 import numpy as np
 import tensorflow as tf
 from einops import rearrange, reduce
+import matplotlib.pyplot as plt
 
 os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
@@ -180,3 +182,29 @@ class PositionalEncoding(tf.keras.layers.Layer):
     def call(self, X, **kwargs):
         X = X + self.P[:, : X.shape[1], :]
         return self.dropout(X, **kwargs)
+
+
+encoding_dim, num_steps = 32, 60
+pos_encoding = PositionalEncoding(encoding_dim, 0)
+X = pos_encoding(tf.zeros((1, num_steps, encoding_dim)), training=False)
+P = pos_encoding.P[:, : X.shape[1], :]
+
+print(X.shape)
+print(P[0, :, 6:10].T.shape)
+print(np.arange(num_steps).shape)
+fig, ax = plt.subplots()
+line1 = ax.plot(
+    np.arange(num_steps),
+    P[0, :, 6].T,
+    dashes=[2, 2, 10, 2],
+    label="Row (position)",
+)
+line2 = ax.plot(
+    np.arange(num_steps),
+    P[0, :, 7].T,
+    dashes=[6, 2],
+    label="Row (position)",
+)
+
+ax.legend()
+plt.show()
