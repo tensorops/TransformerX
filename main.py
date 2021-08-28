@@ -184,6 +184,11 @@ class PositionalEncoding(tf.keras.layers.Layer):
         return self.dropout(X, **kwargs)
 
 
+class Plot:
+    def plot_pe(self, x: np.array, y: Tuple[int, np.array], label):
+        pass
+
+
 encoding_dim, num_steps = 32, 60
 pos_encoding = PositionalEncoding(encoding_dim, 0)
 X = pos_encoding(tf.zeros((1, num_steps, encoding_dim)), training=False)
