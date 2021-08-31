@@ -185,8 +185,21 @@ class PositionalEncoding(tf.keras.layers.Layer):
 
 
 class Plot:
-    def plot_pe(self, x: np.array, y: Tuple[int, np.array], label):
-        pass
+    def plot_pe(self, y: Tuple[int, np.array], encodings, num_steps, label):
+        fig, ax = plt.subplots(figsize=(6, 2.5))
+        lines = []
+
+        for idx in range(y[0]):
+            line = ax.plot(
+                np.arange(num_steps),
+                encodings[0, :, idx].T,
+                dashes=[2, 2, 10, 2],
+                label=label,
+            )
+            lines.append(line)
+        ax.legend()
+        plt.rcParams["figure.figsize"] = (20, 3)
+        plt.show()
 
 
 encoding_dim, num_steps = 32, 60
@@ -197,19 +210,6 @@ P = pos_encoding.P[:, : X.shape[1], :]
 print(X.shape)
 print(P[0, :, 6:10].T.shape)
 print(np.arange(num_steps).shape)
-fig, ax = plt.subplots()
-line1 = ax.plot(
-    np.arange(num_steps),
-    P[0, :, 6].T,
-    dashes=[2, 2, 10, 2],
-    label="Row (position)",
-)
-line2 = ax.plot(
-    np.arange(num_steps),
-    P[0, :, 7].T,
-    dashes=[6, 2],
-    label="Row (position)",
-)
-
-ax.legend()
-plt.show()
+plotter = Plot()
+label = "row position"
+plotter.plot_pe(P[0, :, 6:10].T.shape, P, num_steps, label)
