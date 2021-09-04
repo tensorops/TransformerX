@@ -193,12 +193,12 @@ class Plot:
             line = ax.plot(
                 np.arange(num_steps),
                 encodings[0, :, idx].T,
-                dashes=[2, 2, 10, 2],
+                dashes=[2, int(idx / 2), idx, 2],
                 label=label,
             )
             lines.append(line)
         ax.legend()
-        plt.rcParams["figure.figsize"] = (20, 3)
+        # plt.rcParams["figure.figsize"] = (20, 3)
         plt.show()
 
 
@@ -212,4 +212,20 @@ print(P[0, :, 6:10].T.shape)
 print(np.arange(num_steps).shape)
 plotter = Plot()
 label = "row position"
-plotter.plot_pe(P[0, :, 6:10].T.shape, P, num_steps, label)
+
+fig, ax = plt.subplots(figsize=(6, 2.5))
+ax.plot(
+    np.arange(num_steps),
+    P[0, :, 6].T,
+    dashes=[2, 2, 10, 2],
+    label=label,
+)
+ax.plot(
+    np.arange(num_steps),
+    P[0, :, 8].T,
+    dashes=[2, 2, 10, 2],
+    label=label,
+)
+ax.legend()
+plt.show()
+# plotter.plot_pe(P[0, :, 6:10].T.shape, P, num_steps, label)
