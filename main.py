@@ -1,5 +1,6 @@
 import os
 from typing import Tuple
+from itertools import cycle
 
 import numpy as np
 import tensorflow as tf
@@ -185,20 +186,35 @@ class PositionalEncoding(tf.keras.layers.Layer):
 
 
 class Plot:
-    def plot_pe(self, y: Tuple[int, np.array], encodings, num_steps, label):
-        fig, ax = plt.subplots(figsize=(6, 2.5))
-        lines = []
+    def plot_pe(self, cols: Tuple[int, list], encodings, num_steps, position=0):
+        ax = plt.figure(figsize=(6, 2.5))
+        line_styles = [
+            "_draw_lines",
+            "_draw_steps_mid",
+            "_draw_solid",
+            "_draw_dashed",
+            "_draw_dash_dot",
+            "_draw_dotted",
+        ]
+        lines = ["-", "--", "-.", ":"]
+        line_cycler = cycle(lines)
 
-        for idx in range(y[0]):
-            line = ax.plot(
+        def plot_line(idx):
+            plt.plot(
                 np.arange(num_steps),
-                encodings[0, :, idx].T,
-                dashes=[2, int(idx / 2), idx, 2],
-                label=label,
+                encodings[position, :, idx].T,
+                next(line_cycler),
+                label=f"col {idx}",
             )
-            lines.append(line)
+
+        if isinstance(cols, list):
+            for idx in cols:
+                plot_line(idx)
+        else:
+            plot_line(cols)
         ax.legend()
         # plt.rcParams["figure.figsize"] = (20, 3)
+        plt.grid(True)
         plt.show()
 
 
@@ -207,25 +223,12 @@ pos_encoding = PositionalEncoding(encoding_dim, 0)
 X = pos_encoding(tf.zeros((1, num_steps, encoding_dim)), training=False)
 P = pos_encoding.P[:, : X.shape[1], :]
 
-print(X.shape)
-print(P[0, :, 6:10].T.shape)
-print(np.arange(num_steps).shape)
 plotter = Plot()
-label = "row position"
+plotter.plot_pe(2, P, num_steps)
 
-fig, ax = plt.subplots(figsize=(6, 2.5))
-ax.plot(
-    np.arange(num_steps),
-    P[0, :, 6].T,
-    dashes=[2, 2, 10, 2],
-    label=label,
-)
-ax.plot(
-    np.arange(num_steps),
-    P[0, :, 8].T,
-    dashes=[2, 2, 10, 2],
-    label=label,
-)
-ax.legend()
-plt.show()
-# plotter.plot_pe(P[0, :, 6:10].T.shape, P, num_steps, label)
+
+# plt.figure()
+# for i in range(10):
+#     x = range(i, i + 10)
+#     plt.plot(range(10), x, next(linecycler))
+# plt.show()
