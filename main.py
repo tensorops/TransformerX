@@ -186,23 +186,16 @@ class PositionalEncoding(tf.keras.layers.Layer):
 
 
 class Plot:
-    def plot_pe(self, cols: Tuple[int, list], encodings, num_steps, position=0):
+    def plot_pe(self, cols: Tuple[int, list], pos_encodings, num_steps, position=0):
         ax = plt.figure(figsize=(6, 2.5))
-        line_styles = [
-            "_draw_lines",
-            "_draw_steps_mid",
-            "_draw_solid",
-            "_draw_dashed",
-            "_draw_dash_dot",
-            "_draw_dotted",
-        ]
+
         lines = ["-", "--", "-.", ":"]
         line_cycler = cycle(lines)
 
         def plot_line(idx):
             plt.plot(
                 np.arange(num_steps),
-                encodings[position, :, idx].T,
+                pos_encodings[position, :, idx].T,
                 next(line_cycler),
                 label=f"col {idx}",
             )
@@ -225,10 +218,3 @@ P = pos_encoding.P[:, : X.shape[1], :]
 
 plotter = Plot()
 plotter.plot_pe(2, P, num_steps)
-
-
-# plt.figure()
-# for i in range(10):
-#     x = range(i, i + 10)
-#     plt.plot(range(10), x, next(linecycler))
-# plt.show()
