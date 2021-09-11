@@ -206,7 +206,6 @@ class Plot:
         else:
             plot_line(cols)
         ax.legend()
-        # plt.rcParams["figure.figsize"] = (20, 3)
         plt.grid(True)
         plt.show()
 
