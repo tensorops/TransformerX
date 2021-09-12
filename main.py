@@ -173,9 +173,11 @@ class PositionalEncoding(tf.keras.layers.Layer):
         super().__init__()
         self.dropout = tf.keras.layers.Dropout(dropout)
         # Create a long enough P
+
         self.P = np.zeros((1, max_len, num_hiddens))
+        print("P.shape", self.P.shape)
         X = np.arange(max_len, dtype=np.float32).reshape(-1, 1) / np.power(
-            10000, np.arange(0, num_hiddens, 2, dtype=np.float32) / num_hiddens
+            max_len, np.arange(0, num_hiddens, 2, dtype=np.float32) / num_hiddens
         )
         self.P[:, :, 0::2] = np.sin(X)
         self.P[:, :, 1::2] = np.cos(X)
@@ -186,23 +188,31 @@ class PositionalEncoding(tf.keras.layers.Layer):
 
 
 class Plot:
-    def plot_pe(self, cols: Tuple[int, list], pos_encodings, num_steps, position=0):
+    def plot_pe(
+        self,
+        cols: Tuple[int, list, np.ndarray],
+        pos_encodings,
+        num_steps,
+        position=0,
+        grid=True,
+    ):
         ax = plt.figure(figsize=(6, 2.5))
 
         lines = ["-", "--", "-.", ":"]
-        line_cycler = cycle(lines)
+        self.line_cycler = cycle(lines)
 
-        def plot_line(idx):
+        def plot_line(col):
             plt.plot(
                 np.arange(num_steps),
-                pos_encodings[position, :, idx].T,
-                next(line_cycler),
-                label=f"col {idx}",
+                pos_encodings[position, :, col].T,
+                next(self.line_cycler),
+                label=f"col {col}",
             )
 
-        if isinstance(cols, list):
-            for idx in cols:
-                plot_line(idx)
+        if isinstance(cols, list) or isinstance(cols, np.ndarray):
+            for col in cols:
+                print(f"col: {col}")
+                plot_line(col)
         else:
             plot_line(cols)
         ax.legend()
@@ -216,4 +226,4 @@ X = pos_encoding(tf.zeros((1, num_steps, encoding_dim)), training=False)
 P = pos_encoding.P[:, : X.shape[1], :]
 
 plotter = Plot()
-plotter.plot_pe(2, P, num_steps)
+plotter.plot_pe(np.arange(8, 12), P, num_steps)
