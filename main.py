@@ -176,7 +176,7 @@ class PositionalEncoding(tf.keras.layers.Layer):
         self.dropout = tf.keras.layers.Dropout(dropout)
         # Create a long enough P
 
-        self.P = np.zeros((1, max_len, num_hiddens))
+        self.P = np.zeros((2, max_len, num_hiddens))
         print("P.shape", self.P.shape)
         X = np.arange(max_len, dtype=np.float32).reshape(-1, 1) / np.power(
             10000, np.arange(0, num_hiddens, 2, dtype=np.float32) / num_hiddens
@@ -222,13 +222,15 @@ class Plot:
         else:
             plot_line(cols)
         ax.legend()
+        plt.title("Position '0' -> comumns 7-10")
         plt.grid(show_grid)
         plt.show()
 
 
 encoding_dim, num_steps = 32, 60
 pos_encoding = PositionalEncoding(encoding_dim, 0)
-X = pos_encoding(tf.zeros((1, num_steps, encoding_dim)), training=False)
+X = pos_encoding(tf.zeros((2, num_steps, encoding_dim)), training=False)
 P = pos_encoding.P[:, : X.shape[1], :]
-# plotter = Plot()
-# plotter.plot_pe(np.arange(8, 12), P, num_steps)
+plotter = Plot()
+plotter.plot_pe(np.arange(7, 11), P, num_steps)
+plotter.plot_pe(np.arange(7, 11), P, num_steps, position=0)
