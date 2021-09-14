@@ -1,4 +1,6 @@
 import os
+import time
+import typing
 from typing import Tuple
 from itertools import cycle
 
@@ -177,10 +179,15 @@ class PositionalEncoding(tf.keras.layers.Layer):
         self.P = np.zeros((1, max_len, num_hiddens))
         print("P.shape", self.P.shape)
         X = np.arange(max_len, dtype=np.float32).reshape(-1, 1) / np.power(
-            max_len, np.arange(0, num_hiddens, 2, dtype=np.float32) / num_hiddens
+            10000, np.arange(0, num_hiddens, 2, dtype=np.float32) / num_hiddens
         )
-        self.P[:, :, 0::2] = np.sin(X)
-        self.P[:, :, 1::2] = np.cos(X)
+
+        self.P[:, :, 0::2] = tf.sin(
+            X
+        )  # x[low::stride] -> positions: 0, 2, 4, ... of all rows and columns
+        self.P[:, :, 1::2] = tf.cos(
+            X
+        )  # x[low::stride] -> positions: 1, 3, 5 , ... of all rows and columns
 
     def call(self, X, **kwargs):
         X = X + self.P[:, : X.shape[1], :]
@@ -194,7 +201,7 @@ class Plot:
         pos_encodings,
         num_steps,
         position=0,
-        grid=True,
+        show_grid=True,
     ):
         ax = plt.figure(figsize=(6, 2.5))
 
@@ -209,14 +216,13 @@ class Plot:
                 label=f"col {col}",
             )
 
-        if isinstance(cols, list) or isinstance(cols, np.ndarray):
+        if isinstance(cols, (list, np.ndarray)):
             for col in cols:
-                print(f"col: {col}")
                 plot_line(col)
         else:
             plot_line(cols)
         ax.legend()
-        plt.grid(True)
+        plt.grid(show_grid)
         plt.show()
 
 
@@ -224,6 +230,5 @@ encoding_dim, num_steps = 32, 60
 pos_encoding = PositionalEncoding(encoding_dim, 0)
 X = pos_encoding(tf.zeros((1, num_steps, encoding_dim)), training=False)
 P = pos_encoding.P[:, : X.shape[1], :]
-
-plotter = Plot()
-plotter.plot_pe(np.arange(8, 12), P, num_steps)
+# plotter = Plot()
+# plotter.plot_pe(np.arange(8, 12), P, num_steps)
