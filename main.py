@@ -200,7 +200,6 @@ class Plot:
         cols: Tuple[int, list, np.ndarray],
         pos_encodings,
         num_steps,
-        position=0,
         show_grid=True,
     ):
         ax = plt.figure(figsize=(6, 2.5))
@@ -211,7 +210,7 @@ class Plot:
         def plot_line(col):
             plt.plot(
                 np.arange(num_steps),
-                pos_encodings[position, :, col].T,
+                pos_encodings[0, :, col].T,
                 next(self.line_cycler),
                 label=f"col {col}",
             )
@@ -222,15 +221,10 @@ class Plot:
         else:
             plot_line(cols)
         ax.legend()
-        plt.title("Position '0' -> comumns 7-10")
+        plt.title("Columns 7-10")
         plt.grid(show_grid)
         plt.show()
 
 
-encoding_dim, num_steps = 32, 60
-pos_encoding = PositionalEncoding(encoding_dim, 0)
-X = pos_encoding(tf.zeros((2, num_steps, encoding_dim)), training=False)
-P = pos_encoding.P[:, : X.shape[1], :]
-plotter = Plot()
-plotter.plot_pe(np.arange(7, 11), P, num_steps)
-plotter.plot_pe(np.arange(7, 11), P, num_steps, position=0)
+class PositionWiseFFN(tf.keras.layers.Layer):
+    """Position-wise feed-forward network."""
