@@ -228,3 +228,9 @@ class Plot:
 
 class PositionWiseFFN(tf.keras.layers.Layer):
     """Position-wise feed-forward network."""
+
+    def __init__(self, ffn_num_hiddens, ffn_num_outputs):
+        super().__init__()
+        self.dense1 = tf.keras.layers.Dense(ffn_num_hiddens)
+        self.relu = tf.keras.layers.ReLU()
+        self.dense2 = tf.keras.layers.Dense(ffn_num_outputs)
