@@ -1,5 +1,5 @@
 import pytest
-from main import MultiHeadAttention, PositionalEncoding, Plot
+from main import MultiHeadAttention, PositionalEncoding, Plot, PositionWiseFFN
 import numpy as np
 import tensorflow as tf
 
@@ -17,3 +17,7 @@ P = pos_encoding.P[:, : X.shape[1], :]
 plotter = Plot()
 plotter.plot_pe(np.arange(7, 11), P, num_steps)
 # plotter.plot_pe(np.arange(7, 11), P, num_steps, position=0)
+
+
+ffn = PositionWiseFFN(4, 8)
+print(ffn(tf.ones((2, 3, 4))).shape)
