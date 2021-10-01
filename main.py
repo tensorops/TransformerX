@@ -247,3 +247,6 @@ class AddNorm(tf.keras.layers.Layer):
         super(AddNorm, self).__init__()
         self.dropout = tf.keras.layers.Dropout(dropout)
         self.ln = tf.keras.layers.LayerNormalization(norm_shape)
+
+    def call(self, X, Y, **kwargs):
+        return self.ln(self.dropout(Y, **kwargs) + X)
