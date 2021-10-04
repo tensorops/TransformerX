@@ -22,6 +22,8 @@ plotter.plot_pe(np.arange(7, 11), P, num_steps)
 ffn = PositionWiseFFN(4, 8)
 print(ffn(tf.ones((2, 3, 4))).shape)
 
-
 add_norm = AddNorm([1, 2], 0.5)
 print(add_norm(tf.ones((2, 3, 4)), tf.ones((2, 3, 4)), training=False).shape)
+
+ffn = PositionWiseFFN(4, 8)
+print(ffn(tf.ones((2, 3, 4)))[0])
