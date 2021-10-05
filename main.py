@@ -250,3 +250,7 @@ class AddNorm(tf.keras.layers.Layer):
 
     def call(self, X, Y, **kwargs):
         return self.ln(self.dropout(Y, **kwargs) + X)
+
+
+class TransformerEncoderBlock(tf.keras.layers.Layer):
+    """Transformer encoder block."""
