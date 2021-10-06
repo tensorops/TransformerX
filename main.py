@@ -254,3 +254,23 @@ class AddNorm(tf.keras.layers.Layer):
 
 class TransformerEncoderBlock(tf.keras.layers.Layer):
     """Transformer encoder block."""
+
+    def __init__(
+        self,
+        key_size,
+        query_size,
+        value_size,
+        num_hiddens,
+        norm_shape,
+        ffn_num_hiddens,
+        num_heads,
+        dropout,
+        bias=False,
+    ):
+        super().__init__()
+        self.attention = MultiHeadAttention(
+            key_size, query_size, value_size, num_hiddens, num_heads, dropout, bias
+        )
+        self.addnorm1 = AddNorm(norm_shape, dropout)
+        self.ffn = PositionWiseFFN(ffn_num_hiddens, num_hiddens)
+        self.addnorm2 = AddNorm(norm_shape, dropout)
