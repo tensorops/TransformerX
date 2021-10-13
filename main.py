@@ -278,3 +278,10 @@ class TransformerEncoderBlock(tf.keras.layers.Layer):
     def call(self, X, valid_lens, **kwargs):
         Y = self.addnorm1(X, self.attention(X, X, X, valid_lens, **kwargs), **kwargs)
         return self.addnorm2(Y, self.ffn(Y), **kwargs)
+
+
+X = tf.ones((2, 100, 24))
+valid_lens = tf.constant([3, 2])
+norm_shape = [i for i in range(len(X.shape))][1:]
+encoder_blk = TransformerEncoderBlock(24, 24, 24, 24, norm_shape, 48, 8, 0.5)
+print(encoder_blk(X, valid_lens, training=False))
