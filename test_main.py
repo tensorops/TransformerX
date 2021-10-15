@@ -1,5 +1,12 @@
 import pytest
-from main import MultiHeadAttention, PositionalEncoding, Plot, PositionWiseFFN, AddNorm
+from main import (
+    MultiHeadAttention,
+    PositionalEncoding,
+    Plot,
+    PositionWiseFFN,
+    AddNorm,
+    TransformerEncoderBlock,
+)
 import numpy as np
 import tensorflow as tf
 
@@ -27,3 +34,9 @@ print(add_norm(tf.ones((2, 3, 4)), tf.ones((2, 3, 4)), training=False).shape)
 
 ffn = PositionWiseFFN(4, 8)
 print(ffn(tf.ones((2, 3, 4)))[0])
+
+X = tf.ones((2, 100, 24))
+valid_lens = tf.constant([3, 2])
+norm_shape = [i for i in range(len(X.shape))][1:]
+encoder_blk = TransformerEncoderBlock(24, 24, 24, 24, norm_shape, 48, 8, 0.5)
+print(encoder_blk(X, valid_lens, training=False))
