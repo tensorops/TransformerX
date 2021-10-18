@@ -278,3 +278,7 @@ class TransformerEncoderBlock(tf.keras.layers.Layer):
     def call(self, X, valid_lens, **kwargs):
         Y = self.addnorm1(X, self.attention(X, X, X, valid_lens, **kwargs), **kwargs)
         return self.addnorm2(Y, self.ffn(Y), **kwargs)
+
+
+class TransformerEncoder(tf.keras.layers.Layer):
+    """Transformer encoder that encompasses one or more TransformerEncoderBlock blocks."""
