@@ -315,3 +315,18 @@ class TransformerEncoder(tf.keras.layers.Layer):
             )
             for _ in range(num_blks)
         ]
+
+    def call(self, X, valid_lens, **kwargs):
+        # Since positional encoding values are between -1 and 1, the embedding
+        # values are multiplied by the square root of the embedding dimension
+        # to rescale before they are summed up
+        X = self.pos_encoding(
+            self.embedding(X)
+            * tf.math.sqrt(tf.cast(self.num_hiddens, dtype=tf.float32)),
+            **kwargs,
+        )
+        self.attention_weights = [None] * len(self.blks)
+        for i, blk in enumerate(self.blks):
+            X = blk(X, valid_lens, **kwargs)
+            self.attention_weights[i] = blk.attention.attention.attention_weights
+        return X
