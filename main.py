@@ -300,7 +300,7 @@ class TransformerEncoder(tf.keras.layers.Layer):
         super().__init__()
         self.num_hiddens = num_hiddens
         self.embedding = tf.keras.layers.Embedding(vocab_size, num_hiddens)
-        self.pos_encoding = d2l.PositionalEncoding(num_hiddens, dropout)
+        self.pos_encoding = PositionalEncoding(num_hiddens, dropout)
         self.blks = [
             TransformerEncoderBlock(
                 key_size,
