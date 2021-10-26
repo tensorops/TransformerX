@@ -334,3 +334,28 @@ class TransformerEncoder(tf.keras.layers.Layer):
 
 class TransformerDecoderBlock(tf.keras.layers.Layer):
     """Transformer decoder block."""
+
+    def __init__(
+        self,
+        key_size,
+        query_size,
+        value_size,
+        num_hiddens,
+        norm_shape,
+        ffn_num_hiddens,
+        num_heads,
+        dropout,
+        i,
+    ):
+        super().__init__()
+        self.i = i
+        self.attention1 = MultiHeadAttention(
+            key_size, query_size, value_size, num_hiddens, num_heads, dropout
+        )
+        self.addnorm1 = AddNorm(norm_shape, dropout)
+        self.attention2 = MultiHeadAttention(
+            key_size, query_size, value_size, num_hiddens, num_heads, dropout
+        )
+        self.addnorm2 = AddNorm(norm_shape, dropout)
+        self.ffn = PositionWiseFFN(ffn_num_hiddens, num_hiddens)
+        self.addnorm3 = AddNorm(norm_shape, dropout)
