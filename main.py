@@ -330,3 +330,7 @@ class TransformerEncoder(tf.keras.layers.Layer):
             X = blk(X, valid_lens, **kwargs)
             self.attention_weights[i] = blk.attention.attention.attention_weights
         return X
+
+
+class TransformerDecoderBlock(tf.keras.layers.Layer):
+    """Transformer decoder block."""
