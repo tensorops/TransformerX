@@ -6,6 +6,7 @@ from main import (
     PositionWiseFFN,
     AddNorm,
     TransformerEncoderBlock,
+    TransformerEncoder,
 )
 import numpy as np
 import tensorflow as tf
@@ -40,3 +41,6 @@ valid_lens = tf.constant([3, 2])
 norm_shape = [i for i in range(len(X.shape))][1:]
 encoder_blk = TransformerEncoderBlock(24, 24, 24, 24, norm_shape, 48, 8, 0.5)
 print(encoder_blk(X, valid_lens, training=False))
+
+encoder = TransformerEncoder(200, 24, 24, 24, 24, [1, 2], 48, 8, 2, 0.5)
+print(encoder(tf.ones((2, 100)), valid_lens, training=False).shape, (2, 100, 24))

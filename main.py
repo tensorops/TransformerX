@@ -330,8 +330,3 @@ class TransformerEncoder(tf.keras.layers.Layer):
             X = blk(X, valid_lens, **kwargs)
             self.attention_weights[i] = blk.attention.attention.attention_weights
         return X
-
-
-valid_lens = tf.constant([3, 2])
-encoder = TransformerEncoder(200, 24, 24, 24, 24, [1, 2], 48, 8, 2, 0.5)
-print(encoder(tf.ones((2, 100)), valid_lens, training=False).shape, (2, 100, 24))
