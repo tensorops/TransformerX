@@ -361,7 +361,9 @@ class TransformerDecoderBlock(tf.keras.layers.Layer):
         self.addnorm3 = AddNorm(norm_shape, dropout)
 
     def call(self, X, state, **kwargs):
-        """During training, all the tokens of any output sequence are processed at the same time, so state[2][self.i]
+        """Forward propagation of the decoder block.
+
+        During training, all the tokens of any output sequence are processed at the same time, so state[2][self.i]
         is None as initialized. When decoding any output sequence token by token during prediction, state[2][self.i]
         contains representations of the decoded output at the i-th block up to the current time step"""
         enc_outputs, enc_valid_lens = state[0], state[1]
