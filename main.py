@@ -383,3 +383,11 @@ class TransformerDecoderBlock(tf.keras.layers.Layer):
             )
         else:
             dec_valid_lens = None
+        # Self-attention
+        X2 = self.attention1(X, key_values, key_values, dec_valid_lens, **kwargs)
+        Y = self.addnorm1(X, X2, **kwargs)
+        # Encoder-decoder attention. Shape of enc_outputs:
+        # (batch_size, num_steps, num_hiddens)
+        Y2 = self.attention2(Y, enc_outputs, enc_outputs, enc_valid_lens, **kwargs)
+        Z = self.addnorm2(Y, Y2, **kwargs)
+        return self.addnorm3(Z, self.ffn(Z), **kwargs), state
