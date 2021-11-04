@@ -7,6 +7,7 @@ from main import (
     AddNorm,
     TransformerEncoderBlock,
     TransformerEncoder,
+    TransformerDecoderBlock,
 )
 import numpy as np
 import tensorflow as tf
@@ -44,3 +45,7 @@ print(encoder_blk(X, valid_lens, training=False))
 
 encoder = TransformerEncoder(200, 24, 24, 24, 24, [1, 2], 48, 8, 2, 0.5)
 print(encoder(tf.ones((2, 100)), valid_lens, training=False).shape, (2, 100, 24))
+
+decoder_blk = TransformerDecoderBlock(24, 24, 24, 24, [1, 2], 48, 8, 0.5, 0)
+state = [encoder_blk(X, valid_lens), valid_lens, [None]]
+print(decoder_blk(X, state, training=False)[0].shape, X.shape)

@@ -391,14 +391,3 @@ class TransformerDecoderBlock(tf.keras.layers.Layer):
         Y2 = self.attention2(Y, enc_outputs, enc_outputs, enc_valid_lens, **kwargs)
         Z = self.addnorm2(Y, Y2, **kwargs)
         return self.addnorm3(Z, self.ffn(Z), **kwargs), state
-
-
-X = tf.ones((2, 100, 24))
-valid_lens = tf.constant([3, 2])
-norm_shape = [i for i in range(len(X.shape))][1:]
-encoder_blk = TransformerEncoderBlock(24, 24, 24, 24, norm_shape, 48, 8, 0.5)
-encoder = TransformerEncoder(200, 24, 24, 24, 24, [1, 2], 48, 8, 2, 0.5)
-decoder_blk = TransformerDecoderBlock(24, 24, 24, 24, [1, 2], 48, 8, 0.5, 0)
-X = tf.ones((2, 100, 24))
-state = [encoder_blk(X, valid_lens), valid_lens, [None]]
-print(decoder_blk(X, state, training=False)[0].shape, X.shape)
