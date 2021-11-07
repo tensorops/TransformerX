@@ -395,3 +395,37 @@ class TransformerDecoderBlock(tf.keras.layers.Layer):
 
 class TransformerDecoder(tf.keras.layers.Layer):
     """Transformer decoder that encompasses one or more TransformerDecoderBlock blocks."""
+
+    def __init__(
+        self,
+        vocab_size,
+        key_size,
+        query_size,
+        value_size,
+        num_hiddens,
+        norm_shape,
+        ffn_num_hiddens,
+        num_heads,
+        num_blks,
+        dropout,
+    ):
+        super().__init__()
+        self.num_hiddens = num_hiddens
+        self.num_blks = num_blks
+        self.embedding = tf.keras.layers.Embedding(vocab_size, num_hiddens)
+        self.pos_encoding = PositionalEncoding(num_hiddens, dropout)
+        self.blks = [
+            TransformerDecoderBlock(
+                key_size,
+                query_size,
+                value_size,
+                num_hiddens,
+                norm_shape,
+                ffn_num_hiddens,
+                num_heads,
+                dropout,
+                i,
+            )
+            for i in range(num_blks)
+        ]
+        self.dense = tf.keras.layers.Dense(vocab_size)
