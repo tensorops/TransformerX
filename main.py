@@ -391,3 +391,7 @@ class TransformerDecoderBlock(tf.keras.layers.Layer):
         Y2 = self.attention2(Y, enc_outputs, enc_outputs, enc_valid_lens, **kwargs)
         Z = self.addnorm2(Y, Y2, **kwargs)
         return self.addnorm3(Z, self.ffn(Z), **kwargs), state
+
+
+class TransformerDecoder(tf.keras.layers.Layer):
+    """Transformer decoder that encompasses one or more TransformerDecoderBlock blocks."""
