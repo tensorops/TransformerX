@@ -429,3 +429,6 @@ class TransformerDecoder(tf.keras.layers.Layer):
             for i in range(num_blks)
         ]
         self.dense = tf.keras.layers.Dense(vocab_size)
+
+    def init_state(self, enc_outputs, enc_valid_lens):
+        return [enc_outputs, enc_valid_lens, [None] * self.num_blks]
