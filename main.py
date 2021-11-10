@@ -432,3 +432,19 @@ class TransformerDecoder(tf.keras.layers.Layer):
 
     def init_state(self, enc_outputs, enc_valid_lens):
         return [enc_outputs, enc_valid_lens, [None] * self.num_blks]
+
+    def call(self, X, state, **kwargs):
+        X = self.pos_encoding(
+            self.embedding(X)
+            * tf.math.sqrt(tf.cast(self.num_hiddens, dtype=tf.float32)),
+            **kwargs,
+        )
+        # 2 attention layers in decoder
+        self._attention_weights = [[None] * len(self.blks) for _ in range(2)]
+        for i, blk in enumerate(self.blks):
+            X, state = blk(X, state, **kwargs)
+            # Decoder self-attention weights
+            self._attention_weights[0][i] = blk.attention1.attention.attention_weights
+            # Encoder-decoder attention weights
+            self._attention_weights[1][i] = blk.attention2.attention.attention_weights
+        return self.dense(X), state
