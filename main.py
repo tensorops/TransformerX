@@ -448,3 +448,7 @@ class TransformerDecoder(tf.keras.layers.Layer):
             # Encoder-decoder attention weights
             self._attention_weights[1][i] = blk.attention2.attention.attention_weights
         return self.dense(X), state
+
+    @property
+    def attention_weights(self):
+        return self._attention_weights
