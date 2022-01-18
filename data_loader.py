@@ -16,8 +16,23 @@ class DataModule:
     def val_dataloader(self):
         return self.get_dataloader(train=False)
 
-    def get_tensorloader(self, tensors, train, indices=slice(0, None)):
+    def get_tensorloader(
+        self, tensors: list[tf.Tensor], train: bool, indices: int = slice(0, None)
+    ):
+        """Prepare tensors for training
 
+        Slice tensors, shuffle them if it is in training mode and then generate batches.
+
+        Parameters
+        ----------
+        tensors : A list of tensors.
+        train : Flag representing the training mode; True if it is in training mode, False otherwise.
+        indices : Indices of slices to be processed in the downstream tasks.
+
+        Returns
+        -------
+
+        """
         tensors = tuple(a[indices] for a in tensors)
         shuffle_buffer = tensors[0].shape[0] if train else 1
         return (
