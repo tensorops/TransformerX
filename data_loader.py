@@ -9,3 +9,6 @@ class DataModule:
 
     def train_dataloader(self):
         return self.get_dataloader(train=True)
+
+    def val_dataloader(self):
+        return self.get_dataloader(train=False)
