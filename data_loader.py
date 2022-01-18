@@ -1,3 +1,6 @@
+import tensorflow as tf
+
+
 class DataModule:
     """Base class for data loaders"""
 
@@ -12,3 +15,13 @@ class DataModule:
 
     def val_dataloader(self):
         return self.get_dataloader(train=False)
+
+    def get_tensorloader(self, tensors, train, indices=slice(0, None)):
+
+        tensors = tuple(a[indices] for a in tensors)
+        shuffle_buffer = tensors[0].shape[0] if train else 1
+        return (
+            tf.data.Dataset.from_tensor_slices(tensors)
+            .shuffle(buffer_size=shuffle_buffer)
+            .batch(self.batch_size)
+        )
