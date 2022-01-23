@@ -40,3 +40,7 @@ class DataModule:
             .shuffle(buffer_size=shuffle_buffer)
             .batch(self.batch_size)
         )
+
+
+class MTFraEng(DataModule):
+    """"""
