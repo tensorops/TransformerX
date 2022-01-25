@@ -1,3 +1,7 @@
+import hashlib
+import os
+
+import requests
 import tensorflow as tf
 
 
@@ -43,4 +47,30 @@ class DataModule:
 
 
 class MTFraEng(DataModule):
-    """"""
+    """Download data and preprocess"""
+
+    def download(url, folder="../data", sha1_hash=None):
+        """Download a file to folder and return the local filepath.
+
+        Parameters
+        ----------
+        folder :
+        sha1_hash :
+
+        Returns
+        -------
+
+        """
+        os.makedirs(folder, exist_ok=True)
+        fname = os.path.join(folder, url.split("/")[-1])
+        # Check if hit cache
+        if os.path.exists(fname) and sha1_hash:
+            sha1 = hashlib.sha1()
+            with open(fname, "rb") as f:
+                while True:
+                    data = f.read(1048576)
+                    if not data:
+                        break
+                    sha1.update(data)
+            if sha1.hexdigest() == sha1_hash:
+                return fname
