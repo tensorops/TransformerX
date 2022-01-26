@@ -74,3 +74,10 @@ class MTFraEng(DataModule):
                     sha1.update(data)
             if sha1.hexdigest() == sha1_hash:
                 return fname
+
+        # Download
+        print(f"Downloading {fname} from {url}...")
+        r = requests.get(url, stream=True, verify=True)
+        with open(fname, "wb") as f:
+            f.write(r.content)
+        return fname
