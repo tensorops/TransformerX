@@ -81,3 +81,9 @@ class MTFraEng(DataModule):
         with open(fname, "wb") as f:
             f.write(r.content)
         return fname
+
+    def extract(filename, folder=None):
+
+        base_dir = os.path.dirname(filename)
+        _, ext = os.path.splitext(filename)
+        assert ext in (".zip", ".tar", ".gz"), "Only support zip/tar files."
