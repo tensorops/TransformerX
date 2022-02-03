@@ -1,5 +1,6 @@
 import hashlib
 import os
+import zipfile
 
 import requests
 import tensorflow as tf
@@ -87,3 +88,6 @@ class MTFraEng(DataModule):
         base_dir = os.path.dirname(filename)
         _, ext = os.path.splitext(filename)
         assert ext in (".zip", ".tar", ".gz"), "Only support zip/tar files."
+
+        if ext == ".zip":
+            fp = zipfile.ZipFile(filename, "r")
