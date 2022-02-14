@@ -1,5 +1,6 @@
 import hashlib
 import os
+import tarfile
 import zipfile
 
 import requests
@@ -91,3 +92,5 @@ class MTFraEng(DataModule):
 
         if ext == ".zip":
             fp = zipfile.ZipFile(filename, "r")
+        else:
+            fp = tarfile.open(filename, "r")
