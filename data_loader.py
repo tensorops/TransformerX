@@ -94,3 +94,7 @@ class MTFraEng(DataModule):
             fp = zipfile.ZipFile(filename, "r")
         else:
             fp = tarfile.open(filename, "r")
+
+        if folder is None:
+            folder = base_dir
+        fp.extractall(folder)
