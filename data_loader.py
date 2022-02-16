@@ -1,3 +1,4 @@
+from typing import Optional
 import hashlib
 import os
 import tarfile
@@ -84,8 +85,13 @@ class MTFraEng(DataModule):
             f.write(r.content)
         return fname
 
-    def extract(filename, folder=None):
+    def extract(filename, folder: Optional[str] = None):
+        """Extract zip/tar file into the folder
 
+        Parameters
+        ----------
+        folder : the path to locate the extracted files
+        """
         base_dir = os.path.dirname(filename)
         _, ext = os.path.splitext(filename)
         assert ext in (".zip", ".tar", ".gz"), "Only support zip/tar files."
