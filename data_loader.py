@@ -49,6 +49,9 @@ class DataModule:
         )
 
 
+DATA_URL = "http://d2l-data.s3-accelerate.amazonaws.com/"
+
+
 class MTFraEng(DataModule):
     """Download data and preprocess"""
 
@@ -104,3 +107,14 @@ class MTFraEng(DataModule):
         if folder is None:
             folder = base_dir
         fp.extractall(folder)
+
+    def _download(self):
+        self.extract(
+            self.download(
+                DATA_URL + "fra-eng.zip",
+                self.data_directory,
+                "94646ad1522d915e7b0f9296181140edcf86a4f5",
+            )
+        )
+        with open(self.data_directory + "/fra-eng/fra.txt", encoding="utf-8") as f:
+            return f.read()
