@@ -119,7 +119,17 @@ class MTFraEng(DataModule):
         with open(self.data_directory + "/fra-eng/fra.txt", encoding="utf-8") as f:
             return f.read()
 
-    def _preprocess(self, text):
+    def _preprocess(self, text: str) -> str:
+        """Preprocess input text by replacing breaking space with space.
+
+        Parameters
+        ----------
+        text : Text to be preprocessed
+
+        Returns preprocessed text
+        -------
+
+        """
         # Replace non-breaking space with space
         text = text.replace("\u202f", " ").replace("\xa0", " ")
         # Insert space between words and punctuation marks
