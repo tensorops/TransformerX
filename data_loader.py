@@ -55,7 +55,8 @@ DATA_URL = "http://d2l-data.s3-accelerate.amazonaws.com/"
 class MTFraEng(DataModule):
     """Download data and preprocess"""
 
-    def download(self, url, folder: str = "../data", sha1_hash: str = None) -> str:
+    @staticmethod
+    def download(url, folder: str = "../data", sha1_hash: str = None) -> str:
         """Download a file to folder and return the local filepath.
 
         Parameters
@@ -88,11 +89,13 @@ class MTFraEng(DataModule):
             f.write(r.content)
         return fname
 
-    def extract(self, filename, folder: Optional[str] = None):
+    @staticmethod
+    def extract(filename, folder: Optional[str] = None):
         """Extract zip/tar file into the folder
 
         Parameters
         ----------
+        filename : File name to be extracted
         folder : the path to locate the extracted files
         """
         base_dir = os.path.dirname(filename)
@@ -119,7 +122,8 @@ class MTFraEng(DataModule):
         with open(self.data_directory + "/fra-eng/fra.txt", encoding="utf-8") as f:
             return f.read()
 
-    def _preprocess(self, text: str) -> str:
+    @staticmethod
+    def _preprocess(text: str) -> str:
         """Preprocess input text by replacing breaking space with space.
 
         Parameters
@@ -139,3 +143,16 @@ class MTFraEng(DataModule):
             for i, char in enumerate(text.lower())
         ]
         return "".join(out)
+
+    @staticmethod
+    def _tokenize(text, max_examples=None):
+        src, tgt = [], []
+        for i, line in enumerate(text.split("\n")):
+            if max_examples and i > max_examples:
+                break
+            parts = line.split("\t")
+            if len(parts) == 2:
+                # Skip empty tokens
+                src.append([t for t in f"{parts[0]} <eos>".split(" ") if t])
+                tgt.append([t for t in f"{parts[1]} <eos>".split(" ") if t])
+        return src, tgt
