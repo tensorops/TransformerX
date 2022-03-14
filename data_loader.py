@@ -55,7 +55,7 @@ DATA_URL = "http://d2l-data.s3-accelerate.amazonaws.com/"
 class MTFraEng(DataModule):
     """Download data and preprocess"""
 
-    def download(url, folder: str = "../data", sha1_hash: str = None) -> str:
+    def download(self, url, folder: str = "../data", sha1_hash: str = None) -> str:
         """Download a file to folder and return the local filepath.
 
         Parameters
@@ -88,7 +88,7 @@ class MTFraEng(DataModule):
             f.write(r.content)
         return fname
 
-    def extract(filename, folder: Optional[str] = None):
+    def extract(self, filename, folder: Optional[str] = None):
         """Extract zip/tar file into the folder
 
         Parameters
