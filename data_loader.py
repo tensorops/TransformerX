@@ -38,7 +38,7 @@ class DataModule:
 
         Returns
         -------
-
+        Shuffled and batched dataset
         """
         tensors = tuple(a[indices] for a in tensors)
         shuffle_buffer = tensors[0].shape[0] if train else 1
@@ -64,9 +64,9 @@ class MTFraEng(DataModule):
         folder : Directory to place the downloaded data into
         sha1_hash : SHA hash of the file
 
-        Returns path to the downloaded file
+        Returns
         -------
-
+        Path to the downloaded file
         """
         os.makedirs(folder, exist_ok=True)
         fname = os.path.join(folder, url.split("/")[-1])
@@ -130,9 +130,9 @@ class MTFraEng(DataModule):
         ----------
         text : Text to be preprocessed
 
-        Returns preprocessed text
+        Returns
         -------
-
+        Preprocessed text
         """
         # Replace non-breaking space with space
         text = text.replace("\u202f", " ").replace("\xa0", " ")
@@ -153,9 +153,9 @@ class MTFraEng(DataModule):
         text : Text to be tokenized
         max_examples : Maximum number of lines of the input to be tokenized
 
-        Returns source and target lists of tokens
+        Returns
         -------
-
+        Source and target lists of tokens
         """
         src, tgt = [], []
         for i, line in enumerate(text.split("\n")):
