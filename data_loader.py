@@ -145,7 +145,18 @@ class MTFraEng(DataModule):
         return "".join(out)
 
     @staticmethod
-    def _tokenize(text, max_examples=None):
+    def _tokenize(text: str, max_examples: int = None):
+        """Tokenize the input text
+
+        Parameters
+        ----------
+        text : Text to be tokenized
+        max_examples : Maximum number of lines of the input to be tokenized
+
+        Returns source and target lists of tokens
+        -------
+
+        """
         src, tgt = [], []
         for i, line in enumerate(text.split("\n")):
             if max_examples and i > max_examples:
