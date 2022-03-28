@@ -167,3 +167,10 @@ class MTFraEng(DataModule):
                 src.append([t for t in f"{parts[0]} <eos>".split(" ") if t])
                 tgt.append([t for t in f"{parts[1]} <eos>".split(" ") if t])
         return src, tgt
+
+    def __init__(self, batch_size, num_steps=9, num_train=512, num_val=128):
+        super(MTFraEng, self).__init__()
+        self.save_hyperparameters()
+        self.arrays, self.src_vocab, self.tgt_vocab = self._build_arrays(
+            self._download()
+        )
