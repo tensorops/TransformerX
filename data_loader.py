@@ -1,3 +1,4 @@
+import collections
 from typing import Optional
 import hashlib
 import os
@@ -50,6 +51,27 @@ class DataModule:
 
 
 DATA_URL = "http://d2l-data.s3-accelerate.amazonaws.com/"
+
+
+class Vocab:
+    def __init__(self, tokens=[], min_freq=0, reserved_tokens=[]):
+        # Flatten a 2D list if needed
+        if tokens and isinstance(tokens[0], list):
+            tokens = [token for line in tokens for token in line]
+        # Count token frequencies
+        counter = collections.Counter(tokens)
+        self.token_freqs = sorted(counter.items(), key=lambda x: x[1], reverse=True)
+        # The list of unique tokens
+        self.idx_to_token = list(
+            sorted(
+                set(
+                    ["<unk>"]
+                    + reserved_tokens
+                    + [token for token, freq in self.token_freqs if freq >= min_freq]
+                )
+            )
+        )
+        self.token_to_idx = {token: idx for idx, token in enumerate(self.idx_to_token)}
 
 
 class MTFraEng(DataModule):
