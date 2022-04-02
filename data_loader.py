@@ -54,7 +54,17 @@ DATA_URL = "http://d2l-data.s3-accelerate.amazonaws.com/"
 
 
 class Vocab:
+    """Vocabulary for text"""
+
     def __init__(self, tokens=[], min_freq=0, reserved_tokens=[]):
+        """Initialize the Vocab class
+
+        Parameters
+        ----------
+        tokens : Tokens to be included in the vocab
+        min_freq : Minimum frequency accepted while adding to the vocabulary
+        reserved_tokens : Reserved tokens
+        """
         # Flatten a 2D list if needed
         if tokens and isinstance(tokens[0], list):
             tokens = [token for line in tokens for token in line]
