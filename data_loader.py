@@ -83,6 +83,9 @@ class Vocab:
         )
         self.token_to_idx = {token: idx for idx, token in enumerate(self.idx_to_token)}
 
+    def __len__(self):
+        return len(self.idx_to_token)
+
 
 class MTFraEng(DataModule):
     """Download data and preprocess"""
