@@ -92,6 +92,16 @@ class Vocab:
         return [self.__getitem__(token) for token in tokens]
 
     def to_tokens(self, indices):
+        """Get tokens for the specified indices
+
+        Parameters
+        ----------
+        indices : Indices to return tokens for
+
+        Returns
+        -------
+        Tokens for the specified indices
+        """
         if hasattr(indices, "__len__") and len(indices) > 1:
             return [self.idx_to_token[int(index)] for index in indices]
         return self.idx_to_token[indices]
