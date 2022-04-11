@@ -1,5 +1,5 @@
 import collections
-from typing import Optional
+from typing import Optional, Tuple
 import hashlib
 import os
 import tarfile
@@ -91,7 +91,7 @@ class Vocab:
             return self.token_to_idx.get(tokens, self.unk)
         return [self.__getitem__(token) for token in tokens]
 
-    def to_tokens(self, indices):
+    def to_tokens(self, indices: Tuple[int, list]) -> Tuple[int, list]:
         """Get tokens for the specified indices
 
         Parameters
