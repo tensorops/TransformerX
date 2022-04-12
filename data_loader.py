@@ -56,7 +56,9 @@ DATA_URL = "http://d2l-data.s3-accelerate.amazonaws.com/"
 class Vocab:
     """Vocabulary for text"""
 
-    def __init__(self, tokens=[], min_freq=0, reserved_tokens=[]):
+    def __init__(
+        self, tokens: list = [], min_freq: int = 0, reserved_tokens: Optional[list] = []
+    ):
         """Initialize the Vocab class
 
         Parameters
