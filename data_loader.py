@@ -108,6 +108,10 @@ class Vocab:
             return [self.idx_to_token[int(index)] for index in indices]
         return self.idx_to_token[indices]
 
+    @property
+    def unk(self):
+        return self.token_to_idx["<unk>"]
+
 
 class MTFraEng(DataModule):
     """Download data and preprocess"""
