@@ -110,6 +110,12 @@ class Vocab:
 
     @property
     def unk(self):
+        """Special token unknown property
+
+        Returns
+        -------
+        Index for the unknown token
+        """
         return self.token_to_idx["<unk>"]
 
 
