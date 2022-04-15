@@ -264,3 +264,15 @@ class MTFraEng(DataModule):
             array = tf.constant([vocab[s] for s in sentences])
             valid_len = tf.reduce_sum(tf.cast(array != vocab["<pad>"], tf.int32), 1)
             return array, vocab, valid_len
+
+        src, tgt = self._tokenize(
+            self._preprocess(raw_text), self.num_train + self.num_val
+        )
+        src_array, src_vocab, src_valid_len = _build_array(src, src_vocab)
+        tgt_array, tgt_vocab, _ = _build_array(tgt, tgt_vocab, True)
+
+        return (
+            (src_array, tgt_array[:, :-1], src_valid_len, tgt_array[:, 1:]),
+            src_vocab,
+            tgt_vocab,
+        )
