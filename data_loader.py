@@ -250,3 +250,17 @@ class MTFraEng(DataModule):
         self.arrays, self.src_vocab, self.tgt_vocab = self._build_arrays(
             self._download()
         )
+
+    def _build_arrays(self, raw_text, src_vocab=None, tgt_vocab=None):
+        def _build_array(sentences, vocab, is_tgt=False):
+            pad_or_trim = lambda seq, t: (
+                seq[:t] if len(seq) > t else seq + ["<pad>"] * (t - len(seq))
+            )
+            sentences = [pad_or_trim(s, self.num_steps) for s in sentences]
+            if is_tgt:
+                sentences = [["<bos>"] + s for s in sentences]
+            if vocab is None:
+                vocab = Vocab(sentences, min_freq=2)
+            array = tf.constant([vocab[s] for s in sentences])
+            valid_len = tf.reduce_sum(tf.cast(array != vocab["<pad>"], tf.int32), 1)
+            return array, vocab, valid_len
