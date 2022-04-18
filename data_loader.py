@@ -5,6 +5,7 @@ import os
 import tarfile
 import zipfile
 
+import numpy as np
 import requests
 import tensorflow as tf
 
@@ -252,6 +253,19 @@ class MTFraEng(DataModule):
         )
 
     def _build_arrays(self, raw_text, src_vocab=None, tgt_vocab=None):
+        """Build vocabs from the input text
+
+        Parameters
+        ----------
+        raw_text : Input text to generate source and target vocabs from
+        src_vocab : Source vocabulary
+        tgt_vocab : Target vocabulary
+
+        Returns
+        -------
+        Generated source and target vocabularies along with valid lens, src and tgt arrays
+        """
+
         def _build_array(sentences, vocab, is_tgt=False):
             pad_or_trim = lambda seq, t: (
                 seq[:t] if len(seq) > t else seq + ["<pad>"] * (t - len(seq))
