@@ -290,3 +290,7 @@ class MTFraEng(DataModule):
             src_vocab,
             tgt_vocab,
         )
+
+    def get_dataloader(self, train):
+        idx = slice(0, self.num_train) if train else slice(self.num_train, None)
+        return self.get_tensorloader(self.arrays, train, idx)
