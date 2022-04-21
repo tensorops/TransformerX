@@ -291,6 +291,23 @@ class MTFraEng(DataModule):
             tgt_vocab,
         )
 
-    def get_dataloader(self, train):
+    def get_dataloader(self, train: bool):
+        """
+
+        Parameters
+        ----------
+        train : Training mode indicator flag
+
+        Returns
+        -------
+
+        """
         idx = slice(0, self.num_train) if train else slice(self.num_train, None)
         return self.get_tensorloader(self.arrays, train, idx)
+
+    def build(self, src_sentences, tgt_sentences):
+        raw_text = "\n".join(
+            [src + "\t" + tgt for src, tgt in zip(src_sentences, tgt_sentences)]
+        )
+        arrays, _, _ = self._build_arrays(raw_text, self.src_vocab, self.tgt_vocab)
+        return arrays
