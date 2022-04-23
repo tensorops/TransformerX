@@ -306,6 +306,17 @@ class MTFraEng(DataModule):
         return self.get_tensorloader(self.arrays, train, idx)
 
     def build(self, src_sentences, tgt_sentences):
+        """Build arrays
+
+        Parameters
+        ----------
+        src_sentences : Source sentences
+        tgt_sentences : Target sentences
+
+        Returns
+        -------
+        arrays : source and target arrays
+        """
         raw_text = "\n".join(
             [src + "\t" + tgt for src, tgt in zip(src_sentences, tgt_sentences)]
         )
