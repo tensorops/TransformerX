@@ -9,6 +9,8 @@ import tensorflow as tf
 from einops import rearrange, reduce
 import matplotlib.pyplot as plt
 
+from data_loader import MTFraEng
+
 os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
 
@@ -452,3 +454,10 @@ class TransformerDecoder(tf.keras.layers.Layer):
     @property
     def attention_weights(self):
         return self._attention_weights
+
+
+data = MTFraEng(batch_size=128)
+num_hiddens, num_blks, dropout = 256, 2, 0.2
+ffn_num_hiddens, num_heads = 64, 4
+key_size, query_size, value_size = 256, 256, 256
+norm_shape = [2]
