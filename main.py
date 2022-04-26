@@ -461,3 +461,4 @@ num_hiddens, num_blks, dropout = 256, 2, 0.2
 ffn_num_hiddens, num_heads = 64, 4
 key_size, query_size, value_size = 256, 256, 256
 norm_shape = [2]
+print(data)

@@ -1,5 +1,5 @@
 import collections
-from typing import Optional, Tuple
+from typing import Optional, Tuple, List
 import hashlib
 import os
 import tarfile
@@ -13,7 +13,7 @@ import tensorflow as tf
 class DataModule:
     """Base class for data loaders"""
 
-    def __init__(self, data_directory="../data"):
+    def __init__(self, data_directory="./data"):
         self.data_directory = data_directory
 
     def get_dataloader(self, train):
@@ -26,7 +26,7 @@ class DataModule:
         return self.get_dataloader(train=False)
 
     def get_tensorloader(
-        self, tensors: list[tf.Tensor], train: bool, indices: int = slice(0, None)
+        self, tensors: List[tf.Tensor], train: bool, indices: int = slice(0, None)
     ):
         """Prepare tensors for training
 
@@ -122,6 +122,26 @@ class Vocab:
 
 class MTFraEng(DataModule):
     """Download data and preprocess"""
+
+    def __init__(self, batch_size, num_steps=9, num_train=512, num_val=128):
+        """Initialize the class
+
+        Parameters
+        ----------
+        batch_size : Size of the batches
+        num_steps : Number of steps
+        num_train : Number of training items
+        num_val : Number of validation items
+        """
+        super(MTFraEng, self).__init__()
+        self.batch_size = batch_size
+        self.num_steps = num_steps
+        self.num_train = num_train
+        self.num_val = num_val
+        # self.save_hyperparameters()
+        self.arrays, self.src_vocab, self.tgt_vocab = self._build_arrays(
+            self._download()
+        )
 
     @staticmethod
     def download(url, folder: str = "../data", sha1_hash: str = None) -> str:
@@ -235,22 +255,6 @@ class MTFraEng(DataModule):
                 src.append([t for t in f"{parts[0]} <eos>".split(" ") if t])
                 tgt.append([t for t in f"{parts[1]} <eos>".split(" ") if t])
         return src, tgt
-
-    def __init__(self, batch_size, num_steps=9, num_train=512, num_val=128):
-        """Initialize the class
-
-        Parameters
-        ----------
-        batch_size : Size of the batches
-        num_steps : Number of steps
-        num_train : Number of training items
-        num_val : Number of validation items
-        """
-        super(MTFraEng, self).__init__()
-        self.save_hyperparameters()
-        self.arrays, self.src_vocab, self.tgt_vocab = self._build_arrays(
-            self._download()
-        )
 
     def _build_arrays(self, raw_text, src_vocab=None, tgt_vocab=None):
         """Build vocabs from the input text
