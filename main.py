@@ -456,9 +456,10 @@ class TransformerDecoder(tf.keras.layers.Layer):
         return self._attention_weights
 
 
-data = MTFraEng(batch_size=128)
-num_hiddens, num_blks, dropout = 256, 2, 0.2
-ffn_num_hiddens, num_heads = 64, 4
-key_size, query_size, value_size = 256, 256, 256
-norm_shape = [2]
-print(data)
+class Classifier(tf.Module):
+    """Classifier class"""
+
+    def validation_step(self, batch):
+        Y_hat = self(*batch[:-1])
+        self.plot("loss", self.loss(Y_hat, batch[-1]), train=False)
+        self.plot("acc", self.accuracy(Y_hat, batch[-1]), train=False)
