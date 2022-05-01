@@ -471,3 +471,10 @@ class Classifier(tf.Module):
         preds = tf.astype(tf.argmax(Y_hat, axis=1), Y.dtype)
         compare = tf.astype(preds == tf.reshape(Y, -1), tf.float32)
         return tf.reduce_mean(compare) if averaged else compare
+
+    @staticmethod
+    def loss(Y_hat, Y, averaged=True):
+        Y_hat = tf.reshape(Y_hat, (-1, Y_hat.shape[-1]))
+        Y = tf.reshape(Y, (-1,))
+        fn = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
+        return fn(Y, Y_hat)
