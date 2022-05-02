@@ -474,6 +474,7 @@ class Classifier(tf.Module):
 
     @staticmethod
     def loss(Y_hat, Y, averaged=True):
+        """Compute loss"""
         Y_hat = tf.reshape(Y_hat, (-1, Y_hat.shape[-1]))
         Y = tf.reshape(Y, (-1,))
         fn = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
