@@ -479,3 +479,9 @@ class Classifier(tf.Module):
         Y = tf.reshape(Y, (-1,))
         fn = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
         return fn(Y, Y_hat)
+
+    def layer_summary(self, X_shape):
+        X = tf.normal(X_shape)
+        for layer in self.net.layers:
+            X = layer(X)
+            print(layer.__class__.__name__, "output shape:\t", X.shape)
