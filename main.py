@@ -481,6 +481,7 @@ class Classifier(tf.Module):
         return fn(Y, Y_hat)
 
     def layer_summary(self, X_shape):
+        """Layer summary"""
         X = tf.random.normal(X_shape)
         for layer in self.net.layers:
             X = layer(X)
