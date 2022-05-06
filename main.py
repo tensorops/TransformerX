@@ -486,3 +486,10 @@ class Classifier(tf.Module):
         for layer in self.net.layers:
             X = layer(X)
             print(layer.__class__.__name__, "output shape:\t", X.shape)
+
+
+class EncoderDecoder(Classifier):
+    def __init__(self, encoder, decoder):
+        super().__init__()
+        self.encoder = encoder
+        self.decoder = decoder
