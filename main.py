@@ -489,6 +489,8 @@ class Classifier(tf.Module):
 
 
 class EncoderDecoder(Classifier):
+    """Encoder-decoder architecture base class"""
+
     def __init__(self, encoder, decoder):
         super().__init__()
         self.encoder = encoder
