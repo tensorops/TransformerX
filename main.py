@@ -524,3 +524,7 @@ class Seq2Seq(EncoderDecoder):
         # self.save_hyperparameters()
         self.tgt_pad = tgt_pad
         self.lr = lr
+
+    def validation_step(self, batch):
+        Y_hat = self(*batch[:-1])
+        self.plot("loss", self.loss(Y_hat, batch[-1]), train=False)
