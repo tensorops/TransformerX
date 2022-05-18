@@ -532,3 +532,9 @@ class Seq2Seq(EncoderDecoder):
     def configure_optimizers(self):
         # Adam optimizer is used here
         return tf.keras.optimizers.Adam(learning_rate=self.lr)
+
+
+class Trainer:
+    def __init__(self, max_epochs, num_gpus=0, gradient_clip_val=0):
+        # self.save_hyperparameters()
+        assert num_gpus == 0, "No GPU support yet"
