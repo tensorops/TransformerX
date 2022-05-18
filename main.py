@@ -528,3 +528,7 @@ class Seq2Seq(EncoderDecoder):
     def validation_step(self, batch):
         Y_hat = self(*batch[:-1])
         self.plot("loss", self.loss(Y_hat, batch[-1]), train=False)
+
+    def configure_optimizers(self):
+        # Adam optimizer is used here
+        return tf.keras.optimizers.Adam(learning_rate=self.lr)
