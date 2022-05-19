@@ -538,3 +538,13 @@ class Trainer:
     def __init__(self, max_epochs, num_gpus=0, gradient_clip_val=0):
         # self.save_hyperparameters()
         assert num_gpus == 0, "No GPU support yet"
+        self.max_epochs = max_epochs
+        self.gradient_clip_val = gradient_clip_val
+
+    def prepare_data(self, data):
+        self.train_dataloader = data.train_dataloader()
+        self.val_dataloader = data.val_dataloader()
+        self.num_train_batches = len(self.train_dataloader)
+        self.num_val_batches = (
+            len(self.val_dataloader) if self.val_dataloader is not None else 0
+        )
