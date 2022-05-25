@@ -537,6 +537,10 @@ class Seq2Seq(EncoderDecoder):
 class Trainer:
     def __init__(self, max_epochs, num_gpus=0, gradient_clip_val=0):
         # self.save_hyperparameters()
+        self.val_batch_idx = None
+        self.train_batch_idx = None
+        self.epoch = None
+        self.optim = None
         assert num_gpus == 0, "No GPU support yet"
         self.max_epochs = max_epochs
         self.gradient_clip_val = gradient_clip_val
@@ -563,3 +567,23 @@ class Trainer:
         self.val_batch_idx = 0
         for self.epoch in range(self.max_epochs):
             self.fit_epoch()
+
+    def fit_epoch(self):
+        raise NotImplementedError
+
+    @staticmethod
+    def prepare_batch(batch):
+        """Prepare batch"""
+        return batch
+
+    def fit_epoch(self):
+        """Train the model"""
+        self.model.training = True
+        for batch in self.train_dataloader:
+            with tf.GradientTape() as tape:
+                loss = self.model.training_step(self.prepare_batch(batch))
+            grads = tape.gradient(loss, self.model.trainable_variables)
+            if self.gradient_clip_val > 0:
+                grads = self.clip_gradients(self.gradient_clip_val, grads)
+            self.optim.apply_gradients(zip(grads, self.model.trainable_variables))
+            self.train_batch_idx += 1
