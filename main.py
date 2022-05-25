@@ -553,3 +553,13 @@ class Trainer:
         model.trainer = self
         model.board.xlim = [0, self.max_epochs]
         self.model = model
+
+    def fit(self, model, data):
+        self.prepare_data(data)
+        self.prepare_model(model)
+        self.optim = model.configure_optimizers()
+        self.epoch = 0
+        self.train_batch_idx = 0
+        self.val_batch_idx = 0
+        for self.epoch in range(self.max_epochs):
+            self.fit_epoch()
