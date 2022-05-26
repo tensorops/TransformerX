@@ -587,3 +587,10 @@ class Trainer:
                 grads = self.clip_gradients(self.gradient_clip_val, grads)
             self.optim.apply_gradients(zip(grads, self.model.trainable_variables))
             self.train_batch_idx += 1
+
+        if self.val_dataloader is None:
+            return
+        self.model.training = False
+        for batch in self.val_dataloader:
+            self.model.validation_step(self.prepare_batch(batch))
+            self.val_batch_idx += 1
