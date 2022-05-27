@@ -594,3 +594,17 @@ class Trainer:
         for batch in self.val_dataloader:
             self.model.validation_step(self.prepare_batch(batch))
             self.val_batch_idx += 1
+
+    def clip_gradients(self, grad_clip_val, grads):
+        """Clip the gradients"""
+        grad_clip_val = tf.constant(grad_clip_val, dtype=tf.float32)
+        new_grads = [
+            tf.convert_to_tensor(grad) if isinstance(grad, tf.IndexedSlices) else grad
+            for grad in grads
+        ]
+        norm = tf.math.sqrt(sum((tf.reduce_sum(grad**2)) for grad in new_grads))
+        if tf.greater(norm, grad_clip_val):
+            for i, grad in enumerate(new_grads):
+                new_grads[i] = grad * grad_clip_val / norm
+            return new_grads
+        return grads
