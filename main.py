@@ -456,7 +456,18 @@ class TransformerDecoder(tf.keras.layers.Layer):
         return self._attention_weights
 
 
-class Classifier(tf.Module):
+class Module(tf.keras.Model):
+    """Base class for models"""
+
+    def __init__(self, plot_train_per_epoch=2, plot_valid_per_epoch=1):
+        super().__init__()
+        # self.save_hyperparameters()
+        self.training = None
+        self.plot_train_per_epoch = plot_train_per_epoch
+        self.plot_valid_per_epoch = plot_valid_per_epoch
+
+
+class Classifier(Module):
     """Classifier class"""
 
     def validation_step(self, batch):
@@ -548,14 +559,12 @@ class Trainer:
     def prepare_data(self, data):
         self.train_dataloader = data.train_dataloader()
         self.val_dataloader = data.val_dataloader()
-        self.num_train_batches = len(self.train_dataloader)
-        self.num_val_batches = (
-            len(self.val_dataloader) if self.val_dataloader is not None else 0
-        )
+        # self.num_train_batches = len(self.train_dataloader)
+        # self.num_val_batches = (len(self.val_dataloader) if self.val_dataloader is not None else 0)
 
     def prepare_model(self, model):
         model.trainer = self
-        model.board.xlim = [0, self.max_epochs]
+        # model.board.xlim = [0, self.max_epochs]
         self.model = model
 
     def fit(self, model, data):
@@ -567,9 +576,6 @@ class Trainer:
         self.val_batch_idx = 0
         for self.epoch in range(self.max_epochs):
             self.fit_epoch()
-
-    def fit_epoch(self):
-        raise NotImplementedError
 
     @staticmethod
     def prepare_batch(batch):
@@ -595,7 +601,8 @@ class Trainer:
             self.model.validation_step(self.prepare_batch(batch))
             self.val_batch_idx += 1
 
-    def clip_gradients(self, grad_clip_val, grads):
+    @staticmethod
+    def clip_gradients(grad_clip_val, grads):
         """Clip the gradients"""
         grad_clip_val = tf.constant(grad_clip_val, dtype=tf.float32)
         new_grads = [
@@ -608,3 +615,37 @@ class Trainer:
                 new_grads[i] = grad * grad_clip_val / norm
             return new_grads
         return grads
+
+
+data = MTFraEng(batch_size=128)
+num_hiddens, num_blks, dropout = 256, 2, 0.2
+ffn_num_hiddens, num_heads = 64, 4
+key_size, query_size, value_size = 256, 256, 256
+norm_shape = [2]
+encoder = TransformerEncoder(
+    len(data.src_vocab),
+    key_size,
+    query_size,
+    value_size,
+    num_hiddens,
+    norm_shape,
+    ffn_num_hiddens,
+    num_heads,
+    num_blks,
+    dropout,
+)
+decoder = TransformerDecoder(
+    len(data.tgt_vocab),
+    key_size,
+    query_size,
+    value_size,
+    num_hiddens,
+    norm_shape,
+    ffn_num_hiddens,
+    num_heads,
+    num_blks,
+    dropout,
+)
+model = Seq2Seq(encoder, decoder, tgt_pad=data.tgt_vocab["<pad>"], lr=0.001)
+trainer = Trainer(max_epochs=50, gradient_clip_val=1)
+trainer.fit(model, data)
