@@ -466,6 +466,9 @@ class Module(tf.keras.Model):
         self.plot_train_per_epoch = plot_train_per_epoch
         self.plot_valid_per_epoch = plot_valid_per_epoch
 
+    def loss(self, y_hat, y):
+        raise NotImplementedError
+
 
 class Classifier(Module):
     """Classifier class"""
