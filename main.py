@@ -469,6 +469,10 @@ class Module(tf.keras.Model):
     def loss(self, y_hat, y):
         raise NotImplementedError
 
+    def forward(self, X):
+        assert hasattr(self, "net"), "Neural network is defined"
+        return self.net(X)
+
 
 class Classifier(Module):
     """Classifier class"""
