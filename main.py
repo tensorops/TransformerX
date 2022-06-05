@@ -483,6 +483,10 @@ class Module(tf.keras.Model):
         self.plot("loss", l, train=True)
         return l
 
+    def validation_step(self, batch):
+        l = self.loss(self(*batch[:-1]), batch[-1])
+        self.plot("loss", l, train=False)
+
 
 class Classifier(Module):
     """Classifier class"""
