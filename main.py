@@ -487,6 +487,9 @@ class Module(tf.keras.Model):
         l = self.loss(self(*batch[:-1]), batch[-1])
         self.plot("loss", l, train=False)
 
+    def configure_optimizers(self):
+        raise NotImplementedError
+
 
 class Classifier(Module):
     """Classifier class"""
