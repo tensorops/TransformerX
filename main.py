@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 
 from data_loader import MTFraEng
 
-os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+# os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
 
 def masked_softmax(X, valid_lens):
@@ -178,7 +178,7 @@ class PositionalEncoding(tf.keras.layers.Layer):
         self.dropout = tf.keras.layers.Dropout(dropout)
         # Create a long enough P
 
-        self.P = np.zeros((2, max_len, num_hiddens))
+        self.P = np.zeros((1, max_len, num_hiddens))
         print("P.shape", self.P.shape)
         X = np.arange(max_len, dtype=np.float32).reshape(-1, 1) / np.power(
             10000, np.arange(0, num_hiddens, 2, dtype=np.float32) / num_hiddens
@@ -192,6 +192,8 @@ class PositionalEncoding(tf.keras.layers.Layer):
         )  # x[low::stride] -> positions: 1, 3, 5 , ... of all rows and columns
 
     def call(self, X, **kwargs):
+        print("X.shape[1]: ", X.shape[1])
+        print("self.P[:, : X.shape[1], :]: ", self.P[:, : X.shape[1], :].shape)
         X = X + self.P[:, : X.shape[1], :]
         return self.dropout(X, **kwargs)
 
@@ -480,7 +482,7 @@ class Module(tf.keras.Model):
 
     def training_step(self, batch):
         l = self.loss(self(*batch[:-1]), batch[-1])
-        self.plot("loss", l, train=True)
+        # self.plot("loss", l, train=True)
         return l
 
     def validation_step(self, batch):
@@ -563,7 +565,7 @@ class Seq2Seq(EncoderDecoder):
 
     def validation_step(self, batch):
         Y_hat = self(*batch[:-1])
-        self.plot("loss", self.loss(Y_hat, batch[-1]), train=False)
+        # self.plot("loss", self.loss(Y_hat, batch[-1]), train=False)
 
     def configure_optimizers(self):
         # Adam optimizer is used here
