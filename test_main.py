@@ -1,6 +1,5 @@
 import pytest
 from main import (
-    PositionalEncoding,
     Plot,
     PositionWiseFFN,
     AddNorm,
@@ -8,6 +7,7 @@ from main import (
     TransformerEncoder,
     TransformerDecoderBlock,
 )
+from layers.positional_encoding import PositionalEncoding
 from layers.multihead_attention import MultiHeadAttention
 import numpy as np
 import tensorflow as tf
