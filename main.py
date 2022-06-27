@@ -1,47 +1,10 @@
-from typing import Tuple
-from itertools import cycle
-
-import numpy as np
 import tensorflow as tf
-import matplotlib.pyplot as plt
 
 from data_loader import MTFraEng
 
 # os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 from layers.multihead_attention import MultiHeadAttention
 from layers.positional_encoding import PositionalEncoding
-
-
-class Plot:
-    def plot_pe(
-        self,
-        cols: Tuple[int, list, np.ndarray],
-        pos_encodings,
-        num_steps,
-        show_grid=True,
-    ):
-        ax = plt.figure(figsize=(6, 2.5))
-
-        lines = ["-", "--", "-.", ":"]
-        self.line_cycler = cycle(lines)
-
-        def plot_line(col):
-            plt.plot(
-                np.arange(num_steps),
-                pos_encodings[0, :, col].T,
-                next(self.line_cycler),
-                label=f"col {col}",
-            )
-
-        if isinstance(cols, (list, np.ndarray)):
-            for col in cols:
-                plot_line(col)
-        else:
-            plot_line(cols)
-        ax.legend()
-        plt.title("Columns 7-10")
-        plt.grid(show_grid)
-        plt.show()
 
 
 class PositionWiseFFN(tf.keras.layers.Layer):
