@@ -1,11 +1,11 @@
 import pytest
 from main import (
-    PositionWiseFFN,
     AddNorm,
     TransformerEncoderBlock,
     TransformerEncoder,
     TransformerDecoderBlock,
 )
+from layers.positionwise_ffn import PositionWiseFFN
 from txplot.plot_pe import Plot
 from layers.positional_encoding import PositionalEncoding
 from layers.multihead_attention import MultiHeadAttention
