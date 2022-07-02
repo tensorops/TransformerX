@@ -1,10 +1,10 @@
 import pytest
 from main import (
-    AddNorm,
     TransformerEncoderBlock,
     TransformerEncoder,
     TransformerDecoderBlock,
 )
+from layers.addnorm import AddNorm
 from layers.positionwise_ffn import PositionWiseFFN
 from txplot.plot_pe import Plot
 from layers.positional_encoding import PositionalEncoding

@@ -3,21 +3,10 @@ import tensorflow as tf
 from data_loader import MTFraEng
 
 # os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+from layers.addnorm import AddNorm
 from layers.multihead_attention import MultiHeadAttention
 from layers.positional_encoding import PositionalEncoding
 from layers.positionwise_ffn import PositionWiseFFN
-
-
-class AddNorm(tf.keras.layers.Layer):
-    """Add a residual connection followed by a layer normalization"""
-
-    def __init__(self, norm_shape, dropout):
-        super(AddNorm, self).__init__()
-        self.dropout = tf.keras.layers.Dropout(dropout)
-        self.ln = tf.keras.layers.LayerNormalization(norm_shape)
-
-    def call(self, X, Y, **kwargs):
-        return self.ln(self.dropout(Y, **kwargs) + X)
 
 
 class TransformerEncoderBlock(tf.keras.layers.Layer):
