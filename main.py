@@ -16,9 +16,6 @@ class TransformerEncoder(tf.keras.layers.Layer):
     def __init__(
         self,
         vocab_size,
-        key_size,
-        query_size,
-        value_size,
         num_hiddens,
         norm_shape,
         ffn_num_hiddens,
@@ -370,9 +367,6 @@ key_size, query_size, value_size = 256, 256, 256
 norm_shape = [2]
 encoder = TransformerEncoder(
     len(data.src_vocab),
-    key_size,
-    query_size,
-    value_size,
     num_hiddens,
     norm_shape,
     ffn_num_hiddens,
