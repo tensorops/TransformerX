@@ -1,8 +1,8 @@
 import pytest
 from main import (
-    TransformerEncoder,
     TransformerDecoderBlock,
 )
+from layers.transformer_encoder import TransformerEncoder
 from layers.transformer_encoder_block import TransformerEncoderBlock
 from layers.addnorm import AddNorm
 from layers.positionwise_ffn import PositionWiseFFN
