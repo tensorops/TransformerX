@@ -15,9 +15,6 @@ class TransformerDecoderBlock(tf.keras.layers.Layer):
 
     def __init__(
         self,
-        key_size,
-        query_size,
-        value_size,
         num_hiddens,
         norm_shape,
         ffn_num_hiddens,
@@ -90,9 +87,6 @@ class TransformerDecoder(tf.keras.layers.Layer):
         self.pos_encoding = PositionalEncoding(num_hiddens, dropout)
         self.blks = [
             TransformerDecoderBlock(
-                key_size,
-                query_size,
-                value_size,
                 num_hiddens,
                 norm_shape,
                 ffn_num_hiddens,
