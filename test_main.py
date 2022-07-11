@@ -1,7 +1,5 @@
 import pytest
-from main import (
-    TransformerDecoderBlock,
-)
+from layers.transformer_decoder_block import TransformerDecoderBlock
 from layers.transformer_encoder import TransformerEncoder
 from layers.transformer_encoder_block import TransformerEncoderBlock
 from layers.addnorm import AddNorm
