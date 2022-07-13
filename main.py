@@ -14,9 +14,6 @@ class TransformerDecoder(tf.keras.layers.Layer):
     def __init__(
         self,
         vocab_size,
-        key_size,
-        query_size,
-        value_size,
         num_hiddens,
         norm_shape,
         ffn_num_hiddens,
@@ -268,9 +265,6 @@ encoder = TransformerEncoder(
 )
 decoder = TransformerDecoder(
     len(data.tgt_vocab),
-    key_size,
-    query_size,
-    value_size,
     num_hiddens,
     norm_shape,
     ffn_num_hiddens,
