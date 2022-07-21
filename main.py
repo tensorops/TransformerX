@@ -5,37 +5,7 @@ from data_loader import MTFraEng
 # os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 from layers.transformer_decoder import TransformerDecoder
 from layers.transformer_encoder import TransformerEncoder
-from training.base import Classifier
-
-
-class EncoderDecoder(Classifier):
-    """Encoder-decoder architecture base class"""
-
-    def __init__(self, encoder, decoder):
-        super().__init__()
-        self.encoder = encoder
-        self.decoder = decoder
-
-    def call(self, enc_X, dec_X, *args):
-        enc_outputs = self.encoder(enc_X, *args, training=True)
-        dec_state = self.decoder.init_state(enc_outputs, *args)
-        # Return decoder output only
-        return self.decoder(dec_X, dec_state, training=True)[0]
-
-    def predict_step(self, batch, num_steps, save_attention_weights=False):
-        src, tgt, src_valid_len, _ = batch
-        enc_outputs = self.encoder(src, src_valid_len, training=False)
-        dec_state = self.decoder.init_state(enc_outputs, src_valid_len)
-        outputs, attention_weights = [
-            tf.expand_dims(tgt[:, 0], 1),
-        ], []
-        for _ in range(num_steps):
-            Y, dec_state = self.decoder(outputs[-1], dec_state, training=False)
-            outputs.append(tf.argmax(Y, 2))
-            # Save attention weights (to be covered later)
-            if save_attention_weights:
-                attention_weights.append(self.decoder.attention_weights)
-        return tf.concat(outputs[1:], 1), attention_weights
+from training.base import EncoderDecoder
 
 
 class Seq2Seq(EncoderDecoder):
