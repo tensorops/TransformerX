@@ -1,84 +1,9 @@
-import tensorflow as tf
-
 from data_loader import MTFraEng
 
 # os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 from layers.transformer_decoder import TransformerDecoder
 from layers.transformer_encoder import TransformerEncoder
-from training.base import Seq2Seq
-
-
-class Trainer:
-    def __init__(self, max_epochs, num_gpus=0, gradient_clip_val=0):
-        # self.save_hyperparameters()
-        self.val_batch_idx = None
-        self.train_batch_idx = None
-        self.epoch = None
-        self.optim = None
-        assert num_gpus == 0, "No GPU support yet"
-        self.max_epochs = max_epochs
-        self.gradient_clip_val = gradient_clip_val
-
-    def prepare_data(self, data):
-        self.train_dataloader = data.train_dataloader()
-        self.val_dataloader = data.val_dataloader()
-        # self.num_train_batches = len(self.train_dataloader)
-        # self.num_val_batches = (len(self.val_dataloader) if self.val_dataloader is not None else 0)
-
-    def prepare_model(self, model):
-        model.trainer = self
-        # model.board.xlim = [0, self.max_epochs]
-        self.model = model
-
-    def fit(self, model, data):
-        self.prepare_data(data)
-        self.prepare_model(model)
-        self.optim = model.configure_optimizers()
-        self.epoch = 0
-        self.train_batch_idx = 0
-        self.val_batch_idx = 0
-        for self.epoch in range(self.max_epochs):
-            self.fit_epoch()
-
-    @staticmethod
-    def prepare_batch(batch):
-        """Prepare batch"""
-        return batch
-
-    def fit_epoch(self):
-        """Train the model"""
-        self.model.training = True
-        for batch in self.train_dataloader:
-            with tf.GradientTape() as tape:
-                loss = self.model.training_step(self.prepare_batch(batch))
-            grads = tape.gradient(loss, self.model.trainable_variables)
-            if self.gradient_clip_val > 0:
-                grads = self.clip_gradients(self.gradient_clip_val, grads)
-            self.optim.apply_gradients(zip(grads, self.model.trainable_variables))
-            self.train_batch_idx += 1
-
-        if self.val_dataloader is None:
-            return
-        self.model.training = False
-        for batch in self.val_dataloader:
-            self.model.validation_step(self.prepare_batch(batch))
-            self.val_batch_idx += 1
-
-    @staticmethod
-    def clip_gradients(grad_clip_val, grads):
-        """Clip the gradients"""
-        grad_clip_val = tf.constant(grad_clip_val, dtype=tf.float32)
-        new_grads = [
-            tf.convert_to_tensor(grad) if isinstance(grad, tf.IndexedSlices) else grad
-            for grad in grads
-        ]
-        norm = tf.math.sqrt(sum((tf.reduce_sum(grad**2)) for grad in new_grads))
-        if tf.greater(norm, grad_clip_val):
-            for i, grad in enumerate(new_grads):
-                new_grads[i] = grad * grad_clip_val / norm
-            return new_grads
-        return grads
-
+from training.base import Seq2Seq, Trainer
 
 data = MTFraEng(batch_size=128)
 num_hiddens, num_blks, dropout = 256, 2, 0.2
