@@ -5,23 +5,7 @@ from data_loader import MTFraEng
 # os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 from layers.transformer_decoder import TransformerDecoder
 from layers.transformer_encoder import TransformerEncoder
-from training.base import EncoderDecoder
-
-
-class Seq2Seq(EncoderDecoder):
-    def __init__(self, encoder, decoder, tgt_pad, lr):
-        super().__init__(encoder, decoder)
-        # self.save_hyperparameters()
-        self.tgt_pad = tgt_pad
-        self.lr = lr
-
-    def validation_step(self, batch):
-        Y_hat = self(*batch[:-1])
-        # self.plot("loss", self.loss(Y_hat, batch[-1]), train=False)
-
-    def configure_optimizers(self):
-        # Adam optimizer is used here
-        return tf.keras.optimizers.Adam(learning_rate=self.lr)
+from training.base import Seq2Seq
 
 
 class Trainer:

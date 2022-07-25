@@ -97,3 +97,19 @@ class EncoderDecoder(Classifier):
             if save_attention_weights:
                 attention_weights.append(self.decoder.attention_weights)
         return tf.concat(outputs[1:], 1), attention_weights
+
+
+class Seq2Seq(EncoderDecoder):
+    def __init__(self, encoder, decoder, tgt_pad, lr):
+        super().__init__(encoder, decoder)
+        # self.save_hyperparameters()
+        self.tgt_pad = tgt_pad
+        self.lr = lr
+
+    def validation_step(self, batch):
+        Y_hat = self(*batch[:-1])
+        # self.plot("loss", self.loss(Y_hat, batch[-1]), train=False)
+
+    def configure_optimizers(self):
+        # Adam optimizer is used here
+        return tf.keras.optimizers.Adam(learning_rate=self.lr)
