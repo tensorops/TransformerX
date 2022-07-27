@@ -45,13 +45,13 @@ class MultiHeadAttention(tf.keras.layers.Layer):
 
         # X = tf.reshape(X, shape=(X.shape[0], X.shape[1], self.num_heads, -1))
         X = rearrange(X, "n h (heads hidden) -> n h heads hidden", heads=self.num_heads)
-        print("X reshaped: ", X.shape)
+        # print("X reshaped: ", X.shape)
         # X = tf.transpose(X, perm=(0, 2, 1, 3))
         X = rearrange(X, "b d1 d2 d3 -> b d2 d1 d3")
-        print("X transposed: ", X.shape)
+        # print("X transposed: ", X.shape)
         # return tf.reshape(X, shape=(-1, X.shape[2], X.shape[3]))
         X = rearrange(X, "b d1 d2 d3 -> (b d1) d2 d3")
-        print("X reshaped2: ", X.shape)
+        # print("X reshaped2: ", X.shape)
         return X
 
     def inverse_transpose_qkv(self, X):
@@ -68,12 +68,12 @@ class MultiHeadAttention(tf.keras.layers.Layer):
         # (batch_size * num_heads, no. of queries or key-value pairs,
         # num_hiddens / num_heads)
 
-        print("wq(queries): ", self.W_q(queries).shape)
-        print("queries: ", queries.shape)
+        # print("wq(queries): ", self.W_q(queries).shape)
+        # print("queries: ", queries.shape)
         queries = self.transpose_qkv(self.W_q(queries))
-        print("keys: ", keys.shape)
+        # print("keys: ", keys.shape)
         keys = self.transpose_qkv(self.W_k(keys))
-        print("values: ", values.shape)
+        # print("values: ", values.shape)
         values = self.transpose_qkv(self.W_v(values))
 
         if valid_lens is not None:

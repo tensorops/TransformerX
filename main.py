@@ -1,9 +1,9 @@
 from data_loader import MTFraEng
 
-# os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 from layers.transformer_decoder import TransformerDecoder
 from layers.transformer_encoder import TransformerEncoder
 from training.base import Seq2Seq, Trainer
+
 
 data = MTFraEng(batch_size=128)
 num_hiddens, num_blks, dropout = 256, 2, 0.2
@@ -29,5 +29,5 @@ decoder = TransformerDecoder(
     dropout,
 )
 model = Seq2Seq(encoder, decoder, tgt_pad=data.tgt_vocab["<pad>"], lr=0.001)
-trainer = Trainer(max_epochs=50, gradient_clip_val=1)
+trainer = Trainer(max_epochs=2, gradient_clip_val=1)
 trainer.fit(model, data)

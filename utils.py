@@ -1,3 +1,5 @@
+import os
+
 import tensorflow as tf
 
 
@@ -29,3 +31,9 @@ def masked_softmax(X, valid_lens):
         # value, whose exponentiation outputs 0
         X = _sequence_mask(tf.reshape(X, shape=(-1, shape[-1])), valid_lens, value=-1e6)
         return tf.nn.softmax(tf.reshape(X, shape=shape), axis=-1)
+
+
+def device(device):
+
+    if device == "cpu":
+        os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
