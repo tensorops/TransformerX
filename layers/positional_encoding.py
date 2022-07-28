@@ -22,7 +22,7 @@ class PositionalEncoding(tf.keras.layers.Layer):
         )  # x[low::stride] -> positions: 1, 3, 5 , ... of all rows and columns
 
     def call(self, X, **kwargs):
-        print("X.shape[1]: ", X.shape[1])
-        print("self.P[:, : X.shape[1], :]: ", self.P[:, : X.shape[1], :].shape)
+        # print("X.shape[1]: ", X.shape[1])
+        # print("self.P[:, : X.shape[1], :]: ", self.P[:, : X.shape[1], :].shape)
         X = X + self.P[:, : X.shape[1], :]
         return self.dropout(X, **kwargs)

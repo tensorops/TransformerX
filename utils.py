@@ -33,7 +33,8 @@ def masked_softmax(X, valid_lens):
         return tf.nn.softmax(tf.reshape(X, shape=shape), axis=-1)
 
 
-def device(device):
-
+def use_device(device):
     if device == "cpu":
         os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+    else:
+        pass
