@@ -9,7 +9,7 @@ class MultiHeadAttention(tf.keras.layers.Layer):
 
     def __init__(
         self,
-        num_hiddens,
+        d_model,
         num_heads,
         dropout,
         bias=False,
@@ -19,12 +19,12 @@ class MultiHeadAttention(tf.keras.layers.Layer):
         self.num_heads = num_heads
 
         self.attention = DotProductAttention(dropout, num_heads)
-        self.W_q = tf.keras.layers.Dense(num_hiddens, use_bias=bias)
-        self.W_k = tf.keras.layers.Dense(num_hiddens, use_bias=bias)
-        self.W_v = tf.keras.layers.Dense(num_hiddens, use_bias=bias)
-        self.W_o = tf.keras.layers.Dense(num_hiddens, use_bias=bias)
+        self.W_q = tf.keras.layers.Dense(d_model, use_bias=bias)
+        self.W_k = tf.keras.layers.Dense(d_model, use_bias=bias)
+        self.W_v = tf.keras.layers.Dense(d_model, use_bias=bias)
+        self.W_o = tf.keras.layers.Dense(d_model, use_bias=bias)
 
-    def transpose_qkv(self, X: tf.Tensor) -> tf.Tensor:
+    def split_heads(self, X: tf.Tensor) -> tf.Tensor:
         """Transpose tensors for parallel computation of attention heads.
 
         First transposition produces a tensor of shape X: (batch_size, num_heads, no. of queries or key-value pairs,
@@ -44,7 +44,7 @@ class MultiHeadAttention(tf.keras.layers.Layer):
         """
 
         # X = tf.reshape(X, shape=(X.shape[0], X.shape[1], self.num_heads, -1))
-        X = rearrange(X, "n h (heads hidden) -> n h heads hidden", heads=self.num_heads)
+        X = rearrange(X, "b h (heads hidden) -> b h heads hidden", heads=self.num_heads)
         # print("X reshaped: ", X.shape)
         # X = tf.transpose(X, perm=(0, 2, 1, 3))
         X = rearrange(X, "b d1 d2 d3 -> b d2 d1 d3")
@@ -55,7 +55,7 @@ class MultiHeadAttention(tf.keras.layers.Layer):
         return X
 
     def inverse_transpose_qkv(self, X):
-        """Reverse the operation of transpose_qkv."""
+        """Reverse the operation of split_heads."""
         X = tf.reshape(X, shape=(-1, self.num_heads, X.shape[1], X.shape[2]))
         X = tf.transpose(X, perm=(0, 2, 1, 3))
         return tf.reshape(X, shape=(X.shape[0], X.shape[1], -1))
@@ -70,11 +70,11 @@ class MultiHeadAttention(tf.keras.layers.Layer):
 
         # print("wq(queries): ", self.W_q(queries).shape)
         # print("queries: ", queries.shape)
-        queries = self.transpose_qkv(self.W_q(queries))
+        queries = self.split_heads(self.W_q(queries))
         # print("keys: ", keys.shape)
-        keys = self.transpose_qkv(self.W_k(keys))
+        keys = self.split_heads(self.W_k(keys))
         # print("values: ", values.shape)
-        values = self.transpose_qkv(self.W_v(values))
+        values = self.split_heads(self.W_v(values))
 
         if valid_lens is not None:
             # On axis 0, copy the first item (scalar or vector) for num_heads

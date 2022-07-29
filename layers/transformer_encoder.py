@@ -19,7 +19,8 @@ class TransformerEncoder(tf.keras.layers.Layer):
         bias=False,
     ):
         super().__init__()
-        self.num_hiddens = depth
+        self.depth = depth
+        self.n_blocks = n_blocks
         self.embedding = tf.keras.layers.Embedding(vocab_size, depth)
         self.pos_encoding = PositionalEncoding(depth, dropout)
         self.blocks = [
@@ -31,7 +32,7 @@ class TransformerEncoder(tf.keras.layers.Layer):
                 dropout,
                 bias,
             )
-            for _ in range(n_blocks)
+            for _ in range(self.n_blocks)
         ]
 
     def call(self, X, valid_lens, **kwargs):
@@ -39,8 +40,7 @@ class TransformerEncoder(tf.keras.layers.Layer):
         # values are multiplied by the square root of the embedding dimension
         # to rescale before they are summed up
         X = self.pos_encoding(
-            self.embedding(X)
-            * tf.math.sqrt(tf.cast(self.num_hiddens, dtype=tf.float32)),
+            self.embedding(X) * tf.math.sqrt(tf.cast(self.depth, dtype=tf.float32)),
             **kwargs,
         )
         self.attention_weights = [None] * len(self.blocks)

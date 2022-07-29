@@ -101,7 +101,7 @@ class EncoderDecoder(Classifier):
         return tf.concat(outputs[1:], 1), attention_weights
 
 
-class Seq2Seq(EncoderDecoder):
+class Transformer(EncoderDecoder):
     def __init__(self, encoder, decoder, tgt_pad, lr):
         super().__init__(encoder, decoder)
         # self.save_hyperparameters()

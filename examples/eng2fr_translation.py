@@ -1,7 +1,7 @@
 from data_loader import MTFraEng
 from layers.transformer_decoder import TransformerDecoder
 from layers.transformer_encoder import TransformerEncoder
-from training.base import Seq2Seq, Trainer
+from training.base import Transformer, Trainer
 
 # use_device("cpu")
 
@@ -29,6 +29,6 @@ decoder = TransformerDecoder(
     n_blocks,
     dropout,
 )
-model = Seq2Seq(encoder, decoder, tgt_pad=data.tgt_vocab["<pad>"], lr=0.001)
+model = Transformer(encoder, decoder, tgt_pad=data.tgt_vocab["<pad>"], lr=0.001)
 trainer = Trainer(max_epochs=2, gradient_clip_val=1)
 trainer.fit(model, data)

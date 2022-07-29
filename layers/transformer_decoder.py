@@ -18,8 +18,8 @@ class TransformerDecoder(tf.keras.layers.Layer):
         dropout,
     ):
         super().__init__()
-        self.num_hiddens = depth
-        self.num_blks = n_blocks
+        self.depth = depth
+        self.n_blocks = n_blocks
         self.embedding = tf.keras.layers.Embedding(vocab_size, depth)
         self.pos_encoding = PositionalEncoding(depth, dropout)
         self.blocks = [
@@ -36,12 +36,11 @@ class TransformerDecoder(tf.keras.layers.Layer):
         self.dense = tf.keras.layers.Dense(vocab_size)
 
     def init_state(self, enc_outputs, enc_valid_lens):
-        return [enc_outputs, enc_valid_lens, [None] * self.num_blks]
+        return [enc_outputs, enc_valid_lens, [None] * self.n_blocks]
 
     def call(self, X, state, **kwargs):
         X = self.pos_encoding(
-            self.embedding(X)
-            * tf.math.sqrt(tf.cast(self.num_hiddens, dtype=tf.float32)),
+            self.embedding(X) * tf.math.sqrt(tf.cast(self.depth, dtype=tf.float32)),
             **kwargs,
         )
         # 2 attention layers in decoder
