@@ -1,5 +1,7 @@
 import tensorflow as tf
 
+import examples.eng2fr_translation
+
 
 class Module(tf.keras.Model):
     """Base class for models"""
@@ -133,7 +135,7 @@ class Trainer:
         # self.num_val_batches = (len(self.val_dataloader) if self.val_dataloader is not None else 0)
 
     def prepare_model(self, model):
-        model.trainer = self
+        examples.eng2fr_translation.trainer = self
         # model.board.xlim = [0, self.max_epochs]
         self.model = model
 

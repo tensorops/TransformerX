@@ -10,28 +10,28 @@ class TransformerEncoder(tf.keras.layers.Layer):
     def __init__(
         self,
         vocab_size,
-        num_hiddens,
+        depth,
         norm_shape,
         ffn_num_hiddens,
         num_heads,
-        num_blks,
+        n_blocks,
         dropout,
         bias=False,
     ):
         super().__init__()
-        self.num_hiddens = num_hiddens
-        self.embedding = tf.keras.layers.Embedding(vocab_size, num_hiddens)
-        self.pos_encoding = PositionalEncoding(num_hiddens, dropout)
-        self.blks = [
+        self.num_hiddens = depth
+        self.embedding = tf.keras.layers.Embedding(vocab_size, depth)
+        self.pos_encoding = PositionalEncoding(depth, dropout)
+        self.blocks = [
             TransformerEncoderBlock(
-                num_hiddens,
+                depth,
                 norm_shape,
                 ffn_num_hiddens,
                 num_heads,
                 dropout,
                 bias,
             )
-            for _ in range(num_blks)
+            for _ in range(n_blocks)
         ]
 
     def call(self, X, valid_lens, **kwargs):
@@ -43,8 +43,8 @@ class TransformerEncoder(tf.keras.layers.Layer):
             * tf.math.sqrt(tf.cast(self.num_hiddens, dtype=tf.float32)),
             **kwargs,
         )
-        self.attention_weights = [None] * len(self.blks)
-        for i, blk in enumerate(self.blks):
+        self.attention_weights = [None] * len(self.blocks)
+        for i, blk in enumerate(self.blocks):
             X = blk(X, valid_lens, **kwargs)
             self.attention_weights[i] = blk.attention.attention.attention_weights
         return X

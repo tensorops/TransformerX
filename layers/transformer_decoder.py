@@ -10,28 +10,28 @@ class TransformerDecoder(tf.keras.layers.Layer):
     def __init__(
         self,
         vocab_size,
-        num_hiddens,
+        depth,
         norm_shape,
         ffn_num_hiddens,
         num_heads,
-        num_blks,
+        n_blocks,
         dropout,
     ):
         super().__init__()
-        self.num_hiddens = num_hiddens
-        self.num_blks = num_blks
-        self.embedding = tf.keras.layers.Embedding(vocab_size, num_hiddens)
-        self.pos_encoding = PositionalEncoding(num_hiddens, dropout)
-        self.blks = [
+        self.num_hiddens = depth
+        self.num_blks = n_blocks
+        self.embedding = tf.keras.layers.Embedding(vocab_size, depth)
+        self.pos_encoding = PositionalEncoding(depth, dropout)
+        self.blocks = [
             TransformerDecoderBlock(
-                num_hiddens,
+                depth,
                 norm_shape,
                 ffn_num_hiddens,
                 num_heads,
                 dropout,
                 i,
             )
-            for i in range(num_blks)
+            for i in range(n_blocks)
         ]
         self.dense = tf.keras.layers.Dense(vocab_size)
 
@@ -45,8 +45,8 @@ class TransformerDecoder(tf.keras.layers.Layer):
             **kwargs,
         )
         # 2 attention layers in decoder
-        self._attention_weights = [[None] * len(self.blks) for _ in range(2)]
-        for i, blk in enumerate(self.blks):
+        self._attention_weights = [[None] * len(self.blocks) for _ in range(2)]
+        for i, blk in enumerate(self.blocks):
             X, state = blk(X, state, **kwargs)
             # Decoder self-attention weights
             self._attention_weights[0][i] = blk.attention1.attention.attention_weights

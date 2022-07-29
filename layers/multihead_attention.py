@@ -28,19 +28,19 @@ class MultiHeadAttention(tf.keras.layers.Layer):
         """Transpose tensors for parallel computation of attention heads.
 
         First transposition produces a tensor of shape X: (batch_size, num_heads, no. of queries or key-value pairs,
-        num_hiddens / num_heads).
+        depth / num_heads).
         Next it is rearranged to a new order (batch_size * num_heads, no. of queries or key-value pairs,
-        num_hiddens / num_heads) which is then passed to the last rearrangement and returned.
+        depth / num_heads) which is then passed to the last rearrangement and returned.
 
         Parameters
         ----------
-        X : Shape (batch_size, no. of queries or key-value pairs, num_hiddens).
+        X : Shape (batch_size, no. of queries or key-value pairs, depth).
 
         Returns
         -------
         X : Transposed tensor of shape ((batch_size * num_heads, no. of queries or key-value pairs,
-        num_hiddens / num_heads)
-                    hape of output X: (batch_size, no. of queries or key-value pairs, num_heads, num_hiddens / num_heads)
+        depth / num_heads)
+                    hape of output X: (batch_size, no. of queries or key-value pairs, num_heads, depth / num_heads)
         """
 
         # X = tf.reshape(X, shape=(X.shape[0], X.shape[1], self.num_heads, -1))
@@ -62,11 +62,11 @@ class MultiHeadAttention(tf.keras.layers.Layer):
 
     def call(self, queries, values, keys, valid_lens, window_mask=None, **kwargs):
         # Shape of queries, keys, or values:
-        # (batch_size, no. of queries or key-value pairs, num_hiddens)
+        # (batch_size, no. of queries or key-value pairs, depth)
         # Shape of valid_lens: (batch_size,) or (batch_size, no. of queries)
         # After transposing, shape of output queries, keys, or values:
         # (batch_size * num_heads, no. of queries or key-value pairs,
-        # num_hiddens / num_heads)
+        # depth / num_heads)
 
         # print("wq(queries): ", self.W_q(queries).shape)
         # print("queries: ", queries.shape)
@@ -82,11 +82,11 @@ class MultiHeadAttention(tf.keras.layers.Layer):
             valid_lens = tf.repeat(valid_lens, repeats=self.num_heads, axis=0)
 
         # Shape of output: (batch_size * num_heads, no. of queries,
-        # num_hiddens / num_heads)
+        # depth / num_heads)
         output = self.attention(
             queries, keys, values, valid_lens, window_mask, **kwargs
         )
 
-        # Shape of output_concat: (batch_size, no. of queries, num_hiddens)
+        # Shape of output_concat: (batch_size, no. of queries, depth)
         output_concat = self.inverse_transpose_qkv(output)
         return self.W_o(output_concat)
