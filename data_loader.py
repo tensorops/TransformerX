@@ -120,6 +120,10 @@ class Vocab:
         return self.token_to_idx["<unk>"]
 
 
+class BaseDataset:
+    """Base dataset class for downloading and processing."""
+
+
 class MTFraEng(DataModule):
     """Download data and preprocess"""
 
