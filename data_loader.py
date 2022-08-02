@@ -1,4 +1,5 @@
 import collections
+from abc import ABC
 from typing import Optional, Tuple, List
 import hashlib
 import os
@@ -120,8 +121,28 @@ class Vocab:
         return self.token_to_idx["<unk>"]
 
 
-class BaseDataset:
+class BaseDataset(DataModule, ABC):
     """Base dataset class for downloading and processing."""
+
+    def __init__(self, batch_size, num_steps=9, num_train=512, num_val=128):
+        """Initialize the class
+
+        Parameters
+        ----------
+        batch_size : Size of the batches
+        num_steps : Number of steps
+        num_train : Number of training items
+        num_val : Number of validation items
+        """
+        super(MTFraEng, self).__init__()
+        self.batch_size = batch_size
+        self.num_steps = num_steps
+        self.num_train = num_train
+        self.num_val = num_val
+        # self.save_hyperparameters()
+        self.arrays, self.src_vocab, self.tgt_vocab = self._build_arrays(
+            self._download()
+        )
 
 
 class MTFraEng(DataModule):
