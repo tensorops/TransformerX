@@ -168,6 +168,40 @@ class MTFraEng(DataModule):
             self._download()
         )
 
+        @staticmethod
+        def download(url, folder: str = "../data", sha1_hash: str = None) -> str:
+            """Download a file to folder and return the local filepath.
+
+            Parameters
+            ----------
+            folder : Directory to place the downloaded data into
+            sha1_hash : SHA hash of the file
+
+            Returns
+            -------
+            Path to the downloaded file
+            """
+            os.makedirs(folder, exist_ok=True)
+            fname = os.path.join(folder, url.split("/")[-1])
+            # Check if hit cache
+            if os.path.exists(fname) and sha1_hash:
+                sha1 = hashlib.sha1()
+                with open(fname, "rb") as f:
+                    while True:
+                        data = f.read(1048576)
+                        if not data:
+                            break
+                        sha1.update(data)
+                if sha1.hexdigest() == sha1_hash:
+                    return fname
+
+            # Download
+            print(f"Downloading {fname} from {url}...")
+            r = requests.get(url, stream=True, verify=True)
+            with open(fname, "wb") as f:
+                f.write(r.content)
+            return fname
+
     @staticmethod
     def download(url, folder: str = "../data", sha1_hash: str = None) -> str:
         """Download a file to folder and return the local filepath.
