@@ -202,6 +202,28 @@ class MTFraEng(DataModule):
                 f.write(r.content)
             return fname
 
+        @staticmethod
+        def extract(filename, folder: Optional[str] = None):
+            """Extract zip/tar file into the folder
+
+            Parameters
+            ----------
+            filename : File name to be extracted
+            folder : the path to locate the extracted files
+            """
+            base_dir = os.path.dirname(filename)
+            _, ext = os.path.splitext(filename)
+            assert ext in (".zip", ".tar", ".gz"), "Only support zip/tar files."
+
+            if ext == ".zip":
+                fp = zipfile.ZipFile(filename, "r")
+            else:
+                fp = tarfile.open(filename, "r")
+
+            if folder is None:
+                folder = base_dir
+            fp.extractall(folder)
+
     @staticmethod
     def download(url, folder: str = "../data", sha1_hash: str = None) -> str:
         """Download a file to folder and return the local filepath.
