@@ -144,30 +144,6 @@ class BaseDataset(DataModule, ABC):
             self._download()
         )
 
-
-class MTFraEng(DataModule):
-    """Download data and preprocess"""
-
-    def __init__(self, batch_size, num_steps=9, num_train=512, num_val=128):
-        """Initialize the class
-
-        Parameters
-        ----------
-        batch_size : Size of the batches
-        num_steps : Number of steps
-        num_train : Number of training items
-        num_val : Number of validation items
-        """
-        super(MTFraEng, self).__init__()
-        self.batch_size = batch_size
-        self.num_steps = num_steps
-        self.num_train = num_train
-        self.num_val = num_val
-        # self.save_hyperparameters()
-        self.arrays, self.src_vocab, self.tgt_vocab = self._build_arrays(
-            self._download()
-        )
-
         @staticmethod
         def download(url, folder: str = "../data", sha1_hash: str = None) -> str:
             """Download a file to folder and return the local filepath.
@@ -223,6 +199,30 @@ class MTFraEng(DataModule):
             if folder is None:
                 folder = base_dir
             fp.extractall(folder)
+
+
+class MTFraEng(DataModule):
+    """Download data and preprocess"""
+
+    def __init__(self, batch_size, num_steps=9, num_train=512, num_val=128):
+        """Initialize the class
+
+        Parameters
+        ----------
+        batch_size : Size of the batches
+        num_steps : Number of steps
+        num_train : Number of training items
+        num_val : Number of validation items
+        """
+        super(MTFraEng, self).__init__()
+        self.batch_size = batch_size
+        self.num_steps = num_steps
+        self.num_train = num_train
+        self.num_val = num_val
+        # self.save_hyperparameters()
+        self.arrays, self.src_vocab, self.tgt_vocab = self._build_arrays(
+            self._download()
+        )
 
     @staticmethod
     def download(url, folder: str = "../data", sha1_hash: str = None) -> str:
