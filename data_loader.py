@@ -144,61 +144,72 @@ class BaseDataset(DataModule, ABC):
             self._download()
         )
 
-        @staticmethod
-        def download(url, folder: str = "../data", sha1_hash: str = None) -> str:
-            """Download a file to folder and return the local filepath.
+    @staticmethod
+    def download(url, folder: str = "../data", sha1_hash: str = None) -> str:
+        """Download a file to folder and return the local filepath.
 
-            Parameters
-            ----------
-            folder : Directory to place the downloaded data into
-            sha1_hash : SHA hash of the file
+        Parameters
+        ----------
+        folder : Directory to place the downloaded data into
+        sha1_hash : SHA hash of the file
 
-            Returns
-            -------
-            Path to the downloaded file
-            """
-            os.makedirs(folder, exist_ok=True)
-            fname = os.path.join(folder, url.split("/")[-1])
-            # Check if hit cache
-            if os.path.exists(fname) and sha1_hash:
-                sha1 = hashlib.sha1()
-                with open(fname, "rb") as f:
-                    while True:
-                        data = f.read(1048576)
-                        if not data:
-                            break
-                        sha1.update(data)
-                if sha1.hexdigest() == sha1_hash:
-                    return fname
+        Returns
+        -------
+        Path to the downloaded file
+        """
+        os.makedirs(folder, exist_ok=True)
+        fname = os.path.join(folder, url.split("/")[-1])
+        # Check if hit cache
+        if os.path.exists(fname) and sha1_hash:
+            sha1 = hashlib.sha1()
+            with open(fname, "rb") as f:
+                while True:
+                    data = f.read(1048576)
+                    if not data:
+                        break
+                    sha1.update(data)
+            if sha1.hexdigest() == sha1_hash:
+                return fname
 
-            # Download
-            print(f"Downloading {fname} from {url}...")
-            r = requests.get(url, stream=True, verify=True)
-            with open(fname, "wb") as f:
-                f.write(r.content)
-            return fname
+        # Download
+        print(f"Downloading {fname} from {url}...")
+        r = requests.get(url, stream=True, verify=True)
+        with open(fname, "wb") as f:
+            f.write(r.content)
+        return fname
 
-        @staticmethod
-        def extract(filename, folder: Optional[str] = None):
-            """Extract zip/tar file into the folder
+    @staticmethod
+    def extract(filename, folder: Optional[str] = None):
+        """Extract zip/tar file into the folder
 
-            Parameters
-            ----------
-            filename : File name to be extracted
-            folder : the path to locate the extracted files
-            """
-            base_dir = os.path.dirname(filename)
-            _, ext = os.path.splitext(filename)
-            assert ext in (".zip", ".tar", ".gz"), "Only support zip/tar files."
+        Parameters
+        ----------
+        filename : File name to be extracted
+        folder : the path to locate the extracted files
+        """
+        base_dir = os.path.dirname(filename)
+        _, ext = os.path.splitext(filename)
+        assert ext in (".zip", ".tar", ".gz"), "Only support zip/tar files."
 
-            if ext == ".zip":
-                fp = zipfile.ZipFile(filename, "r")
-            else:
-                fp = tarfile.open(filename, "r")
+        if ext == ".zip":
+            fp = zipfile.ZipFile(filename, "r")
+        else:
+            fp = tarfile.open(filename, "r")
 
-            if folder is None:
-                folder = base_dir
-            fp.extractall(folder)
+        if folder is None:
+            folder = base_dir
+        fp.extractall(folder)
+
+    def _download(self):
+        self.extract(
+            self.download(
+                DATA_URL + "fra-eng.zip",
+                self.data_directory,
+                "94646ad1522d915e7b0f9296181140edcf86a4f5",
+            )
+        )
+        with open(self.data_directory + "/fra-eng/fra.txt", encoding="utf-8") as f:
+            return f.read()
 
 
 class MTFraEng(DataModule):
