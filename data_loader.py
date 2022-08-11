@@ -211,6 +211,28 @@ class BaseDataset(DataModule, ABC):
         with open(self.data_directory + "/fra-eng/fra.txt", encoding="utf-8") as f:
             return f.read()
 
+    @staticmethod
+    def _preprocess(text: str) -> str:
+        """Preprocess input text by replacing breaking space with space.
+
+        Parameters
+        ----------
+        text : Text to be preprocessed
+
+        Returns
+        -------
+        Preprocessed text
+        """
+        # Replace non-breaking space with space
+        text = text.replace("\u202f", " ").replace("\xa0", " ")
+        # Insert space between words and punctuation marks
+        no_space = lambda char, prev_char: char in ",.!?" and prev_char != " "
+        out = [
+            " " + char if i > 0 and no_space(char, text[i - 1]) else char
+            for i, char in enumerate(text.lower())
+        ]
+        return "".join(out)
+
 
 class MTFraEng(DataModule):
     """Download data and preprocess"""
