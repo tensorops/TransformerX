@@ -233,6 +233,30 @@ class BaseDataset(DataModule, ABC):
         ]
         return "".join(out)
 
+    @staticmethod
+    def _tokenize(text: str, max_examples: int = None):
+        """Tokenize the input text
+
+        Parameters
+        ----------
+        text : Text to be tokenized
+        max_examples : Maximum number of lines of the input to be tokenized
+
+        Returns
+        -------
+        Source and target lists of tokens
+        """
+        src, tgt = [], []
+        for i, line in enumerate(text.split("\n")):
+            if max_examples and i > max_examples:
+                break
+            parts = line.split("\t")
+            if len(parts) == 2:
+                # Skip empty tokens
+                src.append([t for t in f"{parts[0]} <eos>".split(" ") if t])
+                tgt.append([t for t in f"{parts[1]} <eos>".split(" ") if t])
+        return src, tgt
+
 
 class MTFraEng(DataModule):
     """Download data and preprocess"""
