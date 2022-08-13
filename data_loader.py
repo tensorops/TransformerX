@@ -257,6 +257,45 @@ class BaseDataset(DataModule, ABC):
                 tgt.append([t for t in f"{parts[1]} <eos>".split(" ") if t])
         return src, tgt
 
+    def _build_arrays(self, raw_text, src_vocab=None, tgt_vocab=None):
+        """Build vocabs from the input text
+
+        Parameters
+        ----------
+        raw_text : Input text to generate source and target vocabs from
+        src_vocab : Source vocabulary
+        tgt_vocab : Target vocabulary
+
+        Returns
+        -------
+        Generated source and target vocabularies along with valid lens, src and tgt arrays
+        """
+
+        def _build_array(sentences, vocab, is_tgt=False):
+            pad_or_trim = lambda seq, t: (
+                seq[:t] if len(seq) > t else seq + ["<pad>"] * (t - len(seq))
+            )
+            sentences = [pad_or_trim(s, self.num_steps) for s in sentences]
+            if is_tgt:
+                sentences = [["<bos>"] + s for s in sentences]
+            if vocab is None:
+                vocab = Vocab(sentences, min_freq=2)
+            array = tf.constant([vocab[s] for s in sentences])
+            valid_len = tf.reduce_sum(tf.cast(array != vocab["<pad>"], tf.int32), 1)
+            return array, vocab, valid_len
+
+        src, tgt = self._tokenize(
+            self._preprocess(raw_text), self.num_train + self.num_val
+        )
+        src_array, src_vocab, src_valid_len = _build_array(src, src_vocab)
+        tgt_array, tgt_vocab, _ = _build_array(tgt, tgt_vocab, True)
+
+        return (
+            (src_array, tgt_array[:, :-1], src_valid_len, tgt_array[:, 1:]),
+            src_vocab,
+            tgt_vocab,
+        )
+
 
 class MTFraEng(DataModule):
     """Download data and preprocess"""
