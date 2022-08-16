@@ -296,6 +296,20 @@ class BaseDataset(DataModule, ABC):
             tgt_vocab,
         )
 
+    def get_dataloader(self, train: bool):
+        """
+
+        Parameters
+        ----------
+        train : Training mode indicator flag
+
+        Returns
+        -------
+
+        """
+        idx = slice(0, self.num_train) if train else slice(self.num_train, None)
+        return self.get_tensorloader(self.arrays, train, idx)
+
 
 class MTFraEng(DataModule):
     """Download data and preprocess"""
