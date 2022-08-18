@@ -1,4 +1,4 @@
-from data_loader import MTFraEng
+from data_loader import TXDatasets
 from layers.transformer_decoder import TransformerDecoder
 from layers.transformer_encoder import TransformerEncoder
 from training.base import Transformer, Trainer
