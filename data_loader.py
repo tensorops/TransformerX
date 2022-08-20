@@ -52,9 +52,6 @@ class DataModule:
         )
 
 
-DATA_URL = "http://d2l-data.s3-accelerate.amazonaws.com/"
-
-
 class Vocab:
     """Vocabulary for text"""
 
@@ -124,7 +121,14 @@ class Vocab:
 class BaseDataset(DataModule):
     """Base dataset class for downloading and processing."""
 
-    def __init__(self, batch_size, num_steps=9, num_train=512, num_val=128):
+    def __init__(
+        self,
+        batch_size,
+        num_steps=9,
+        num_train=512,
+        num_val=128,
+        url="http://d2l-data.s3-accelerate.amazonaws.com/",
+    ):
         """Initialize the class
 
         Parameters
@@ -140,9 +144,10 @@ class BaseDataset(DataModule):
         self.num_train = num_train
         self.num_val = num_val
         # self.save_hyperparameters()
-        # self.arrays, self.src_vocab, self.tgt_vocab = self._build_arrays(
-        #     self._download()
-        # )
+        self.url = url
+        self.arrays, self.src_vocab, self.tgt_vocab = self._build_arrays(
+            self._download()
+        )
 
     @staticmethod
     def download(url, folder: str = "../data", sha1_hash: str = None) -> str:
@@ -203,7 +208,7 @@ class BaseDataset(DataModule):
     def _download(self):
         self.extract(
             self.download(
-                DATA_URL + "fra-eng.zip",
+                self.url + "fra-eng.zip",
                 self.data_directory,
                 "94646ad1522d915e7b0f9296181140edcf86a4f5",
             )
@@ -351,14 +356,3 @@ class EngFrDatasets(BaseDataset):
         self.arrays, self.src_vocab, self.tgt_vocab = self._build_arrays(
             self._download()
         )
-
-    def _download(self):
-        self.extract(
-            self.download(
-                DATA_URL + "fra-eng.zip",
-                self.data_directory,
-                "94646ad1522d915e7b0f9296181140edcf86a4f5",
-            )
-        )
-        with open(self.data_directory + "/fra-eng/fra.txt", encoding="utf-8") as f:
-            return f.read()

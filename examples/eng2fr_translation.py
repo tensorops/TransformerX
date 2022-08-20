@@ -1,15 +1,15 @@
-from data_loader import TXDatasets
+# **NOTE**: This example will be heavily edited, hence, this is not an official part of the library at this time
+
+from data_loader import BaseDataset
 from layers.transformer_decoder import TransformerDecoder
 from layers.transformer_encoder import TransformerEncoder
 from training.base import Transformer, Trainer
-
-# use_device("cpu")
 
 depth, n_blocks, dropout = 256, 2, 0.2
 ffn_num_hiddens, num_heads = 64, 4
 key_size, query_size, value_size = 256, 256, 256
 
-data = MTFraEng(batch_size=128)
+data = BaseDataset(batch_size=128)
 norm_shape = [2]
 encoder = TransformerEncoder(
     len(data.src_vocab),
