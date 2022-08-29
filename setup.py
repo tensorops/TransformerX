@@ -85,7 +85,7 @@ def parse_requirements_file(filename):
 #     dep: parse_requirements_file("requirements/" + dep + ".txt")
 #     for dep in ["developer", "doc", "extra", "test"]
 # }
-requirements = parse_requirements_file("requirements/default.txt")
+# requirements = parse_requirements_file("requirements/default.txt")
 # requirements = ['networkx']
 
 
@@ -103,7 +103,7 @@ setup(
     long_description_content_type="text/markdown",
     url="https://github.com/tensorops/TransformerX",
     packages=find_packages(exclude=("tests", "docs", "html", "requirements")),
-    install_requires=requirements,
+    # install_requires=requirements,
     # extras_require=extras_require,
     classifiers=CLASSIFIERS,
     python_requires=">=3.6",
