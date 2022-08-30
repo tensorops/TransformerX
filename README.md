@@ -25,7 +25,7 @@
   <h2>Installation</h2>
   <p>Install the latest version of <b>TransformerX</b>:</p>
     <b>Note:</b> Currently you need to build it from the source, but, we are actively working, and it will be ready to use soon
-  <pre>[not working yet] $ pip install transformerx</pre>
+  <pre>[not yet working] $ pip install transformerx</pre>
 </div>
 
 
