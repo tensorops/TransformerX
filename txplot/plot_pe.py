@@ -7,11 +7,11 @@ from matplotlib import pyplot as plt
 
 class Plot:
     def plot_pe(
-        self,
-        cols: Tuple[int, list, np.ndarray],
-        pos_encodings,
-        num_steps,
-        show_grid=True,
+            self,
+            cols: Tuple[int, list, np.ndarray],
+            pos_encodings,
+            num_steps,
+            show_grid=True,
     ):
         ax = plt.figure(figsize=(6, 2.5))
 
@@ -20,10 +20,10 @@ class Plot:
 
         def plot_line(col):
             plt.plot(
-                np.arange(num_steps),
-                pos_encodings[0, :, col].T,
-                next(self.line_cycler),
-                label=f"col {col}",
+                    np.arange(num_steps),
+                    pos_encodings[0, :, col].T,
+                    next(self.line_cycler),
+                    label=f"col {col}",
             )
 
         if isinstance(cols, (list, np.ndarray)):

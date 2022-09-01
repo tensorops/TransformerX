@@ -1,10 +1,9 @@
 import io
 import os
 import sys
-
-from setuptools import setup, find_packages, Command
 from shutil import rmtree
 
+from setuptools import setup, find_packages, Command
 
 with open("README.md", "r") as readme_file:
     readme = readme_file.read()
@@ -90,24 +89,24 @@ def parse_requirements_file(filename):
 
 
 setup(
-    name=NAME,
-    version=about["__version__"],
-    maintainer=MAINTAINER,
-    maintainer_email=MAINTAINER_EMAIL,
-    author=AUTHORS["Soran"][0],
-    author_email=AUTHORS["Soran"][1],
-    description=DESCRIPTION,
-    long_description=readme,
-    keywords=KEYWORDS,
-    platforms=PLATFORMS,
-    long_description_content_type="text/markdown",
-    url="https://github.com/tensorops/TransformerX",
-    packages=find_packages(exclude=("tests", "docs", "html", "requirements")),
-    # install_requires=requirements,
-    # extras_require=extras_require,
-    classifiers=CLASSIFIERS,
-    python_requires=">=3.6",
-    zip_safe=False,
+        name=NAME,
+        version=about["__version__"],
+        maintainer=MAINTAINER,
+        maintainer_email=MAINTAINER_EMAIL,
+        author=AUTHORS["Soran"][0],
+        author_email=AUTHORS["Soran"][1],
+        description=DESCRIPTION,
+        long_description=readme,
+        keywords=KEYWORDS,
+        platforms=PLATFORMS,
+        long_description_content_type="text/markdown",
+        url="https://github.com/tensorops/TransformerX",
+        packages=find_packages(exclude=("tests", "docs", "html", "requirements")),
+        # install_requires=requirements,
+        # extras_require=extras_require,
+        classifiers=CLASSIFIERS,
+        python_requires=">=3.6",
+        zip_safe=False,
 )
 
 

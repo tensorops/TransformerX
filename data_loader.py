@@ -1,12 +1,10 @@
 import collections
-from abc import ABC
-from typing import Optional, Tuple, List
 import hashlib
 import os
 import tarfile
 import zipfile
+from typing import Optional, Tuple, List
 
-import numpy as np
 import requests
 import tensorflow as tf
 
@@ -27,7 +25,7 @@ class DataModule:
         return self.get_dataloader(train=False)
 
     def get_tensorloader(
-        self, tensors: List[tf.Tensor], train: bool, indices: int = slice(0, None)
+            self, tensors: List[tf.Tensor], train: bool, indices: int = slice(0, None)
     ):
         """Prepare tensors for training
 
@@ -56,7 +54,7 @@ class Vocab:
     """Vocabulary for text"""
 
     def __init__(
-        self, tokens: list = [], min_freq: int = 0, reserved_tokens: Optional[list] = []
+            self, tokens: list = [], min_freq: int = 0, reserved_tokens: Optional[list] = []
     ):
         """Initialize the Vocab class
 
@@ -74,13 +72,13 @@ class Vocab:
         self.token_freqs = sorted(counter.items(), key=lambda x: x[1], reverse=True)
         # The list of unique tokens
         self.idx_to_token = list(
-            sorted(
-                set(
-                    ["<unk>"]
-                    + reserved_tokens
-                    + [token for token, freq in self.token_freqs if freq >= min_freq]
+                sorted(
+                        set(
+                                ["<unk>"]
+                                + reserved_tokens
+                                + [token for token, freq in self.token_freqs if freq >= min_freq]
+                        )
                 )
-            )
         )
         self.token_to_idx = {token: idx for idx, token in enumerate(self.idx_to_token)}
 
@@ -122,12 +120,12 @@ class BaseDataset(DataModule):
     """Base dataset class for downloading and processing."""
 
     def __init__(
-        self,
-        batch_size,
-        num_steps=9,
-        num_train=512,
-        num_val=128,
-        url="http://d2l-data.s3-accelerate.amazonaws.com/",
+            self,
+            batch_size,
+            num_steps=9,
+            num_train=512,
+            num_val=128,
+            url="http://d2l-data.s3-accelerate.amazonaws.com/",
     ):
         """Initialize the class
 
@@ -146,7 +144,7 @@ class BaseDataset(DataModule):
         # self.save_hyperparameters()
         self.url = url
         self.arrays, self.src_vocab, self.tgt_vocab = self._build_arrays(
-            self._download()
+                self._download()
         )
 
     @staticmethod
@@ -207,11 +205,11 @@ class BaseDataset(DataModule):
 
     def _download(self):
         self.extract(
-            self.download(
-                self.url + "fra-eng.zip",
-                self.data_directory,
-                "94646ad1522d915e7b0f9296181140edcf86a4f5",
-            )
+                self.download(
+                        self.url + "fra-eng.zip",
+                        self.data_directory,
+                        "94646ad1522d915e7b0f9296181140edcf86a4f5",
+                )
         )
         with open(self.data_directory + "/fra-eng/fra.txt", encoding="utf-8") as f:
             return f.read()
@@ -290,7 +288,7 @@ class BaseDataset(DataModule):
             return array, vocab, valid_len
 
         src, tgt = self._tokenize(
-            self._preprocess(raw_text), self.num_train + self.num_val
+                self._preprocess(raw_text), self.num_train + self.num_val
         )
         src_array, src_vocab, src_valid_len = _build_array(src, src_vocab)
         tgt_array, tgt_vocab, _ = _build_array(tgt, tgt_vocab, True)
@@ -328,7 +326,7 @@ class BaseDataset(DataModule):
         arrays : source and target arrays
         """
         raw_text = "\n".join(
-            [src + "\t" + tgt for src, tgt in zip(src_sentences, tgt_sentences)]
+                [src + "\t" + tgt for src, tgt in zip(src_sentences, tgt_sentences)]
         )
         arrays, _, _ = self._build_arrays(raw_text, self.src_vocab, self.tgt_vocab)
         return arrays
@@ -354,5 +352,5 @@ class EngFrDatasets(BaseDataset):
         self.num_val = num_val
         # self.save_hyperparameters()
         self.arrays, self.src_vocab, self.tgt_vocab = self._build_arrays(
-            self._download()
+                self._download()
         )

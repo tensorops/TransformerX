@@ -1,5 +1,6 @@
 import tensorflow as tf
 
+
 # import examples.eng2fr_translation
 
 
@@ -90,8 +91,8 @@ class EncoderDecoder(Classifier):
         enc_outputs = self.encoder(src, src_valid_len, training=False)
         dec_state = self.decoder.init_state(enc_outputs, src_valid_len)
         outputs, attention_weights = [
-            tf.expand_dims(tgt[:, 0], 1),
-        ], []
+                                         tf.expand_dims(tgt[:, 0], 1),
+                                     ], []
         for _ in range(num_steps):
             Y, dec_state = self.decoder(outputs[-1], dec_state, training=False)
             outputs.append(tf.argmax(Y, 2))
@@ -181,7 +182,7 @@ class Trainer:
             tf.convert_to_tensor(grad) if isinstance(grad, tf.IndexedSlices) else grad
             for grad in grads
         ]
-        norm = tf.math.sqrt(sum((tf.reduce_sum(grad**2)) for grad in new_grads))
+        norm = tf.math.sqrt(sum((tf.reduce_sum(grad ** 2)) for grad in new_grads))
         if tf.greater(norm, grad_clip_val):
             for i, grad in enumerate(new_grads):
                 new_grads[i] = grad * grad_clip_val / norm
