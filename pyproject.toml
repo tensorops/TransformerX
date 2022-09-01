@@ -1,0 +1,63 @@
+[tool.poetry]
+name = "TransformerX"
+version = "1.0.0-beta01"
+description = "TransformerX is a python library for building transformer-based models using ready-to-use layers."
+homepage = "https://github.com/tensorops/TransformerX"
+repository = "https://github.com/tensorops/TransformerX"
+authors = ["Soran Ghaderi <soran.gdr.cd@gmail.com>", "sigma1326 <taleb.zarhesh@gmail.com>"]
+maintainers = ["Soran Ghaderi <soran.gdr.cd@gmail.com>", "sigma1326 <taleb.zarhesh@gmail.com>"]
+readme = "README.md"
+license = "Apache"
+include = [
+    "License",
+]
+packages = [
+    { include = "transformerx" }
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: BSD License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.6",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Topic :: Software Development",
+    "Topic :: Software Development :: Libraries",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Scientific/Engineering :: Mathematics",
+    "Intended Audience :: Science/Research",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Education",
+]
+KEYWORDS = [
+    "transformer",
+    "deep-learning",
+    "machine-learning",
+    "NLP",
+    "natural-language-processing",
+    "computer-vision",
+    "cv",
+    "vision",
+    "speech-recognition",
+]
+
+[tool.poetry.dependencies]
+python = "~3.10"
+numpy = "^1.23.2"
+matplotlib = "^3.5.3"
+pytest = "^7.1.2"
+tensorflow = "^2.9.0"
+einops = "^0.4.1"
+
+[tool.poetry.dev-dependencies]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
