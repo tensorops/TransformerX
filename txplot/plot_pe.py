@@ -13,7 +13,7 @@ class Plot:
         num_steps,
         show_grid=True,
     ):
-        ax = plt.figure(figsize=(6, 2.5))
+        ax = plt.figure(figsize=(6, 2.5), dpi=1000)
 
         lines = ["-", "--", "-.", ":"]
         self.line_cycler = cycle(lines)
