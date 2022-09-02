@@ -8,12 +8,12 @@ class MultiHeadAttention(tf.keras.layers.Layer):
     """Multi-head attention."""
 
     def __init__(
-        self,
-        d_model,
-        num_heads,
-        dropout,
-        bias=False,
-        **kwargs,
+            self,
+            d_model,
+            num_heads,
+            dropout,
+            bias=False,
+            **kwargs,
     ):
         super(MultiHeadAttention, self).__init__()
         self.num_heads = num_heads
@@ -84,7 +84,7 @@ class MultiHeadAttention(tf.keras.layers.Layer):
         # Shape of output: (batch_size * num_heads, no. of queries,
         # depth / num_heads)
         output = self.attention(
-            queries, keys, values, valid_lens, window_mask, **kwargs
+                queries, keys, values, valid_lens, window_mask, **kwargs
         )
 
         # Shape of output_concat: (batch_size, no. of queries, depth)

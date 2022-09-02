@@ -9,13 +9,13 @@ class TransformerEncoderBlock(tf.keras.layers.Layer):
     """Transformer encoder block."""
 
     def __init__(
-        self,
-        num_hiddens,
-        norm_shape,
-        ffn_num_hiddens,
-        num_heads,
-        dropout,
-        bias=False,
+            self,
+            num_hiddens,
+            norm_shape,
+            ffn_num_hiddens,
+            num_heads,
+            dropout,
+            bias=False,
     ):
         super().__init__()
         self.attention = MultiHeadAttention(num_hiddens, num_heads, dropout, bias)

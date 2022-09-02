@@ -8,15 +8,15 @@ class TransformerEncoder(tf.keras.layers.Layer):
     """Transformer encoder that encompasses one or more TransformerEncoderBlock blocks."""
 
     def __init__(
-        self,
-        vocab_size,
-        depth,
-        norm_shape,
-        ffn_num_hiddens,
-        num_heads,
-        n_blocks,
-        dropout,
-        bias=False,
+            self,
+            vocab_size,
+            depth,
+            norm_shape,
+            ffn_num_hiddens,
+            num_heads,
+            n_blocks,
+            dropout,
+            bias=False,
     ):
         super().__init__()
         self.depth = depth
@@ -25,12 +25,12 @@ class TransformerEncoder(tf.keras.layers.Layer):
         self.pos_encoding = PositionalEncoding(depth, dropout)
         self.blocks = [
             TransformerEncoderBlock(
-                depth,
-                norm_shape,
-                ffn_num_hiddens,
-                num_heads,
-                dropout,
-                bias,
+                    depth,
+                    norm_shape,
+                    ffn_num_hiddens,
+                    num_heads,
+                    dropout,
+                    bias,
             )
             for _ in range(self.n_blocks)
         ]
@@ -40,8 +40,8 @@ class TransformerEncoder(tf.keras.layers.Layer):
         # values are multiplied by the square root of the embedding dimension
         # to rescale before they are summed up
         X = self.pos_encoding(
-            self.embedding(X) * tf.math.sqrt(tf.cast(self.depth, dtype=tf.float32)),
-            **kwargs,
+                self.embedding(X) * tf.math.sqrt(tf.cast(self.depth, dtype=tf.float32)),
+                **kwargs,
         )
         self.attention_weights = [None] * len(self.blocks)
         for i, blk in enumerate(self.blocks):

@@ -9,13 +9,13 @@ class TransformerDecoderBlock(tf.keras.layers.Layer):
     """Transformer decoder block."""
 
     def __init__(
-        self,
-        num_hiddens,
-        norm_shape,
-        ffn_num_hiddens,
-        num_heads,
-        dropout,
-        i,
+            self,
+            num_hiddens,
+            norm_shape,
+            ffn_num_hiddens,
+            num_heads,
+            dropout,
+            i,
     ):
         super().__init__()
         self.i = i
@@ -43,9 +43,9 @@ class TransformerDecoderBlock(tf.keras.layers.Layer):
             # Shape of dec_valid_lens: (batch_size, num_steps), where every
             # row is [1, 2, ..., num_steps]
             dec_valid_lens = tf.repeat(
-                tf.reshape(tf.range(1, num_steps + 1), shape=(-1, num_steps)),
-                repeats=batch_size,
-                axis=0,
+                    tf.reshape(tf.range(1, num_steps + 1), shape=(-1, num_steps)),
+                    repeats=batch_size,
+                    axis=0,
             )
         else:
             dec_valid_lens = None

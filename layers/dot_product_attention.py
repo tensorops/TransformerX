@@ -18,7 +18,7 @@ class DotProductAttention(tf.keras.layers.Layer):
     def call(self, queries, keys, values, valid_lens=None, window_mask=None, **kwargs):
         d = queries.shape[-1]
         scores = tf.matmul(queries, keys, transpose_b=True) / tf.math.sqrt(
-            tf.cast(d, dtype=tf.float32)
+                tf.cast(d, dtype=tf.float32)
         )
         if window_mask is not None:  # To be covered later
             num_windows = window_mask.shape[0]
@@ -26,14 +26,14 @@ class DotProductAttention(tf.keras.layers.Layer):
             # Shape of window_mask: (num_windows, no. of queries,
             # no. of key-value pairs)
             scores = tf.reshape(
-                scores,
-                (
-                    n // (num_windows * self.num_heads),
-                    num_windows,
-                    self.num_heads,
-                    num_queries,
-                    num_kv_pairs,
-                ),
+                    scores,
+                    (
+                        n // (num_windows * self.num_heads),
+                        num_windows,
+                        self.num_heads,
+                        num_queries,
+                        num_kv_pairs,
+                    ),
             ) + tf.expand_dims(tf.expand_dims(window_mask, 1), 0)
             scores = tf.reshape(scores, (n, num_queries, num_kv_pairs))
         self.attention_weights = masked_softmax(scores, valid_lens)
