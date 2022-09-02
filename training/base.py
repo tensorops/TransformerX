@@ -21,7 +21,7 @@ class Module(tf.keras.Model):
         assert hasattr(self, "net"), "Neural network is defined"
         return self.net(X)
 
-    def call(self, X, *args, **kwargs):
+    def __call__(self, X, *args, **kwargs):
         if kwargs and "training" in kwargs:
             self.training = kwargs["training"]
         return self.forward(X, *args)
@@ -80,7 +80,7 @@ class EncoderDecoder(Classifier):
         self.encoder = encoder
         self.decoder = decoder
 
-    def call(self, enc_X, dec_X, *args):
+    def __call__(self, enc_X, dec_X, *args):
         enc_outputs = self.encoder(enc_X, *args, training=True)
         dec_state = self.decoder.init_state(enc_outputs, *args)
         # Return decoder output only

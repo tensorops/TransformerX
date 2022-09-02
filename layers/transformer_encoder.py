@@ -35,7 +35,7 @@ class TransformerEncoder(tf.keras.layers.Layer):
             for _ in range(self.n_blocks)
         ]
 
-    def call(self, X, valid_lens, **kwargs):
+    def __call__(self, X, valid_lens, **kwargs):
         # Since positional encoding values are between -1 and 1, the embedding
         # values are multiplied by the square root of the embedding dimension
         # to rescale before they are summed up

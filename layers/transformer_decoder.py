@@ -38,7 +38,7 @@ class TransformerDecoder(tf.keras.layers.Layer):
     def init_state(self, enc_outputs, enc_valid_lens):
         return [enc_outputs, enc_valid_lens, [None] * self.n_blocks]
 
-    def call(self, X, state, **kwargs):
+    def __call__(self, X, state, **kwargs):
         X = self.pos_encoding(
                 self.embedding(X) * tf.math.sqrt(tf.cast(self.depth, dtype=tf.float32)),
                 **kwargs,

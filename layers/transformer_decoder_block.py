@@ -26,7 +26,7 @@ class TransformerDecoderBlock(tf.keras.layers.Layer):
         self.ffn = PositionWiseFFN(ffn_num_hiddens, num_hiddens)
         self.addnorm3 = AddNorm(norm_shape, dropout)
 
-    def call(self, X, state, **kwargs):
+    def __call__(self, X, state, **kwargs):
         """Forward propagation of the decoder block.
 
         During training, all the tokens of any output sequence are processed at the same time, so state[2][self.i]

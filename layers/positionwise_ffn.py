@@ -10,6 +10,6 @@ class PositionWiseFFN(tf.keras.layers.Layer):
         self.relu = tf.keras.layers.ReLU()
         self.dense2 = tf.keras.layers.Dense(ffn_num_outputs)
 
-    def call(self, X):
+    def __call__(self, X):
         # x.shape: (batch size, number of time steps or sequence length in tokens, number of hidden units or feature dimension)
         return self.dense2(self.relu(self.dense1(X)))

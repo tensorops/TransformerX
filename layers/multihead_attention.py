@@ -60,7 +60,7 @@ class MultiHeadAttention(tf.keras.layers.Layer):
         X = tf.transpose(X, perm=(0, 2, 1, 3))
         return tf.reshape(X, shape=(X.shape[0], X.shape[1], -1))
 
-    def call(self, queries, values, keys, valid_lens, window_mask=None, **kwargs):
+    def __call__(self, queries, values, keys, valid_lens, window_mask=None, **kwargs):
         # Shape of queries, keys, or values:
         # (batch_size, no. of queries or key-value pairs, depth)
         # Shape of valid_lens: (batch_size,) or (batch_size, no. of queries)

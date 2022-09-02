@@ -15,7 +15,7 @@ class DotProductAttention(tf.keras.layers.Layer):
     # Shape of keys: (batch_size, no. of key-value pairs, d)
     # Shape of values: (batch_size, no. of key-value pairs, value dimension)
     # Shape of valid_lens: (batch_size,) or (batch_size, no. of queries)
-    def call(self, queries, keys, values, valid_lens=None, window_mask=None, **kwargs):
+    def __call__(self, queries, keys, values, valid_lens=None, window_mask=None, **kwargs):
         d = queries.shape[-1]
         scores = tf.matmul(queries, keys, transpose_b=True) / tf.math.sqrt(
                 tf.cast(d, dtype=tf.float32)
