@@ -10,7 +10,7 @@ def masked_softmax(X, valid_lens):
     def _sequence_mask(X, valid_len, value=0):
         maxlen = X.shape[1]
         mask = tf.range(start=0, limit=maxlen, dtype=tf.float32)[None, :] < tf.cast(
-            valid_len[:, None], dtype=tf.float32
+                valid_len[:, None], dtype=tf.float32
         )
 
         if len(X.shape) == 3:

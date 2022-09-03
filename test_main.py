@@ -1,22 +1,23 @@
-# import pytest
 import os
 
+import numpy as np
+import pytest
+import tensorflow as tf
+
+from layers.addnorm import AddNorm
+from layers.multihead_attention import MultiHeadAttention
+from layers.positional_encoding import PositionalEncoding
+from layers.positionwise_ffn import PositionWiseFFN
 from layers.transformer_decoder_block import TransformerDecoderBlock
 from layers.transformer_encoder import TransformerEncoder
 from layers.transformer_encoder_block import TransformerEncoderBlock
-from layers.addnorm import AddNorm
-from layers.positionwise_ffn import PositionWiseFFN
 from txplot.plot_pe import Plot
-from layers.positional_encoding import PositionalEncoding
-from layers.multihead_attention import MultiHeadAttention
-import numpy as np
-import tensorflow as tf
-os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
-# @pytest.fixture()
-# def test_transpose_qkv():
-#     x = np.random.random([100, 10, 5])
-#     assert MultiHeadAttention.split_heads(x, x)
+
+@pytest.fixture()
+def test_transpose_qkv():
+    x = np.random.random([100, 10, 5])
+    assert MultiHeadAttention.split_heads(x, x)
 
 
 depth, num_steps = 32, 50
