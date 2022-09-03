@@ -1,7 +1,7 @@
 import tensorflow as tf
 from einops import rearrange
 
-from layers.dot_product_attention import DotProductAttention
+from transformerx.layers.dot_product_attention import DotProductAttention
 
 
 class MultiHeadAttention(tf.keras.layers.Layer):
