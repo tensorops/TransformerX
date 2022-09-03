@@ -1,9 +1,8 @@
 # **NOTE**: This example will be heavily edited, hence, this is not an official part of the library at this time
 
 from data_loader import BaseDataset
-from layers.transformer_decoder import TransformerDecoder
-from layers.transformer_encoder import TransformerEncoder
 from training.base import Transformer, Trainer
+from transformerx.layers import TransformerEncoder, TransformerDecoder
 
 depth, n_blocks, dropout = 256, 2, 0.2
 ffn_num_hiddens, num_heads = 64, 4

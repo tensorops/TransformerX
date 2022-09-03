@@ -1,7 +1,7 @@
 import tensorflow as tf
 
-from layers.positional_encoding import PositionalEncoding
-from layers.transformer_encoder_block import TransformerEncoderBlock
+from transformerx.layers.positional_encoding import PositionalEncoding
+from transformerx.layers.transformer_encoder_block import TransformerEncoderBlock
 
 
 class TransformerEncoder(tf.keras.layers.Layer):

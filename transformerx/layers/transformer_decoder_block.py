@@ -1,8 +1,8 @@
 import tensorflow as tf
 
-from layers.addnorm import AddNorm
-from layers.multihead_attention import MultiHeadAttention
-from layers.positionwise_ffn import PositionWiseFFN
+from transformerx.layers.addnorm import AddNorm
+from transformerx.layers.multihead_attention import MultiHeadAttention
+from transformerx.layers.positionwise_ffn import PositionWiseFFN
 
 
 class TransformerDecoderBlock(tf.keras.layers.Layer):

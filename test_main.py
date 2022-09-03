@@ -1,17 +1,12 @@
-import os
-
 import numpy as np
 import pytest
 import tensorflow as tf
 
-from layers.addnorm import AddNorm
-from layers.multihead_attention import MultiHeadAttention
-from layers.positional_encoding import PositionalEncoding
-from layers.positionwise_ffn import PositionWiseFFN
-from layers.transformer_decoder_block import TransformerDecoderBlock
-from layers.transformer_encoder import TransformerEncoder
-from layers.transformer_encoder_block import TransformerEncoderBlock
-from txplot.plot_pe import Plot
+from transformerx.layers import (
+    MultiHeadAttention, PositionalEncoding, PositionWiseFFN, AddNorm,
+    TransformerEncoderBlock, TransformerEncoder, TransformerDecoderBlock,
+)
+from transformerx.txplot import Plot
 
 
 @pytest.fixture()
