@@ -7,7 +7,7 @@ repository = "https://github.com/tensorops/TransformerX"
 authors = ["Soran Ghaderi <soran.gdr.cs@gmail.com>", "sigma1326 <taleb.zarhesh@gmail.com>"]
 maintainers = ["Soran Ghaderi <soran.gdr.cs@gmail.com>", "sigma1326 <taleb.zarhesh@gmail.com>"]
 readme = "README.md"
-license = "Apache"
+license = "Apache-2.0"
 include = [
     "License",
 ]
