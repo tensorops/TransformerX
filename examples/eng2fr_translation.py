@@ -1,7 +1,7 @@
 # **NOTE**: This example will be heavily edited, hence, this is not an official part of the library at this time
 
 from transformerx.data_loader import BaseDataset
-from training.base import Transformer, Trainer
+from transformerx.training.base import Transformer, Trainer
 from transformerx.layers import TransformerEncoder, TransformerDecoder
 
 depth, n_blocks, dropout = 256, 2, 0.2
