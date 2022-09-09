@@ -1,6 +1,6 @@
 # **NOTE**: This example will be heavily edited, hence, this is not an official part of the library at this time
 
-from data_loader import BaseDataset
+from transformerx.data_loader import BaseDataset
 from training.base import Transformer, Trainer
 from transformerx.layers import TransformerEncoder, TransformerDecoder
 
