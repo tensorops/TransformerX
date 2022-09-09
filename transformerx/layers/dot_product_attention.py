@@ -1,6 +1,6 @@
 import tensorflow as tf
 
-from utils import masked_softmax
+from transformerx.utils import masked_softmax
 
 
 class DotProductAttention(tf.keras.layers.Layer):
