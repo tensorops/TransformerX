@@ -14,7 +14,7 @@ NAME = "TransformerX"
 DESCRIPTION = "TransformerX is a python library for building transformer-based models using ready-to-use layers."
 
 PLATFORMS = ["Linux", "Mac OSX", "Windows", "Unix"]
-VERSION = "0.0.1beta"
+VERSION = None
 AUTHORS = {
     "Soran": ("Soran Ghaderi", "soran.gdr.cs@gmail.com"),
     "Taleb": ("Taleb Zarhesh", "taleb.zarhesh@gmail.com"),
@@ -87,29 +87,6 @@ def parse_requirements_file(filename):
 # requirements = parse_requirements_file("requirements/default.txt")
 # requirements = ['networkx']
 
-
-setup(
-        name=NAME,
-        version=about["__version__"],
-        maintainer=MAINTAINER,
-        maintainer_email=MAINTAINER_EMAIL,
-        author=AUTHORS["Soran"][0],
-        author_email=AUTHORS["Soran"][1],
-        description=DESCRIPTION,
-        long_description=readme,
-        keywords=KEYWORDS,
-        platforms=PLATFORMS,
-        long_description_content_type="text/markdown",
-        url="https://github.com/tensorops/TransformerX",
-        packages=find_packages(exclude=("tests", "docs", "html", "requirements")),
-        # install_requires=requirements,
-        # extras_require=extras_require,
-        classifiers=CLASSIFIERS,
-        python_requires=">=3.6",
-        zip_safe=False,
-)
-
-
 class UploadCommand(Command):
     """Support setup.py upload."""
 
@@ -144,3 +121,30 @@ class UploadCommand(Command):
         os.system("git push --tags")
 
         sys.exit()
+
+setup(
+    name=NAME,
+    version=about["__version__"],
+    maintainer=MAINTAINER,
+    maintainer_email=MAINTAINER_EMAIL,
+    author=AUTHORS["Soran"][0],
+    author_email=AUTHORS["Soran"][1],
+    description=DESCRIPTION,
+    long_description=readme,
+    keywords=KEYWORDS,
+    platforms=PLATFORMS,
+    long_description_content_type="text/markdown",
+    url="https://github.com/tensorops/TransformerX",
+    packages=find_packages(exclude=("tests", "docs", "html", "requirements")),
+    # install_requires=requirements,
+    # extras_require=extras_require,
+    classifiers=CLASSIFIERS,
+    python_requires=">=3.6",
+    zip_safe=False,
+    license="Apache-2.0",
+    cmdclass={
+        'upload': UploadCommand,
+    },
+)
+
+

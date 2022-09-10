@@ -1,11 +1,4 @@
-VERSION = (1, 0, 0, "beta", 2)
+VERSION = (1, 0, 0, "beta", 3)
 
 __version__ = '.'.join(map(str, VERSION))
 
-
-def main():
-    print(__version__)
-
-
-if __name__ == "__main__":
-    main()
