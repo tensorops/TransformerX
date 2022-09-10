@@ -26,6 +26,11 @@
     <p>Follow <a target="_blank" href="https://twitter.com/tensorops"><b>TensorOps</b> Twitter</a></p>
 </div>
 
+<b>Here's why:</b>
+
+- Your time should be focused on creating something amazing
+- You shouldn't be doing the same tasks over and over
+
 <div>
   <h2>Installation</h2>
   <p>Install the latest version of <b>TransformerX</b>:</p>
