@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "TransformerX"
-version = "1.0.0.beta.3"
+version = "1.0.0.beta.4"
 description = "TransformerX is a python library for building transformer-based models using pre-built layers."
 homepage = "https://github.com/tensorops/TransformerX"
 repository = "https://github.com/tensorops/TransformerX"
@@ -49,14 +49,14 @@ keywords = [
 ]
 
 [tool.poetry.dependencies]
-python = "~3.10"
-numpy = "^1.23.2"
-matplotlib = "^3.5.3"
-pytest = "^7.1.2"
-tensorflow = "^2.2.0"
+python = ">=3.6.2,<4.0"
+numpy = ">=1.18.5"
+matplotlib = {version = "^3.5.3", optional = true }
+tensorflow = ">=2.2.0"
 einops = "^0.4.1"
 
 [tool.poetry.dev-dependencies]
+pytest = "^7.1.2"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
