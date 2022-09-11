@@ -4,27 +4,27 @@ from typing import Tuple
 
 
 class AddNorm(tf.keras.layers.Layer):
-    """Residual connection addition and dropout followed by a layer normalization layer (Ba et al., 2016)
+    """Residual connection addition and dropout_rate followed by a layer normalization layer (Ba et al., 2016)
 
         Wrap each module with residual connections that enables deeper architectures while avoiding gradient
         vanishing/explosion.
-        Then normalize the activations of the previous layer for each given example in a batch independently, rather than
-        across a batch like Batch Normalization. i.e. applies a transformation that maintains the mean activation
-        within each example close to 0 and the activation standard deviation close to 1.
 
         Parameters
         ----------
-        norm_shape : Arbitrary. Shape of the input.
-        dropout : Float between 0 and 1. Fraction of the input units to drop.
+        norm_shape :
+            Arbitrary. Shape of the input.
+        dropout_rate :
+            Float between 0 and 1. Fraction of the input units to drop.
 
         Returns
         -------
-        Added and normalized tensor
+        output:
+            Added and normalized tensor
 
         Raises
         ------
         ValueError
-            If the value of dropout is not between 0 and 1
+            If the value of dropout_rate is not between 0 and 1
         TypeError
             If `norm_shape` argument shape is not int or a list/tuple of ints
 
@@ -33,15 +33,22 @@ class AddNorm(tf.keras.layers.Layer):
         Layer Normalization normalizes across the axes *within* each example, rather than across different
         examples in the batch.
 
+        Then normalize the activations of the previous layer for each given example in a batch independently, rather than
+        across a batch like Batch Normalization. i.e. applies a transformation that maintains the mean activation
+        within each example close to 0 and the activation standard deviation close to 1.
+
+        Layer normalization (LayerNorm) is a technique to normalize the distributions of intermediate layers. It enables
+        smoother gradients, faster training, and better generalization accuracy.
+
         References
         ----------
-        - [Lei Ba et al., 2016](https://arxiv.org/abs/1607.06450).
+        [Lei Ba et al., 2016](https://arxiv.org/abs/1607.06450).
 
         Examples
         --------
-        >>> X = tf.constant(np.arange(10).reshape(5, 2) * 10, dtype=tf.float32)
-        >>> Y = tf.constant(np.arange(10).reshape(5, 2) * 10, dtype=tf.float32)
-        >>> print(X)
+        >>> x = tf.constant(np.arange(10).reshape(5, 2) * 10, dtype=tf.float32)
+        >>> y = tf.constant(np.arange(10).reshape(5, 2) * 10, dtype=tf.float32)
+        >>> print(x)
         tf.Tensor(
         [[ 0. 10.]
          [20. 30.]
@@ -50,9 +57,9 @@ class AddNorm(tf.keras.layers.Layer):
          [80. 90.]], shape=(5, 2), dtype=float32)
 
         >>> norm_shape = [0, 1]
-        >>> dropout = 0.2
-        >>> addnorm = AddNorm(norm_shape, dropout)
-        >>> output = addnorm(X, Y)
+        >>> dropout_rate = 0.2
+        >>> addnorm = AddNorm(norm_shape, dropout_rate)
+        >>> output = addnorm(x, y)
         >>> print(output)
         tf.Tensor(
         [[-1.5666986  -1.2185433 ]
@@ -61,12 +68,12 @@ class AddNorm(tf.keras.layers.Layer):
          [ 0.52223283  0.8703881 ]
          [ 1.2185433   1.5666986 ]], shape=(5, 2), dtype=float32)"""
 
-    def __init__(self, norm_shape: Tuple[int], dropout: float = 0):
+    def __init__(self, norm_shape: Tuple[int], dropout_rate: float = 0):
         super(AddNorm, self).__init__()
-        if isinstance(dropout, (int, float)) and not 0 <= dropout <= 1:
+        if isinstance(dropout_rate, (int, float)) and not 0 <= dropout_rate <= 1:
             raise ValueError(
-                f"Invalid value {dropout} received for "
-                "`dropout`, expected a value between 0 and 1."
+                f"Invalid value {dropout_rate} received for "
+                "`dropout_rate`, expected a value between 0 and 1."
             )
 
         # The norm_shape should not contain numbers more than the input tensor dimensions
@@ -80,7 +87,9 @@ class AddNorm(tf.keras.layers.Layer):
                 f"argument 'norm_shape', but received: {norm_shape}"
             )
 
-        self.dropout = tf.keras.layers.Dropout(dropout)
+        self.dropout_rate = dropout_rate
+        self.norm_shape = norm_shape
+        self.dropout = tf.keras.layers.Dropout(dropout_rate)
         self.ln = tf.keras.layers.LayerNormalization(norm_shape)
 
     def call(self, X: tf.Tensor, Y: tf.Tensor, **kwargs):
@@ -88,11 +97,38 @@ class AddNorm(tf.keras.layers.Layer):
 
         Parameters
         ----------
-        X : Input tensor
-        Y : Input tensor 2
+        X :
+            Input tensor
+        Y :
+            Input tensor 2
 
         Returns
         -------
-        Added and normalized tensor
+        output :
+            Added and normalized tensor
         """
+        if not isinstance(X, tf.Tensor):
+            raise TypeError(
+                f"Expected a tensor for the "
+                f"argument 'X', but received: {X}"
+            )
+        if not isinstance(Y, tf.Tensor):
+            raise TypeError(
+                f"Expected a tensor for the "
+                f"argument 'Y', but received: {Y}"
+            )
         return self.ln(self.dropout(Y, **kwargs) + X)
+
+os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+if __name__ == "__main__":
+    X = tf.constant(np.arange(10).reshape(5, 2) * 10, dtype=tf.float32)
+    Y = tf.constant(np.arange(10).reshape(5, 2) * 10, dtype=tf.float32)
+    norm_shape = [0, 1]
+
+    dropout = tf.keras.layers.Dropout(0)
+    output = dropout(Y) + X
+    print("dropout_rate: ", output)
+
+    addnorm = AddNorm(norm_shape, .2)
+    output = addnorm(X, Y)
+    print(output)
