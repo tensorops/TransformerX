@@ -38,3 +38,18 @@ class DotProductAttention(tf.keras.layers.Layer):
             scores = tf.reshape(scores, (n, num_queries, num_kv_pairs))
         self.attention_weights = masked_softmax(scores, valid_lens)
         return tf.matmul(self.dropout(self.attention_weights, **kwargs), values)
+
+
+os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+if __name__ == "__main__":
+    X = tf.constant(np.arange(10).reshape(5, 2) * 10, dtype=tf.float32)
+    Y = tf.constant(np.arange(10).reshape(5, 2) * 10, dtype=tf.float32)
+    norm_shape = [0, 1]
+
+    dropout = tf.keras.layers.Dropout(0)
+    output = dropout(Y) + X
+    print("dropout: ", output)
+
+    addnorm = AddNorm(norm_shape, .2)
+    output = addnorm(X, Y)
+    print(output)
