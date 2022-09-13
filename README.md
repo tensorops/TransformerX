@@ -97,7 +97,7 @@ trainer.fit(model, data)
 
 - [x] Support Tensorflow
 - [ ] Extensive documentation
-- [ ] Support Pytorch and JAZ
+- [ ] Support Pytorch and JAX
 - [ ] More layers
 </div>
 <div>
