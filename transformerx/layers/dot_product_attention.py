@@ -7,9 +7,9 @@ from transformerx.utils import masked_softmax
 
 
 class DotProductAttention(tf.keras.layers.Layer):
-    """(Scaled) dot-product attention
+    """(Scaled) dot-product attention [1]_
 
-
+    Implement multiplicative (dot-product) and scaled multiplicative attention for the input queries, keyes, and values.
 
     Parameters
     ----------
@@ -34,10 +34,6 @@ class DotProductAttention(tf.keras.layers.Layer):
 
     ..math:: Attention(Q, K, V) = softmax(\frac{QK^T}{\sqrt{d_k}})V
 
-    References
-    ----------
-    .. [1] A. Vaswani, N. Shazeer, N. Parmar, J. Uszkoreit, L. Jones, A. N. Gomez, L. Kaiser, I. Polosukhin, Attention
-    is all you need, in: NIPS, pp. 5998–6008.
 
     Examples
     --------
@@ -81,6 +77,11 @@ class DotProductAttention(tf.keras.layers.Layer):
      [[0.6074392  0.80120546]
       [0.6098373  0.80074203]
       [0.5967663  0.7891044 ]]], shape=(2, 3, 2), dtype=float32)
+
+    References
+    ----------
+    .. [1] A. Vaswani, N. Shazeer, N. Parmar, J. Uszkoreit, L. Jones, A. N. Gomez, L. Kaiser, I. Polosukhin, Attention
+    is all you need, in: NIPS, pp. 5998–6008.
     """
 
     def __init__(self, dropout_rate: float = 0, num_heads: int = 8, scaled: bool = True):
@@ -121,18 +122,3 @@ class DotProductAttention(tf.keras.layers.Layer):
             scores = tf.reshape(scores, (n, num_queries, num_kv_pairs))
         self.attention_weights = masked_softmax(scores, valid_lens)
         return tf.matmul(self.dropout(self.attention_weights, **kwargs), values)
-
-
-os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
-if __name__ == "__main__":
-    x = tf.cast(np.random.random([2, 3, 2]), dtype=tf.float32)
-    print(x)
-    dot = DotProductAttention(0.2)
-    dot2 = DotProductAttention(dropout_rate=0.1, num_heads=8, scaled=False)
-    queries, keys, values = x, x, x
-    output = dot(queries, keys, values)
-    output2 = dot2(queries, keys, values)
-    print(x.shape)
-    print(output)
-    print(output2)
-    print(output == output2)

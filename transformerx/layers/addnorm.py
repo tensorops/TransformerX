@@ -4,69 +4,71 @@ from typing import Tuple
 
 
 class AddNorm(tf.keras.layers.Layer):
-    """Residual connection addition and dropout_rate followed by a layer normalization layer (Ba et al., 2016)
+    """Residual connection addition and dropout_rate followed by a layer normalization layer [Ba et al., 2016]_
 
-        Wrap each module with residual connections that enables deeper architectures while avoiding gradient
-        vanishing/explosion.
+    Wrap each module with residual connections that enables deeper architectures while avoiding gradient
+    vanishing/explosion.
 
-        Parameters
-        ----------
-        norm_shape :
-            Arbitrary. Shape of the input.
-        dropout_rate :
-            Float between 0 and 1. Fraction of the input units to drop.
+    Parameters
+    ----------
+    norm_shape :
+        Arbitrary. Shape of the input.
+    dropout_rate :
+        Float between 0 and 1. Fraction of the input units to drop.
 
-        Returns
-        -------
-        output:
-            Added and normalized tensor
+    Returns
+    -------
+    output:
+        Added and normalized tensor
 
-        Raises
-        ------
-        ValueError
-            If the value of dropout_rate is not between 0 and 1
-        TypeError
-            If `norm_shape` argument shape is not int or a list/tuple of ints
+    Raises
+    ------
+    ValueError
+        If the value of dropout_rate is not between 0 and 1
+    TypeError
+        If `norm_shape` argument shape is not int or a list/tuple of ints
 
-        Notes
-        -----
-        Layer Normalization normalizes across the axes *within* each example, rather than across different
-        examples in the batch.
+    Notes
+    -----
+    Layer Normalization normalizes across the axes *within* each example, rather than across different
+    examples in the batch.
 
-        Then normalize the activations of the previous layer for each given example in a batch independently, rather than
-        across a batch like Batch Normalization. i.e. applies a transformation that maintains the mean activation
-        within each example close to 0 and the activation standard deviation close to 1.
+    Then normalize the activations of the previous layer for each given example in a batch independently, rather than
+    across a batch like Batch Normalization. i.e. applies a transformation that maintains the mean activation
+    within each example close to 0 and the activation standard deviation close to 1.
 
-        Layer normalization (LayerNorm) is a technique to normalize the distributions of intermediate layers. It enables
-        smoother gradients, faster training, and better generalization accuracy.
+    Layer normalization (LayerNorm) is a technique to normalize the distributions of intermediate layers. It enables
+    smoother gradients, faster training, and better generalization accuracy.
 
-        References
-        ----------
-        [Lei Ba et al., 2016](https://arxiv.org/abs/1607.06450).
 
-        Examples
-        --------
-        >>> x = tf.constant(np.arange(10).reshape(5, 2) * 10, dtype=tf.float32)
-        >>> y = tf.constant(np.arange(10).reshape(5, 2) * 10, dtype=tf.float32)
-        >>> print(x)
-        tf.Tensor(
-        [[ 0. 10.]
-         [20. 30.]
-         [40. 50.]
-         [60. 70.]
-         [80. 90.]], shape=(5, 2), dtype=float32)
+    Examples
+    --------
+    >>> x = tf.constant(np.arange(10).reshape(5, 2) * 10, dtype=tf.float32)
+    >>> y = tf.constant(np.arange(10).reshape(5, 2) * 10, dtype=tf.float32)
+    >>> print(x)
+    tf.Tensor(
+    [[ 0. 10.]
+     [20. 30.]
+     [40. 50.]
+     [60. 70.]
+     [80. 90.]], shape=(5, 2), dtype=float32)
 
-        >>> norm_shape = [0, 1]
-        >>> dropout_rate = 0.2
-        >>> addnorm = AddNorm(norm_shape, dropout_rate)
-        >>> output = addnorm(x, y)
-        >>> print(output)
-        tf.Tensor(
-        [[-1.5666986  -1.2185433 ]
-         [-0.8703881  -0.52223283]
-         [-0.17407762  0.17407762]
-         [ 0.52223283  0.8703881 ]
-         [ 1.2185433   1.5666986 ]], shape=(5, 2), dtype=float32)"""
+    >>> norm_shape = [0, 1]
+    >>> dropout_rate = 0.2
+    >>> addnorm = AddNorm(norm_shape, dropout_rate)
+    >>> output = addnorm(x, y)
+    >>> print(output)
+    tf.Tensor(
+    [[-1.5666986  -1.2185433 ]
+     [-0.8703881  -0.52223283]
+     [-0.17407762  0.17407762]
+     [ 0.52223283  0.8703881 ]
+     [ 1.2185433   1.5666986 ]], shape=(5, 2), dtype=float32)
+
+     References
+    ----------
+    .. [Lei Ba et al., 2016] https://arxiv.org/abs/1607.06450
+    """
 
     def __init__(self, norm_shape: Tuple[int], dropout_rate: float = 0):
         super(AddNorm, self).__init__()
@@ -118,17 +120,3 @@ class AddNorm(tf.keras.layers.Layer):
                 f"argument 'Y', but received: {Y}"
             )
         return self.ln(self.dropout(Y, **kwargs) + X)
-
-os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
-if __name__ == "__main__":
-    X = tf.constant(np.arange(10).reshape(5, 2) * 10, dtype=tf.float32)
-    Y = tf.constant(np.arange(10).reshape(5, 2) * 10, dtype=tf.float32)
-    norm_shape = [0, 1]
-
-    dropout = tf.keras.layers.Dropout(0)
-    output = dropout(Y) + X
-    print("dropout_rate: ", output)
-
-    addnorm = AddNorm(norm_shape, .2)
-    output = addnorm(X, Y)
-    print(output)
