@@ -5,7 +5,7 @@ import pytest
 import tensorflow as tf
 
 from transformerx.layers import (
-    MultiHeadAttention, PositionalEncoding, PositionWiseFFN, AddNorm,
+    MultiHeadAttention, AbsolutePositionalEncoding, PositionWiseFFN, AddNorm,
     TransformerEncoderBlock, TransformerEncoder, TransformerDecoderBlock, DotProductAttention,
 )
 from transformerx.txplot import Plot
@@ -25,7 +25,7 @@ print(output)
 
 
 depth, num_steps = 32, 50
-pos_encoding = PositionalEncoding(depth, 0)
+pos_encoding = AbsolutePositionalEncoding(depth, 0)
 X = pos_encoding(tf.zeros((2, num_steps, depth)), training=False)
 P = pos_encoding.P[:, : X.shape[1], :]
 plotter = Plot()

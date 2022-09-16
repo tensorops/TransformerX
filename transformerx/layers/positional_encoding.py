@@ -2,8 +2,17 @@ import numpy as np
 import tensorflow as tf
 
 
-class PositionalEncoding(tf.keras.layers.Layer):
+class AbsolutePositionalEncoding(tf.keras.layers.Layer):
+    """
+
+    Parameters
+    ----------
+    num_hiddens :
+    dropout :
+    max_len :
+    """
     def __init__(self, num_hiddens, dropout, max_len=1000):
+
         super().__init__()
         self.dropout = tf.keras.layers.Dropout(dropout)
         # Create a long enough P
