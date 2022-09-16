@@ -3,7 +3,25 @@ import tensorflow as tf
 
 
 class AbsolutePositionalEncoding(tf.keras.layers.Layer):
-    """
+    """Absolute positional encoding object.
+
+    Generate a sinusoid for each dimension of the positional encoding where wavelengths form a geometric progression
+    from :math:`2π` to :math:`(10000)2π`
+
+    Notes
+    -----
+    Absolute Position Encodings are a type of position embeddings for [Transformer-based models] where positional
+    encodings are added to the input embeddings at the bottoms of the encoder and decoder stacks. The positional
+    encodings have the same dimension :math:`d_model` as the embeddings, so that the two can be summed. In the original
+    implementation, sine and cosine functions of different frequencies are used:
+
+    .. math::
+        PE(pos, 2i) = \sin(pos^{2i/d_{model}})
+
+        PE(pos, 2i+1) = \cos(pos^{2i/d_{model}})
+
+    where  is the position and  is the dimension.
+
 
     Parameters
     ----------
