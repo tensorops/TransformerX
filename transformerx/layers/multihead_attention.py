@@ -103,7 +103,7 @@ class MultiHeadAttention(tf.keras.layers.Layer):
     def split_heads(self, X: tf.Tensor) -> tf.Tensor:
         """Transpose tensors for parallel computation of attention heads.
 
-        First transposition produces a tensor of shape X: (batch_size, num_heads, no. of queries or key-value pairs,
+        First transposition produces a tensor of shape x: (batch_size, num_heads, no. of queries or key-value pairs,
         depth / num_heads).
         Next it is rearranged to a new order (batch_size * num_heads, no. of queries or key-value pairs,
         depth / num_heads) which is then passed to the last rearrangement and returned.
@@ -114,19 +114,19 @@ class MultiHeadAttention(tf.keras.layers.Layer):
             The tensor to be transposed and prepared for the multi-head attention layer (i.e. queries, keys, and values)
         Returns
         -------
-        X : tf.Tensor
+        x : tf.Tensor
             Transposed tensor of shape ((batch_size * num_heads, no. of queries or key-value pairs, depth / num_heads)
         """
 
-        # X = tf.reshape(X, shape=(X.shape[0], X.shape[1], self.num_heads, -1))
+        # x = tf.reshape(x, shape=(x.shape[0], x.shape[1], self.num_heads, -1))
         X = rearrange(X, "b h (heads hidden) -> b h heads hidden", heads=self.num_heads)
-        # print("X reshaped: ", X.shape)
-        # X = tf.transpose(X, perm=(0, 2, 1, 3))
+        # print("x reshaped: ", x.shape)
+        # x = tf.transpose(x, perm=(0, 2, 1, 3))
         X = rearrange(X, "b d1 d2 d3 -> b d2 d1 d3")
-        # print("X transposed: ", X.shape)
-        # return tf.reshape(X, shape=(-1, X.shape[2], X.shape[3]))
+        # print("x transposed: ", x.shape)
+        # return tf.reshape(x, shape=(-1, x.shape[2], x.shape[3]))
         X = rearrange(X, "b d1 d2 d3 -> (b d1) d2 d3")
-        # print("X reshaped2: ", X.shape)
+        # print("x reshaped2: ", x.shape)
         return X
 
     def inverse_transpose_qkv(self, X):

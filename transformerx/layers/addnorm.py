@@ -94,29 +94,29 @@ class AddNorm(tf.keras.layers.Layer):
         self.dropout = tf.keras.layers.Dropout(dropout_rate)
         self.ln = tf.keras.layers.LayerNormalization(norm_shape)
 
-    def call(self, X: tf.Tensor, Y: tf.Tensor, **kwargs):
+    def call(self, x: tf.Tensor, residual: tf.Tensor, **kwargs):
         """Call AddNorm layer.
 
         Parameters
         ----------
-        X :
+        x :
             Input tensor
-        Y :
-            Input tensor 2
+        residual :
+            Residual input tensor
 
         Returns
         -------
         output :
             Added and normalized tensor
         """
-        if not isinstance(X, tf.Tensor):
+        if not isinstance(x, tf.Tensor):
             raise TypeError(
                 f"Expected a tensor for the "
-                f"argument 'X', but received: {X}"
+                f"argument 'x', but received: {x}"
             )
-        if not isinstance(Y, tf.Tensor):
+        if not isinstance(residual, tf.Tensor):
             raise TypeError(
                 f"Expected a tensor for the "
-                f"argument 'Y', but received: {Y}"
+                f"argument 'residual', but received: {residual}"
             )
-        return self.ln(self.dropout(Y, **kwargs) + X)
+        return self.ln(self.dropout(residual, **kwargs) + x)

@@ -1,6 +1,6 @@
 import tensorflow as tf
 
-from transformerx.layers.positional_encoding import PositionalEncoding
+from transformerx.layers.positional_encoding import AbsolutePositionalEncoding
 from transformerx.layers.transformer_encoder_block import TransformerEncoderBlock
 
 
@@ -22,7 +22,7 @@ class TransformerEncoder(tf.keras.layers.Layer):
         self.depth = depth
         self.n_blocks = n_blocks
         self.embedding = tf.keras.layers.Embedding(vocab_size, depth)
-        self.pos_encoding = PositionalEncoding(depth, dropout)
+        self.pos_encoding = AbsolutePositionalEncoding(depth, dropout)
         self.blocks = [
             TransformerEncoderBlock(
                     depth,
