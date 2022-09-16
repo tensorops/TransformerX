@@ -6,7 +6,7 @@ import tensorflow as tf
 def masked_softmax(X, valid_lens):
     """Perform softmax operation by masking elements on the last axis."""
 
-    # X: 3D tensor, valid_lens: 1D or 2D tensor
+    # x: 3D tensor, valid_lens: 1D or 2D tensor
     def _sequence_mask(X, valid_len, value=0):
         maxlen = X.shape[1]
         mask = tf.range(start=0, limit=maxlen, dtype=tf.float32)[None, :] < tf.cast(
