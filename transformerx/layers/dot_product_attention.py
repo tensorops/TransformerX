@@ -7,7 +7,7 @@ from transformerx.utils import masked_softmax
 
 
 class DotProductAttention(tf.keras.layers.Layer):
-    """(Scaled) dot-product attention [1]_
+    """Compute (scaled) dot-product attention [1]_
 
     Implement multiplicative (dot-product) and scaled multiplicative attention for the input queries, keyes, and values.
 
@@ -107,7 +107,7 @@ class DotProductAttention(tf.keras.layers.Layer):
         if window_mask is not None:  # To be covered later
             num_windows = window_mask.shape[0]
             n, num_queries, num_kv_pairs = scores.shape
-            # Shape of window_mask: (num_windows, no. of queries,
+            # Shape of causal_mask: (num_windows, no. of queries,
             # no. of key-value pairs)
             scores = tf.reshape(
                 scores,

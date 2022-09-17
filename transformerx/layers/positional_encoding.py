@@ -3,7 +3,7 @@ import tensorflow as tf
 
 
 class AbsolutePositionalEncoding(tf.keras.layers.Layer):
-    """Absolute positional encoding object.
+    """Compute absolute positional encoding object [1]_.
 
     Generate a sinusoid for each dimension of the positional encoding where wavelengths form a geometric progression
     from :math:`2π` to :math:`(10000)2π`.
@@ -26,11 +26,16 @@ class AbsolutePositionalEncoding(tf.keras.layers.Layer):
     Parameters
     ----------
     depth :
-        Length of the positional encoding's hidden units.
+        Embedding Size; Length of the positional encoding's hidden units, the same as the length of Embedding.
     dropout_rate :
         Float between 0 and 1. Fraction of the input units to drop.
     max_len :
         Maximum length of the steps to calculate sinusoid
+
+    Returns
+    -------
+    output:
+        Tensor of the same shape of the input tensor with positinoal encodings added
 
     Examples
     --------
@@ -39,12 +44,17 @@ class AbsolutePositionalEncoding(tf.keras.layers.Layer):
     >>> x = tf.zeros((1, num_steps, depth))
     >>> print(x.shape)
     (1, 50, 32)
-    >>> X = pos_encoding(x, training=False)
-    >>> P = pos_encoding.P[:, : X.shape[1], :]
-    >>> print(X.shape)
+    >>> x = pos_encoding(x, training=False)
+    >>> P = pos_encoding.P[:, : x.shape[1], :]
+    >>> print(x.shape)
     (1, 50, 32)
     >>> print(P.shape)
     (1, 50, 32)
+
+    References
+    ----------
+    .. [1] Vaswani, A., Shazeer, N., Parmar, N., Uszkoreit, J., Jones, L., Gomez, A. N., Kaiser, L., & Polosukhin, I.
+    (2017). Attention Is All You Need. arXiv. https://doi.org/10.48550/arXiv.1706.03762
     """
 
     def __init__(self, depth, dropout_rate=0, max_len=1000):

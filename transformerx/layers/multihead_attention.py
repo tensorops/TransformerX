@@ -6,9 +6,9 @@ from transformerx.layers.dot_product_attention import DotProductAttention
 
 
 class MultiHeadAttention(tf.keras.layers.Layer):
-    """Multi-head attention [1]_
+    """Compute Multi-Head [1]_ (masked) self- or cross- attention layer.
 
-    Multi-head attention class that runs through an attention mechanism (i.e. most commonly scaled dot-product) several
+    An attention class that runs through an attention mechanism (i.e. most commonly scaled dot-product) several
     times in parallel. The independent attention outputs are then concatenated and linearly transformed into the
     expected dimension.
 
@@ -72,9 +72,6 @@ class MultiHeadAttention(tf.keras.layers.Layer):
       [ 0.14547291  0.21081978  0.26109838 -0.10745162  0.03889
         0.04069766  0.11251941  0.05741404]]], shape=(2, 3, 8), dtype=float32)
 
-    Process finished with exit code 0
-
-
     References
     ----------
     .. [1] A. Vaswani, N. Shazeer, N. Parmar, J. Uszkoreit, L. Jones, A. N. Gomez, L. Kaiser, I. Polosukhin, Attention
@@ -136,7 +133,8 @@ class MultiHeadAttention(tf.keras.layers.Layer):
         return tf.reshape(X, shape=(X.shape[0], X.shape[1], -1))
 
     def call(self, queries: tf.Tensor, values: tf.Tensor, keys: tf.Tensor, valid_lens: tf.Tensor = None,
-             window_mask: bool = None, **kwargs) -> tf.Tensor:
+             causal_mask: bool = None, **kwargs) -> tf.Tensor:
+        # todo: rename valid_lens to attention_mask and depth to d_model
         # Shape of queries, keys, or values:
         # (batch_size, no. of queries or key-value pairs, depth)
         # Shape of valid_lens: (batch_size,) or (batch_size, no. of queries)
@@ -160,7 +158,7 @@ class MultiHeadAttention(tf.keras.layers.Layer):
         # Shape of output: (batch_size * num_heads, no. of queries,
         # depth / num_heads)
         output = self.attention(
-            queries, keys, values, valid_lens, window_mask, **kwargs
+            queries, keys, values, valid_lens, causal_mask, **kwargs
         )
 
         # Shape of output_concat: (batch_size, no. of queries, depth)
