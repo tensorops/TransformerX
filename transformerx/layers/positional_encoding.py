@@ -1,6 +1,8 @@
 import numpy as np
 import tensorflow as tf
 
+from transformerx.utils import exists
+
 
 class AbsolutePositionalEncoding(tf.keras.layers.Layer):
     """Compute absolute positional encoding object [1]_.
@@ -80,8 +82,6 @@ class AbsolutePositionalEncoding(tf.keras.layers.Layer):
         X = X + self.P[:, : X.shape[1], :]
         return self.dropout(X, **kwargs)
 
-def exists(val):
-    return val is not None
 
 class FixedPositionalEncoding(tf.keras.layers.Layer):
     def __init__(self, dim):

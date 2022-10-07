@@ -38,3 +38,7 @@ def use_device(device):
         os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
     else:
         pass
+
+
+def exists(val):
+    return val is not None
