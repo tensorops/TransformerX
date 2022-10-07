@@ -6,7 +6,25 @@ from transformerx.layers.positionwise_ffn import PositionWiseFFN
 
 
 class TransformerDecoderBlock(tf.keras.layers.Layer):
-    """Transformer decoder block."""
+    """Transformer decoder block [1]_.
+
+    Include a stack of layers used in the transformer decoder block.
+
+    Parameters
+    ----------
+    num_hiddens :
+        Dimensions of the queries, keys, and values
+    norm_shape :
+        Arbitrary. Shape of the input.
+    ffn_num_hiddens :
+        Number of input hidden units
+    num_heads :
+        Number of the heads in the multi-head attention
+    dropout_rate :
+        Float between 0 and 1. Fraction of the input units to drop.
+    i :
+        Index of the block
+    """
 
     def __init__(
             self,
@@ -14,17 +32,18 @@ class TransformerDecoderBlock(tf.keras.layers.Layer):
             norm_shape,
             ffn_num_hiddens,
             num_heads,
-            dropout,
+            dropout_rate,
             i,
     ):
+
         super().__init__()
         self.i = i
-        self.attention1 = MultiHeadAttention(num_hiddens, num_heads, dropout)
-        self.addnorm1 = AddNorm(norm_shape, dropout)
-        self.attention2 = MultiHeadAttention(num_hiddens, num_heads, dropout)
-        self.addnorm2 = AddNorm(norm_shape, dropout)
+        self.attention1 = MultiHeadAttention(num_hiddens, num_heads, dropout_rate)
+        self.addnorm1 = AddNorm(norm_shape, dropout_rate)
+        self.attention2 = MultiHeadAttention(num_hiddens, num_heads, dropout_rate)
+        self.addnorm2 = AddNorm(norm_shape, dropout_rate)
         self.ffn = PositionWiseFFN(ffn_num_hiddens, num_hiddens)
-        self.addnorm3 = AddNorm(norm_shape, dropout)
+        self.addnorm3 = AddNorm(norm_shape, dropout_rate)
 
     def call(self, X, state, **kwargs):
         """Forward propagation of the decoder block.
