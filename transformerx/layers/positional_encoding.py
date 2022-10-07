@@ -58,7 +58,7 @@ class AbsolutePositionalEncoding(tf.keras.layers.Layer):
     """
 
     def __init__(self, depth, dropout_rate=0, max_len=1000):
-        super().__init__()
+        super(AbsolutePositionalEncoding, self).__init__()
         self.dropout = tf.keras.layers.Dropout(dropout_rate)
         # Create a long enough P
 
@@ -79,3 +79,15 @@ class AbsolutePositionalEncoding(tf.keras.layers.Layer):
         # print("self.P[:, : x.shape[1], :]: ", self.P[:, : x.shape[1], :].shape)
         X = X + self.P[:, : X.shape[1], :]
         return self.dropout(X, **kwargs)
+
+def exists(val):
+    return val is not None
+
+class FixedPositionalEncoding(tf.keras.layers.Layer):
+    def __init__(self, dim):
+        super(FixedPositionalEncoding, self).__init__()
+        inv_freq = 1. / (10000 ** (np.arange(0, dim, 2).__float__() / dim))
+
+    def call(self, inputs, pos=None, seq_dim=1, offset=0, **kwargs):
+        if not exists(pos):
+            pos = np.arange(input.shape[seq_dim])
