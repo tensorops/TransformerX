@@ -176,8 +176,58 @@ class MultiHeadAttention(tf.keras.layers.Layer):
         X = tf.transpose(X, perm=(0, 2, 1, 3))
         return tf.reshape(X, shape=(X.shape[0], X.shape[1], -1))
 
-    def call(self, queries: tf.Tensor, values: tf.Tensor, keys: tf.Tensor, valid_lens: tf.Tensor = None,
-             causal_mask: bool = None, **kwargs) -> tf.Tensor:
+    def call(self,
+             queries: tf.Tensor,
+             values: tf.Tensor,
+             keys: tf.Tensor,
+             valid_lens: tf.Tensor = None,
+             causal_mask: bool = None,
+             **kwargs) -> tf.Tensor:
+        """Compute the multi-head attention for the given queries, keys, and values.
+
+            This method computes the multi-head attention for the given queries, keys, and values,
+            using the dot-product attention mechanism and the linear transformations defined
+            in the constructor. The attention scores are then combined and transformed to produce
+            the final output of the layer.
+
+            The method optionally accepts a window mask, which is used to prevent attention
+            between elements that are too far apart in the input sequence. This can help the model
+            to focus on local contexts and avoid attending to irrelevant positions in the input.
+
+            The method returns the final output tensor and an optional tensor containing the
+            attention weights. The attention weights can be used for visualization and analysis
+            of the attention mechanisms in the model.
+
+        Parameters
+        ----------
+        queries : tf.Tensor
+            The queries tensor. This tensor has shape (batch_size, no. of queries, depth).
+        keys : tf.Tensor
+            The keys tensor. This tensor has shape (batch_size, no. of key-value pairs, depth).
+        values : tf.Tensor
+            The values tensor. This tensor has shape (batch_size, no. of key-value pairs, depth).
+        valid_lens : Union[tf.Tensor, tf.Tensor]
+            The valid sequence lengths for the queries and keys. This tensor has shape
+            (batch_size,) or (batch_size, no. of queries).
+        window_mask : Optional[tf.Tensor], optional
+            The window mask tensor, by default None. This tensor has shape
+            (batch_size, no. of queries, no. of key-value pairs) and contains zeros
+            for positions that should not attend to each other.
+
+        Returns
+        -------
+        Tuple[tf.Tensor, Optional[tf.Tensor]]
+            The final output tensor and the attention weights tensor. The output tensor has
+            shape (batch_size, no. of queries, depth), and the attention weights tensor has
+            shape (batch_size, no. of queries, no. of key-value pairs).
+
+        Raises
+        ------
+        ValueError
+            If the dimensions of the queries, keys, and values tensors are incompatible.
+
+
+        """
         # todo: rename valid_lens to attention_mask and depth to d_model
         # Shape of queries, keys, or values:
         # (batch_size, no. of queries or key-value pairs, depth)
