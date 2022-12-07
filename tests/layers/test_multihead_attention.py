@@ -36,3 +36,14 @@ def test_multihead_attention_forward(multihead_attention):
     output = multihead_attention(x, x, x)
 
     assert output.shape == (2, 3, 8)
+
+def test_split_heads():
+    # Create a random tensor with 3 dimensions
+    x = tf.random.uniform((2, 3, 10))
+
+    # Create a MultiHeadAttention layer with 4 attention heads
+    multihead = MultiHeadAttention(num_heads=4)
+
+    # Test the split_heads method with x as input
+    assert multihead.split_heads(x).shape == (2, 4, 3, 5)
+
