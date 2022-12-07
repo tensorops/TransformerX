@@ -47,3 +47,21 @@ def test_split_heads():
     # Test the split_heads method with x as input
     assert multihead.split_heads(x).shape == (2, 4, 3, 5)
 
+def test_inverse_transpose_qkv(self):
+    # Test 1
+    x = tf.random.uniform(shape=(2, 4, 3, 6))
+    expected_output_shape = (2, 3, 24)
+    output = self.multihead_attention.inverse_transpose_qkv(x)
+    self.assertEqual(output.shape, expected_output_shape)
+
+    # Test 2
+    x = tf.random.uniform(shape=(2, 1, 3, 6))
+    expected_output_shape = (2, 3, 6)
+    output = self.multihead_attention.inverse_transpose_qkv(x)
+    self.assertEqual(output.shape, expected_output_shape)
+
+    # Test 3
+    x = tf.random.uniform(shape=(2, 4, 1, 6))
+    expected_output_shape = (2, 1, 24)
+    output = self.multihead_attention.inverse_transpose_qkv(x)
+    self.assertEqual(output.shape, expected_output_shape)
