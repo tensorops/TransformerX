@@ -90,12 +90,15 @@ class MultiHeadAttention(tf.keras.layers.Layer):
             **kwargs,
     ):
         super(MultiHeadAttention, self).__init__()
+        self.d_model = d_model
         self.num_heads = num_heads
-        self.attention = DotProductAttention(dropout_rate, num_heads)
-        self.W_q = tf.keras.layers.Dense(d_model, use_bias=bias)
-        self.W_k = tf.keras.layers.Dense(d_model, use_bias=bias)
-        self.W_v = tf.keras.layers.Dense(d_model, use_bias=bias)
-        self.W_o = tf.keras.layers.Dense(d_model, use_bias=bias)
+        self.dropout_rate = dropout_rate
+        self.bias = bias
+        self.attention = DotProductAttention(self.dropout_rate, self.num_heads)
+        self.W_q = tf.keras.layers.Dense(self.d_model, use_bias=self.bias)
+        self.W_k = tf.keras.layers.Dense(self.d_model, use_bias=self.bias)
+        self.W_v = tf.keras.layers.Dense(self.d_model, use_bias=self.bias)
+        self.W_o = tf.keras.layers.Dense(self.d_model, use_bias=self.bias)
 
     def split_heads(self, X: tf.Tensor) -> tf.Tensor:
         """Transpose tensors for parallel computation of attention heads.
@@ -122,16 +125,19 @@ class MultiHeadAttention(tf.keras.layers.Layer):
         X = rearrange(X, "b d1 d2 d3 -> b d2 d1 d3")
         # print("x transposed: ", x.shape)
         # return tf.reshape(x, shape=(-1, x.shape[2], x.shape[3]))
-        X = rearrange(X, "b d1 d2 d3 -> (b d1) d2 d3")
+        # X = rearrange(X, "b d1 d2 d3 -> (b d1) d2 d3")
         # print("x reshaped2: ", x.shape)
         return X
 
     def inverse_transpose_qkv(self, X):
         """Reverse the operation of split_heads."""
-        X = tf.reshape(X, shape=(-1, self.num_heads, X.shape[1], X.shape[2]))
-        X = tf.transpose(X, perm=(0, 2, 1, 3))
-        return tf.reshape(X, shape=(X.shape[0], X.shape[1], -1))
 
+        X = rearrange(X, "b heads h hidden -> b h (heads hidden)", heads=self.num_heads)
+
+        # X = tf.reshape(X, shape=(-1, self.num_heads, X.shape[1], X.shape[2]))
+        # X = tf.transpose(X, perm=(0, 2, 1, 3))
+        # return tf.reshape(X, shape=(X.shape[0], X.shape[1], -1))
+        return X
     def call(self, queries: tf.Tensor, values: tf.Tensor, keys: tf.Tensor, valid_lens: tf.Tensor = None,
              causal_mask: bool = None, **kwargs) -> tf.Tensor:
         # todo: rename valid_lens to attention_mask and depth to d_model
