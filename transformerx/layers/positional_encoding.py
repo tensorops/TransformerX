@@ -1,6 +1,8 @@
 import numpy as np
 import tensorflow as tf
 
+from transformerx.utils import exists
+
 
 class AbsolutePositionalEncoding(tf.keras.layers.Layer):
     """Compute absolute positional encoding object [1]_.
@@ -58,7 +60,7 @@ class AbsolutePositionalEncoding(tf.keras.layers.Layer):
     """
 
     def __init__(self, depth, dropout_rate=0, max_len=1000):
-        super().__init__()
+        super(AbsolutePositionalEncoding, self).__init__()
         self.dropout = tf.keras.layers.Dropout(dropout_rate)
         # Create a long enough P
 
@@ -79,3 +81,28 @@ class AbsolutePositionalEncoding(tf.keras.layers.Layer):
         # print("self.P[:, : x.shape[1], :]: ", self.P[:, : x.shape[1], :].shape)
         X = X + self.P[:, : X.shape[1], :]
         return self.dropout(X, **kwargs)
+
+
+class RelativePositionEmbedding(tf.keras.layers.Layer):
+    """Create a relative positional embedding as in [2]_.
+
+
+    References
+    ----------
+    .. [1] Peter Shaw, Jakob Uszkoreit, Ashish Vaswani (2018), Self-Attention with Relative Position
+    Representations, https://doi.org/10.48550/arXiv.1803.02155
+
+    .. [2] Vaswani, A., Shazeer, N., Parmar, N., Uszkoreit, J., Jones, L., Gomez, A. N., Kaiser, L., & Polosukhin, I.
+    (2017). Attention Is All You Need. arXiv. https://doi.org/10.48550/arXiv.1706.03762
+    """
+
+    def __init__(self, scale, causal=False, num_buckets=32, max_distance=128, heads=8):
+        super().__init__()
+        self.scale = scale
+        self.causal = causal
+        self.num_buckets = num_buckets
+        self.max_distance = max_distance
+        self.relative_attention_bias = tf.keras.layers.Embedding(num_buckets, heads)
+
+    def call(self):
+        pass
