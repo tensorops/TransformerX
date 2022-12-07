@@ -96,11 +96,13 @@ class RelativePositionEmbedding(tf.keras.layers.Layer):
     (2017). Attention Is All You Need. arXiv. https://doi.org/10.48550/arXiv.1706.03762
     """
 
-    def __init__(self, scale, causal = False, num_buckets = 32, max_distance = 128, heads = 8):
+    def __init__(self, scale, causal=False, num_buckets=32, max_distance=128, heads=8):
         super().__init__()
         self.scale = scale
         self.causal = causal
         self.num_buckets = num_buckets
         self.max_distance = max_distance
         self.relative_attention_bias = tf.keras.layers.Embedding(num_buckets, heads)
-    pass
+
+    def call(self):
+        pass
