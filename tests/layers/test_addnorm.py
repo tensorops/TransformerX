@@ -15,6 +15,18 @@ class TestAddNorm:
         assert addnorm.norm_shape == norm_shape
         assert addnorm.dropout_rate == dropout_rate
 
+        # Test for invalid input for dropout_rate
+        norm_shape = [0, 1]
+        dropout_rate = 1.2
+        with pytest.raises(ValueError):
+            addnorm = AddNorm(norm_shape, dropout_rate)
+
+        # Test for invalid input type for norm_shape
+        norm_shape = [0, 1, 2]
+        dropout_rate = 0.2
+        with pytest.raises(TypeError):
+            addnorm = AddNorm(norm_shape, dropout_rate)
+
     def test_call(self):
         def test_call():
             norm_shape = [0, 1]
@@ -37,6 +49,7 @@ class TestAddNorm:
                     [1.2185433, 1.5666986],
                 ]
             )
+
             np.testing.assert_almost_equal(addnorm(x, y), expected_output, decimal=4)
 
     def test_invalid_dropout_rate(self):
