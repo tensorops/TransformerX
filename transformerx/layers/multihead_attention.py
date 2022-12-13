@@ -204,7 +204,7 @@ class MultiHeadAttention(tf.keras.layers.Layer):
              queries: tf.Tensor,
              values: tf.Tensor,
              keys: tf.Tensor,
-             valid_lens: tf.Tensor = None,
+             attention_mask: tf.Tensor = None,
              causal_mask: bool = None,
              **kwargs) -> tf.Tensor:
         """Compute the multi-head attention for the given queries, keys, and values.
@@ -275,7 +275,6 @@ class MultiHeadAttention(tf.keras.layers.Layer):
         >>> multihead_attn = MultiHeadAttention(d_model=depth, num_heads=num_heads, dropout=dropout)
         >>> output, attention_weights = multihead_attn(queries, keys, values, valid_lens, window_mask)
         """
-        # todo: rename valid_lens to attention_mask and depth to d_model
 
         # Shape of queries, keys, or values:
         # (batch_size, no. of queries or key-value pairs, depth)
