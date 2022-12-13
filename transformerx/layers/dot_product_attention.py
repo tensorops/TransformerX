@@ -94,9 +94,9 @@ class DotProductAttention(tf.keras.layers.Layer):
     # Shape of queries: (batch_size, no. of queries, d)
     # Shape of keys: (batch_size, no. of key-value pairs, d)
     # Shape of values: (batch_size, no. of key-value pairs, value dimension)
-    # Shape of valid_lens: (batch_size,) or (batch_size, no. of queries)
-    def call(self, queries: tf.Tensor, keys: tf.Tensor, values: tf.Tensor, valid_lens: tf.Tensor = None,
-             window_mask: tf.Tensor = None, **kwargs) -> tf.Tensor:
+    # Shape of attention_mask: (batch_size,) or (batch_size, no. of queries)
+    def call(self, queries: tf.Tensor, keys: tf.Tensor, values: tf.Tensor, attention_mask: tf.Tensor = None,
+             causal_mask: tf.Tensor = None, **kwargs) -> tf.Tensor:
         scores = tf.matmul(queries, keys, transpose_b=True)
         if self.scaled:
             d = queries.shape[-1]
@@ -104,8 +104,8 @@ class DotProductAttention(tf.keras.layers.Layer):
                 tf.cast(d, dtype=tf.float32)
             )
 
-        if window_mask is not None:  # To be covered later
-            num_windows = window_mask.shape[0]
+        if causal_mask is not None:
+            num_windows = causal_mask.shape[0]
             n, num_queries, num_kv_pairs = scores.shape
             # Shape of causal_mask: (num_windows, no. of queries,
             # no. of key-value pairs)
@@ -118,7 +118,11 @@ class DotProductAttention(tf.keras.layers.Layer):
                     num_queries,
                     num_kv_pairs,
                 ),
-            ) + tf.expand_dims(tf.expand_dims(window_mask, 1), 0)
+            ) + tf.expand_dims(tf.expand_dims(causal_mask, 1), 0)
             scores = tf.reshape(scores, (n, num_queries, num_kv_pairs))
-        self.attention_weights = masked_softmax(scores, valid_lens)
+        # if attention_mask is not None:
+        #     print("here info: ", scores.shape, attention_mask.shape)
+        #     scores += -1e9 * attention_mask
+        # self.attention_weights = tf.nn.softmax(scores)
+        self.attention_weights = masked_softmax(scores, attention_mask)
         return tf.matmul(self.dropout(self.attention_weights, **kwargs), values)
