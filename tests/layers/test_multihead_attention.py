@@ -1,6 +1,7 @@
 import pytest
 import numpy as np
 import tensorflow as tf
+from tensorflow import keras
 
 from transformerx.layers import MultiHeadAttention
 
@@ -89,29 +90,51 @@ class TestMultiHeadAttention:
     def attention(self):
         return MultiHeadAttention(d_model=16, num_heads=4, dropout=0.1)
 
+    @pytest.fixture
+    def inputs(self):
+        # Create some dummy input tensors for testing
+        x = tf.constant(np.random.random([2, 3, 2]), dtype=tf.float32)
+        y = tf.constant(np.random.random([2, 3, 2]), dtype=tf.float32)
+        z = tf.constant(np.random.random([2, 3, 2]), dtype=tf.float32)
+        return x, y, z
+
     def test_split_heads(self, attention):
         queries = tf.random.normal((3, 10, 16))
         queries_split = attention.split_heads(queries)
         assert queries_split.shape == (3, 4, 10, 4)
+
+    def test_multihead_attention_init(self):
+        # Test the initialization of the MultiHeadAttention class
+        multihead = MultiHeadAttention(d_model=8)
+        assert isinstance(multihead, MultiHeadAttention)
+
+    def test_multihead_attention_call(self, inputs):
+        # Test the call method of the MultiHeadAttention class
+        x, y, z = inputs
+        multihead = MultiHeadAttention(d_model=8)
+        output = multihead(x, y, z)
+        assert output.shape == (2, 3, 8)
 
     def test_inverse_transpose_qkv(self, attention):
         queries_split = tf.random.normal((3, 4, 10, 4))
         queries = attention.inverse_transpose_qkv(queries_split)
         assert queries.shape == (3, 10, 16)
 
-    def test_call_without_window_mask(self, attention):
-        queries = tf.random.normal((3, 10, 16))
-        keys = tf.random.normal((3, 20, 16))
-        values = tf.random.normal((3, 20, 16))
-        valid_lens = tf.constant([10, 15, 20])
-        output = attention(queries, keys, values, valid_lens)
-        assert output.shape == (3, 10, 16)
+    def test_multihead_attention_with_mask(self):
+        attention = MultiHeadAttention(d_model=8, num_heads=4)
+        x = tf.constant(np.random.random([2, 3, 20]), dtype=tf.float32)
+        mask = tf.constant([[1, 1, 0], [1, 0, 0]], dtype=tf.float32)
+        weights = attention(x, x, x, attention_mask=mask)
+        assert weights[0, 0, 2].numpy() == 0
+        assert weights[0, 1, 2] == 0
+        assert weights[1, 0, 1] == 0
 
-    def test_call_with_window_mask(self, attention):
+    def test_call_with_causal_mask(self, attention):
         queries = tf.random.normal((3, 10, 16))
         keys = tf.random.normal((3, 20, 16))
         values = tf.random.normal((3, 20, 16))
-        valid_lens = tf.constant([10, 15, 20])
-        window_mask = tf.ones((3, 10, 20))
-        output = attention(queries, keys, values, valid_lens, window_mask)
+        attention_mask = tf.constant([10, 15, 20])
+
+        causal_mask = tf.ones((3, 10, 20))
+        output = attention(queries, keys, values, attention_mask, causal_mask)
         assert output.shape == (3, 10, 16)

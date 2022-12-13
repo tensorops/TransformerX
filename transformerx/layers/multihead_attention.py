@@ -87,6 +87,7 @@ class MultiHeadAttention(tf.keras.layers.Layer):
             num_heads: int = 8,
             dropout_rate: float = 0,
             bias: bool = False,
+            attention: str = "scaled_dotproduct",
             **kwargs,
     ):
         super(MultiHeadAttention, self).__init__()
@@ -94,7 +95,10 @@ class MultiHeadAttention(tf.keras.layers.Layer):
         self.num_heads = num_heads
         self.dropout_rate = dropout_rate
         self.bias = bias
-        self.attention = DotProductAttention(self.dropout_rate, self.num_heads)
+        if attention == "scaled_dotproduct" or attention == None:
+            self.attention = DotProductAttention(self.dropout_rate, self.num_heads, scaled=True)
+        elif attention == "dotproduct":
+            self.attention = DotProductAttention(self.dropout_rate, self.num_heads, scaled=False)
         self.W_q = tf.keras.layers.Dense(self.d_model, use_bias=self.bias)
         self.W_k = tf.keras.layers.Dense(self.d_model, use_bias=self.bias)
         self.W_v = tf.keras.layers.Dense(self.d_model, use_bias=self.bias)
@@ -119,52 +123,46 @@ class MultiHeadAttention(tf.keras.layers.Layer):
         """
 
         # x = tf.reshape(x, shape=(x.shape[0], x.shape[1], self.num_heads, -1))
-        X = rearrange(X, "b h (heads hidden) -> b h heads hidden", heads=self.num_heads)
-        # print("x reshaped: ", x.shape)
+        X = rearrange(X, "b l (h dk) -> b l h dk", h=self.num_heads)
         # x = tf.transpose(x, perm=(0, 2, 1, 3))
-        X = rearrange(X, "b d1 d2 d3 -> b d2 d1 d3")
-        # print("x transposed: ", x.shape)
+        X = rearrange(X, "b l h dk -> b h l dk")
         # return tf.reshape(x, shape=(-1, x.shape[2], x.shape[3]))
-        # X = rearrange(X, "b d1 d2 d3 -> (b d1) d2 d3")
-        # print("x reshaped2: ", x.shape)
+        # X = rearrange(X, "b h l dk -> (b h) l dk")
         return X
 
     def inverse_transpose_qkv(self, X):
         """Reverse the operation of split_heads."""
 
-        X = rearrange(X, "b heads h hidden -> b h (heads hidden)", heads=self.num_heads)
+        X = rearrange(X, "b h l dk -> b l (h dk)", h=self.num_heads)
 
         # X = tf.reshape(X, shape=(-1, self.num_heads, X.shape[1], X.shape[2]))
         # X = tf.transpose(X, perm=(0, 2, 1, 3))
         # return tf.reshape(X, shape=(X.shape[0], X.shape[1], -1))
         return X
-    def call(self, queries: tf.Tensor, values: tf.Tensor, keys: tf.Tensor, valid_lens: tf.Tensor = None,
-             causal_mask: bool = None, **kwargs) -> tf.Tensor:
-        # todo: rename valid_lens to attention_mask and depth to d_model
+
+    def call(self, queries: tf.Tensor, keys: tf.Tensor, values: tf.Tensor, attention_mask: tf.Tensor = None,
+             causal_mask: tf.Tensor = None, **kwargs) -> tf.Tensor:
+        # todo: rename attention_mask to attention_mask and depth to d_model
         # Shape of queries, keys, or values:
         # (batch_size, no. of queries or key-value pairs, depth)
-        # Shape of valid_lens: (batch_size,) or (batch_size, no. of queries)
+        # Shape of attention_mask: (batch_size,) or (batch_size, no. of queries)
         # After transposing, shape of output queries, keys, or values:
         # (batch_size * num_heads, no. of queries or key-value pairs,
         # depth / num_heads)
 
-        # print("wq(queries): ", self.W_q(queries).shape)
-        # print("queries: ", queries.shape)
         queries = self.split_heads(self.W_q(queries))
-        # print("keys: ", keys.shape)
         keys = self.split_heads(self.W_k(keys))
-        # print("values: ", values.shape)
         values = self.split_heads(self.W_v(values))
 
-        if valid_lens is not None:
+        if attention_mask is not None:
             # On axis 0, copy the first item (scalar or vector) for num_heads
             # times, then copy the next item, and so on
-            valid_lens = tf.repeat(valid_lens, repeats=self.num_heads, axis=0)
+            attention_mask = tf.repeat(attention_mask, repeats=self.num_heads, axis=0)
 
         # Shape of output: (batch_size * num_heads, no. of queries,
         # depth / num_heads)
         output = self.attention(
-            queries, keys, values, valid_lens, causal_mask, **kwargs
+            queries, keys, values, attention_mask, causal_mask, **kwargs
         )
 
         # Shape of output_concat: (batch_size, no. of queries, depth)
