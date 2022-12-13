@@ -12,42 +12,93 @@ class MultiHeadAttention(tf.keras.layers.Layer):
     times in parallel. The independent attention outputs are then concatenated and linearly transformed into the
     expected dimension.
 
+    This class implements a multi-head attention layer to be used in a Transformer model. The layer
+    computes self-attention using dot-product attention, and applies linear transformations
+    to the queries, keys, and values to project them into different subspaces. The resulting
+    attention scores are then combined and transformed to produce the final output.
+
+    The multi-head attention layer allows the model to attend to different positions and contexts
+    in the input sequence, and to combine and weight these contexts in different ways to produce
+    the final output. This can help the model to better capture long-range dependencies and
+    complex patterns in the input data.
+
+    The multi-head attention layer is composed of several attention heads, each of which
+    computes an attention score for a subset of the queries, keys, and values. The attention
+    scores are then combined and weighted to produce the final output for each attention head,
+    and the outputs of the attention heads are concatenated and transformed to produce the
+    final output of the layer.
+
+    The layer can optionally use a window mask to prevent attention between elements that are
+    too far apart in the input sequence. This can help the model to focus on local contexts and
+    avoid attending to irrelevant positions in the input.
+
     See Also
     --------
-    layers.dot_product_attention : (Scaled) Dot-Product attention.
+    layers.dot_product_attention : The class for the dot-product attention mechanism.
+    call : The method for computing the multi-head attention.
 
     Notes
     -----
     Intuitively, multiple attention heads allows for attending to parts of the sequence differently
     (e.g. longer-term dependencies versus shorter-term dependencies).
 
-    It can be formulated as:
+    For more please see [2]
+
+    Mathematical equations
+    ---------------------
+
+    The multi-head attention mechanism computes the attention scores between the queries and key-value pairs using the dot product of their representations. The attention scores are then combined and transformed to produce the final output:
 
     .. math::
-        MultiHead(Q, K, V) = Concat(head_1, ..., head_h)W^O
-    where
+        Attention(Q, K, V) = softmax(\\frac{QK^T}{\\sqrt{d_k}})V
 
+    Where:
+
+    - :math:`Q` is the queries tensor, with shape (batch_size, no. of queries, depth)
+    - :math:`K` is the keys tensor, with shape (batch_size, no. of key-value pairs, depth)
+    - :math:`V` is the values tensor, with shape (batch_size, no. of key-value pairs, depth)
+    - :math:`d_k` is the depth of the queries and keys
+    - :math:`softmax` is the softmax function
+
+    The final output of the multi-head attention is computed as a weighted sum of the transformed queries, keys, and values, with the attention scores as the weights:
+
+    .. math::
+        Output = Concat(head_1, \\dots, head_n)W^O
+
+    Where:
+
+    - :math:`head_i` is the output of the $i$-th attention head, with shape (batch_size, no. of queries, depth / num_heads)
     .. math::
         head_i = Attention(Q W^Q_i, K W^K_i, V W^V_i)
+    - :math:`Concat` is the concatenation operation
+    - :math:`W^O` is the linear transformation matrix, with shape (num_heads * depth, depth)
 
-    Above :math:`W` are all learnable parameter matrices.
-    For more please see [2]
+    The attention weights tensor is optional and can be used to visualize and analyze the attention mechanisms in the model. The attention weights tensor has shape (batch_size, no. of queries, no. of key-value pairs).
 
     Parameters
     ----------
     d_model : int
-        Dimensions of the queries, keys, and values
+        The dimension of the model, i.e., the depth of the input and output tensors.
     num_heads : int
         Number of the heads in the multi-head attention
     dropout_rate : float
-        Float between 0 and 1. Fraction of the input units to drop.
-    bias : bool - default = False
-        Indicates the usage of bias in the dense layers (i.e. W_q, W_k, W_v, and W_o)
+        The dropout rate to use for regularization. Float between 0 and 1.
+    bias : bool, optional
+        Whether to use bias terms in the linear transformations i.e. W_q, W_k, W_v, and W_o, by default False.
 
     Returns
     -------
     output:
         Concatenated tensors
+
+    Methods
+    -------
+    split_heads(X)
+        Transpose tensors for parallel computation of attention heads.
+    inverse_transpose_qkv(X)
+        Reverse the operation of split_heads.
+    call(queries, keys, values, valid_lens, window_mask=None, **kwargs)
+        Compute the multi-head attention for the given queries, keys, and values.
 
     Examples
     --------
@@ -71,6 +122,21 @@ class MultiHeadAttention(tf.keras.layers.Layer):
         0.04060047  0.11260018  0.05745776]
       [ 0.14547291  0.21081978  0.26109838 -0.10745162  0.03889
         0.04069766  0.11251941  0.05741404]]], shape=(2, 3, 8), dtype=float32)
+
+    >>> attention = MultiHeadAttention(d_model=16, num_heads=4, dropout=0.1)
+    >>> queries = tf.random.normal((3, 10, 16))
+    >>> keys = tf.random.normal((3, 20, 16))
+    >>> values = tf.random.normal((3, 20, 16))
+    >>> valid_lens = tf.constant([10, 15, 20])
+    >>> output, _ = attention(queries, keys, values, valid_lens)
+    >>> output.shape
+    (3, 10, 16)
+
+    >>> window_mask = tf.ones((3, 10, 20))
+    >>> output, _ = attention(queries, keys, values, valid_lens, window_mask=window_mask)
+    >>> output.shape
+    (3, 10, 16)
+
 
     References
     ----------
@@ -133,16 +199,84 @@ class MultiHeadAttention(tf.keras.layers.Layer):
     def inverse_transpose_qkv(self, X):
         """Reverse the operation of split_heads."""
 
-        X = rearrange(X, "b h l dk -> b l (h dk)", h=self.num_heads)
 
-        # X = tf.reshape(X, shape=(-1, self.num_heads, X.shape[1], X.shape[2]))
-        # X = tf.transpose(X, perm=(0, 2, 1, 3))
-        # return tf.reshape(X, shape=(X.shape[0], X.shape[1], -1))
-        return X
+    def call(self,
+             queries: tf.Tensor,
+             values: tf.Tensor,
+             keys: tf.Tensor,
+             valid_lens: tf.Tensor = None,
+             causal_mask: bool = None,
+             **kwargs) -> tf.Tensor:
+        """Compute the multi-head attention for the given queries, keys, and values.
 
-    def call(self, queries: tf.Tensor, keys: tf.Tensor, values: tf.Tensor, attention_mask: tf.Tensor = None,
-             causal_mask: tf.Tensor = None, **kwargs) -> tf.Tensor:
-        # todo: rename attention_mask to attention_mask and depth to d_model
+            This method computes the multi-head attention for the given queries, keys, and values,
+            using the dot-product attention mechanism and the linear transformations defined
+            in the constructor. The attention scores are then combined and transformed to produce
+            the final output of the layer.
+
+            The method optionally accepts a window mask, which is used to prevent attention
+            between elements that are too far apart in the input sequence. This can help the model
+            to focus on local contexts and avoid attending to irrelevant positions in the input.
+
+            The method returns the final output tensor and an optional tensor containing the
+            attention weights. The attention weights can be used for visualization and analysis
+            of the attention mechanisms in the model.
+
+        Parameters
+        ----------
+        queries : tf.Tensor
+            The queries tensor. This tensor has shape (batch_size, no. of queries, depth).
+        keys : tf.Tensor
+            The keys tensor. This tensor has shape (batch_size, no. of key-value pairs, depth).
+        values : tf.Tensor
+            The values tensor. This tensor has shape (batch_size, no. of key-value pairs, depth).
+        valid_lens : Union[tf.Tensor, tf.Tensor]
+            The valid sequence lengths for the queries and keys. This tensor has shape
+            (batch_size,) or (batch_size, no. of queries).
+        window_mask : Optional[tf.Tensor], optional
+            The window mask tensor, by default None. This tensor has shape
+            (batch_size, no. of queries, no. of key-value pairs) and contains zeros
+            for positions that should not attend to each other.
+
+        Returns
+        -------
+        Tuple[tf.Tensor, Optional[tf.Tensor]]
+            The final output tensor and the attention weights tensor. The output tensor has
+            shape (batch_size, no. of queries, depth), and the attention weights tensor has
+            shape (batch_size, no. of queries, no. of key-value pairs).
+
+        Raises
+        ------
+        ValueError
+            If the dimensions of the queries, keys, and values tensors are incompatible.
+
+        Examples
+        --------
+        >>> import tensorflow as tf
+
+        >>> queries = tf.random.normal([batch_size, no_of_queries, depth])
+        >>> keys = tf.random.normal([batch_size, no_of_key_value_pairs, depth])
+        >>> values = tf.random.normal([batch_size, no_of_key_value_pairs, depth])
+        >>> valid_lens = tf.random.uniform([batch_size], minval=0, maxval=no_of_queries, dtype=tf.int32)
+
+        >>> multihead_attn = MultiHeadAttention(d_model=depth, num_heads=num_heads, dropout=dropout)
+        >>> output, attention_weights = multihead_attn(queries, keys, values, valid_lens)
+
+        Here is an example of how to use the call method with a window mask:
+
+        >>> import tensorflow as tf
+
+        >>> queries = tf.random.normal([batch_size, no_of_queries, depth])
+        >>> keys = tf.random.normal([batch_size, no_of_key_value_pairs, depth])
+        >>> values = tf.random.normal([batch_size, no_of_key_value_pairs, depth])
+        >>> valid_lens = tf.random.uniform([batch_size], minval=0, maxval=no_of_queries, dtype=tf.int32)
+        >>> window_mask = tf.random.uniform([batch_size, no_of_queries, no_of_key_value_pairs], 0, 2, dtype=tf.int32)
+
+        >>> multihead_attn = MultiHeadAttention(d_model=depth, num_heads=num_heads, dropout=dropout)
+        >>> output, attention_weights = multihead_attn(queries, keys, values, valid_lens, window_mask)
+        """
+        # todo: rename valid_lens to attention_mask and depth to d_model
+
         # Shape of queries, keys, or values:
         # (batch_size, no. of queries or key-value pairs, depth)
         # Shape of attention_mask: (batch_size,) or (batch_size, no. of queries)
