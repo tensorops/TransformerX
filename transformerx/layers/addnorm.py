@@ -79,7 +79,7 @@ class AddNorm(tf.keras.layers.Layer):
             )
 
         # The norm_shape should not contain numbers more than the input tensor dimensions
-        if isinstance(norm_shape, (list, tuple)):
+        if isinstance(norm_shape, tuple):
             self.norm_shape = list(norm_shape)
         elif isinstance(norm_shape, int):
             self.norm_shape = norm_shape
@@ -89,8 +89,11 @@ class AddNorm(tf.keras.layers.Layer):
                 f"argument 'norm_shape', but received: {norm_shape}"
             )
 
+
         self.dropout_rate = dropout_rate
         self.norm_shape = norm_shape
+        if dropout_rate >= 1:
+            raise ValueError("Dropout rate must be less than 1")
         self.dropout = tf.keras.layers.Dropout(dropout_rate)
         self.ln = tf.keras.layers.LayerNormalization(norm_shape)
 
