@@ -12,7 +12,6 @@ def masked_softmax(X, attention_mask):
         mask = tf.range(start=0, limit=maxlen, dtype=tf.float32)[None, :] < tf.cast(
                 attention_mask[:, None], dtype=tf.float32
         )
-        print("here x2: ", X.shape, attention_mask.shape)
 
         if len(X.shape) == 3:
             return tf.where(tf.expand_dims(mask, axis=-1), X, value)
@@ -29,10 +28,7 @@ def masked_softmax(X, attention_mask):
             attention_mask = tf.reshape(attention_mask, shape=-1)
         # On the last axis, replace masked elements with a very large negative
         # value, whose exponentiation outputs 0
-        print("here x: ", X)
-        X = _sequence_mask(tf.reshape(X, shape=(-1, shape[-1])), attention_mask, value=0)
-        print("here x2: ", X.shape, attention_mask.shape)
-        print("here x3: ", tf.reshape(X, shape=shape).shape)
+        X = _sequence_mask(tf.reshape(X, shape=(-1, shape[-1])), attention_mask, value=1e-7)
         return tf.nn.softmax(tf.reshape(X, shape=shape), axis=-1)
 
 
