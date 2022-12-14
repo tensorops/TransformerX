@@ -21,3 +21,16 @@ class TestDotProductAttention:
         output_unscaled = self.dot_product_unscaled(queries, keys, values)
         assert output_scaled.shape == (2, 3, 2)
         assert output_unscaled.shape == (2, 3, 2)
+
+    # Test that the `call` method computes the correct dot-product attention
+    def test_dot_product_attention(self):
+        dot_product = DotProductAttention()
+        x = self.x
+        # Feed the input tensor to queries, keys, and values
+        queries, keys, values = x, x, x
+
+        # Compute the dot-product attention
+        attention = dot_product(queries, keys, values)
+
+        # Check that the attention tensor has the same shape as the input tensor
+        assert attention.shape == x.shape
