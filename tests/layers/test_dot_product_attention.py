@@ -66,3 +66,16 @@ class TestDotProductAttention:
         values = tf.random.uniform([2, 3, 2])
         output = dot_product(queries, keys, values)
         assert output.shape == queries.shape
+
+    @pytest.mark.parametrize("queries, keys, values, expected_output_shape, expected_output_values", [
+        (tf.zeros((2, 3, 4)), tf.zeros((2, 3, 4)), tf.zeros((2, 3, 4)), (2, 3, 4), 0),
+        (tf.ones((2, 3, 4)), tf.ones((2, 3, 4)), tf.ones((2, 3, 4)), (2, 3, 4), 1),
+    ])
+
+    def test_call_with_different_values(self, queries, keys, values, expected_output_shape, expected_output_values):
+
+        attention = DotProductAttention()
+        output = attention(queries, keys, values)
+
+        assert output.shape == expected_output_shape
+        assert tf.reduce_all(output == expected_output_values)
