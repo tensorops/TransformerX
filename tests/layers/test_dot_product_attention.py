@@ -34,3 +34,19 @@ class TestDotProductAttention:
 
         # Check that the attention tensor has the same shape as the input tensor
         assert attention.shape == x.shape
+
+    def test_call(self):
+        head_nums = [1, 2, 4, 8]
+        x = self.x
+        # Feed the input tensor to queries, keys, and values
+        queries, keys, values = x, x, x
+        for num in head_nums:
+            dot_product = DotProductAttention(num_heads=num)
+
+            # Compute the dot-product attention
+            attention = dot_product(queries, keys, values)
+
+            # Check that the attention tensor has the same shape as the input tensor
+            assert attention.shape == queries.shape
+
+
