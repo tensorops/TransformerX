@@ -49,4 +49,20 @@ class TestDotProductAttention:
             # Check that the attention tensor has the same shape as the input tensor
             assert attention.shape == queries.shape
 
+    def test_call_with_different_input_tensor_shapes(self):
+        # Create an instance of the DotProductAttention class
+        dot_product = DotProductAttention()
 
+        # Test the call method with 2D input tensors
+        queries = tf.random.uniform([2, 2])
+        keys = tf.random.uniform([2, 2])
+        values = tf.random.uniform([2, 2])
+        output = dot_product(queries, keys, values)
+        assert output.shape == queries.shape
+
+        # Test the call method with 3D input tensors
+        queries = tf.random.uniform([2, 3, 2])
+        keys = tf.random.uniform([2, 3, 2])
+        values = tf.random.uniform([2, 3, 2])
+        output = dot_product(queries, keys, values)
+        assert output.shape == queries.shape
