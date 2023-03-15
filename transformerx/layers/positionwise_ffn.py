@@ -66,8 +66,63 @@ import tensorflow as tf
 #
 
 
-
 class PositionWiseFFN(tf.keras.layers.Layer):
+    """
+    Position-wise feed-forward network layer.
+
+    Consists of two dense layers with customizable activation functions, weight initialization, non-linear projection,
+    and contextualized embeddings.
+
+    Parameters
+    ----------
+    input_hidden_units : int
+        Number of input hidden units.
+    output_hidden_units : int
+        Number of output hidden units.
+    activation : str or callable, optional
+        Activation function to use in the dense layers. Default is 'relu'.
+    init : str or callable, optional
+        Weight initialization strategy to use in the dense layers. Default is 'glorot_uniform'.
+    non_linear_proj : str, optional
+        Non-linear projection layer to use. Default is None, but you can also use 'glu' for a Gated Linear Unit or
+        'selu' for a Scaled Exponential Linear Unit. If non_linear_proj is not None, the output dimension will be twice
+        the input dimension.
+    contextualized_embeddings : `transformers.TFPreTrainedModel`, optional
+        Contextualized embedding model to use, such as BERT or ELMo. If provided, the input tensor will be passed through
+        the contextualized embedding model before being processed by the PositionWiseFFN layer.
+
+    Returns
+    -------
+    output : `tf.Tensor`
+        A tensor of shape `(batch size, number of time steps or sequence length in tokens, number of hidden units or
+        feature dimension)`.
+
+    Notes
+    -----
+    The Position-Wise Feed-Forward Layer is a type of feedforward layer consisting of two dense layers that apply to the
+    last dimension, which means the same dense layers are used for each position item in the sequence, so called
+    position-wise.
+
+    Examples
+    --------
+    >>> tf.random.set_seed(1)
+    >>> ffn = PositionWiseFFN(input_hidden_units=6, output_hidden_units=4, activation='tanh', init='he_uniform',
+                              non_linear_proj='glu', contextualized_embeddings=TFBertModel.from_pretrained('bert-base-uncased'))
+    >>> x = tf.ones((2, 3, 6))
+    >>> print(ffn(x))
+    tf.Tensor(
+    [[[ 0.51875997 -0.2624486  -0.79755557  1.5191057 ]
+      [ 0.51875997 -0.2624486  -0.79755557  1.5191057 ]
+      [ 0.51875997 -0.2624486  -0.79755557  1.5191057 ]]
+     [[ 0.51875997 -0.2624486  -0.79755557  1.5191057 ]
+      [ 0.51875997 -0.2624486  -0.79755557  1.5191057 ]
+      [ 0.51875997 -0.2624486  -0.79755557  1.5191057 ]]], shape=(2, 3, 4), dtype=float32)
+
+    References
+    ----------
+    Vaswani, A., Shazeer, N., Parmar, N., Uszkoreit, J., Jones, L., Gomez, A. N., Kaiser, L., & Polosukhin, I.
+    (2017). Attention Is All You Need. arXiv. https://doi.org/10.48550/arXiv.1706.03762
+    """
 
     def __init__(self, input_hidden_units, output_hidden_units, activation='relu', init='glorot_uniform',
                  non_linear_proj=None, contextualized_embeddings=None):
@@ -101,6 +156,7 @@ class PositionWiseFFN(tf.keras.layers.Layer):
         else:
             return self.dense2(self.dense1(x))
 
+
 os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 if __name__ == '__main__':
     tf.random.set_seed(1)
@@ -109,4 +165,3 @@ if __name__ == '__main__':
                           non_linear_proj='glu')
     x = tf.ones((2, 3, 32))
     print(ffn(x))
-
