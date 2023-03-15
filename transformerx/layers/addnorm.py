@@ -1,6 +1,6 @@
 import numpy as np
 import tensorflow as tf
-from typing import Tuple
+from typing import Tuple, Optional
 
 
 class AddNorm(tf.keras.layers.Layer):
@@ -70,32 +70,58 @@ class AddNorm(tf.keras.layers.Layer):
     .. [Lei Ba et al., 2016] https://arxiv.org/abs/1607.06450
     """
 
-    def __init__(self, norm_shape: Tuple[int], dropout_rate: float = 0):
+    def __init__(
+            self,
+            norm_type: str = 'layer',
+            norm_eps: float = 1e-6,
+            dropout_rate: float = 0.1,
+            activation: Optional[str] = None,
+            kernel_regularizer: Optional[tf.keras.regularizers.Regularizer] = None,
+            bias_regularizer: Optional[tf.keras.regularizers.Regularizer] = None,
+            **kwargs
+    ):
         super(AddNorm, self).__init__()
         if isinstance(dropout_rate, (int, float)) and not 0 <= dropout_rate <= 1:
             raise ValueError(
                 f"Invalid value {dropout_rate} received for "
                 "`dropout_rate`, expected a value between 0 and 1."
             )
+        # Check normalization type
+        if norm_type not in ['batch', 'instance', 'layer']:
+            raise ValueError(
+                f"Invalid value {norm_type} received for 'norm_type', expected one of ['batch', 'instance', 'layer'].")
 
-        # The norm_shape should not contain numbers more than the input tensor dimensions
-        if isinstance(norm_shape, tuple):
-            self.norm_shape = list(norm_shape)
-        elif isinstance(norm_shape, int):
-            self.norm_shape = norm_shape
-        else:
-            raise TypeError(
-                f"Expected an int or a list/tuple of ints for the "
-                f"argument 'norm_shape', but received: {norm_shape}"
-            )
-
-
+        self.norm_type = norm_type
+        self.norm_eps = norm_eps
         self.dropout_rate = dropout_rate
-        self.norm_shape = norm_shape
+        self.activation = activation
+
         if dropout_rate >= 1:
             raise ValueError("Dropout rate must be less than 1")
         self.dropout = tf.keras.layers.Dropout(dropout_rate)
-        self.ln = tf.keras.layers.LayerNormalization(norm_shape)
+        # Regularizers
+        self.kernel_regularizer = kernel_regularizer
+        self.bias_regularizer = bias_regularizer
+
+        # Layers
+        self.dropout = tf.keras.layers.Dropout(dropout_rate)
+        self.norm_layer = None
+
+        def build(self, input_shape):
+            if self.norm_type == 'batch':
+                self.norm_layer = tf.keras.layers.BatchNormalization(epsilon=self.norm_eps)
+            elif self.norm_type == 'instance':
+                self.norm_layer = tf.keras.layers.LayerNormalization(epsilon=self.norm_eps, axis=-1)
+            elif self.norm_type == 'layer':
+                self.norm_layer = tf.keras.layers.LayerNormalization(epsilon=self.norm_eps, axis=-1)
+
+            # Build activation layer if specified
+            if self.activation is not None:
+                self.activation_layer = tf.keras.layers.Activation(self.activation)
+
+            super(AddNorm, self).build(input_shape)
+
+        # self.ln = tf.keras.layers.LayerNormalization(norm_shape)
 
     def call(self, x: tf.Tensor, residual: tf.Tensor, **kwargs):
         """Call AddNorm layer.
@@ -122,4 +148,21 @@ class AddNorm(tf.keras.layers.Layer):
                 f"Expected a tensor for the "
                 f"argument 'residual', but received: {residual}"
             )
-        return self.ln(self.dropout(residual, **kwargs) + x)
+
+        # Apply dropout
+        residual = self.dropout(residual, training=kwargs.get('training', False))
+
+        # Add residual connection
+        x = tf.keras.layers.Add()([x, residual])
+
+        # Apply normalization
+        x = self.norm_layer(x)
+
+        # Apply activation if specified
+        if self.activation is not None:
+            x = self.activation_layer(x)
+
+        # return self.ln(self.dropout(residual, **kwargs) + x)
+        return x
+
+
