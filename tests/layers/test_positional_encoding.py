@@ -36,4 +36,14 @@ class TestAbsolutePositionalEncoding:
         assert not np.allclose(output.numpy(), X.numpy())
         assert np.allclose(output.numpy()[:, :7, :], X.numpy()[:, :7, :] + layer.P.numpy()[:, :7, :])
 
+    def test_dropout(self):
+        depth = 64
+        max_len = 100
+        dropout_rate = 0.5
+        layer = AbsolutePositionalEncoding(depth, dropout_rate=dropout_rate, max_len=max_len)
+        input_shape = (5, max_len, depth)
+        input_tensor = tf.ones(input_shape)
+        output_tensor = layer(input_tensor)
+        # Check that some values have been zeroed out due to dropout
+        assert np.count_nonzero(output_tensor.numpy()) != np.prod(input_shape)
 
