@@ -164,5 +164,14 @@ class AddNorm(tf.keras.layers.Layer):
 
         # return self.ln(self.dropout(residual, **kwargs) + x)
         return x
-
-
+    def get_config(self):
+        config = super(AddNorm, self).get_config()
+        config.update({
+            'norm_type': self.norm_type,
+            'norm_eps': self.norm_eps,
+            'dropout_rate': self.dropout_rate,
+            'activation': self.activation,
+            'kernel_regularizer': self.kernel_regularizer,
+            'bias_regularizer': self.bias_regularizer
+        })
+        return config
