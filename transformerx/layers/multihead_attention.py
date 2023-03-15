@@ -180,7 +180,8 @@ class MultiHeadAttention(tf.keras.layers.Layer):
 
         Parameters
         ----------
-        X : Shape (batch_size, no. of queries or key-value pairs, depth).
+        X : tf.Tensor
+            Shape (batch_size, no. of queries or key-value pairs, depth).
             The tensor to be transposed and prepared for the multi-head attention layer (i.e. queries, keys, and values)
         Returns
         -------
@@ -196,8 +197,27 @@ class MultiHeadAttention(tf.keras.layers.Layer):
         # X = rearrange(X, "b h l dk -> (b h) l dk")
         return X
 
-    def inverse_transpose_qkv(self, X):
-        """Reverse the operation of split_heads."""
+    def inverse_transpose_qkv(self, X: tf.Tensor) -> tf.Tensor:
+        """Reverses the operation of split_heads for the input array X.
+
+        Parameters
+        ----------
+        X : tf.Tensor
+            A tensor of shape (batch_size, num_heads, seq_len, head_dim).
+
+        Returns
+        -------
+        tf.Tensor
+            A tensor of shape (batch_size, seq_len, hidden_dim), where hidden_dim is the
+            original hidden dimension of the input to split_heads.
+        """
+
+        # transpose back to original shape: (batch_size, seq_len, num_heads, head_dim)
+        X = rearrange(X, "b h l d -> b l h d")
+
+        # concatenate num_heads dimension with head_dim dimension:
+        X = rearrange(X, "b l h d -> b l (h d)")
+        return X
 
 
     def call(self,

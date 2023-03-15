@@ -99,9 +99,9 @@ class DotProductAttention(tf.keras.layers.Layer):
              causal_mask: tf.Tensor = None, **kwargs) -> tf.Tensor:
         scores = tf.matmul(queries, keys, transpose_b=True)
         if self.scaled:
-            d = queries.shape[-1]
+            depth = queries.shape[-1]
             scores = scores / tf.math.sqrt(
-                tf.cast(d, dtype=tf.float32)
+                tf.cast(depth, dtype=tf.float32)
             )
 
         if causal_mask is not None:
