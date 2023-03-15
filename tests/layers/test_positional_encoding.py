@@ -20,4 +20,12 @@ class TestAbsolutePositionalEncoding:
         output_tensor = layer(input_tensor)
         assert output_tensor.shape == input_shape
 
+    def test_call_batch_size_1(self, layer):
+        input_shape = (1, 10, layer.depth)
+        X = tf.ones(input_shape)
+        output = layer(X)
+        assert output.shape == input_shape
+        assert not np.allclose(output.numpy(), X.numpy())
+        assert np.allclose(output.numpy()[:, :5, :], X.numpy()[:, :5, :] + layer.P.numpy()[:, :5, :])
+
 
