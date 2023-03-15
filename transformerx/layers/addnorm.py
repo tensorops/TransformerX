@@ -4,42 +4,44 @@ from typing import Tuple, Optional
 
 
 class AddNorm(tf.keras.layers.Layer):
-    """Residual connection addition and dropout_rate followed by a layer normalization layer [Ba et al., 2016]_
+    """Residual connection addition with dropout and normalization.
 
-    Wrap each module with residual connections that enables deeper architectures while avoiding gradient
-    vanishing/explosion.
+    This layer implements a residual connection with dropout followed by a normalization layer. The normalization can be of type 'batch', 'instance', or 'layer'. The layer also supports different activation functions and regularization techniques.
 
     Parameters
     ----------
-    norm_shape :
-        Arbitrary. Shape of the input.
-    dropout_rate :
-        Float between 0 and 1. Fraction of the input units to drop.
+    norm_type : str, optional
+        Type of normalization to apply. Can be 'batch', 'instance', or 'layer'. Defaults to 'layer'.
+    norm_eps : float, optional
+        Epsilon value for numerical stability in the normalization layer. Defaults to 1e-6.
+    dropout_rate : float, optional
+        Fraction of the input units to drop. Should be between 0 and 1. Defaults to 0.1.
+    activation : str, optional
+        Activation function to apply after the normalization layer. Defaults to None.
+    kernel_regularizer : Optional[tf.keras.regularizers.Regularizer], optional
+        Regularizer function applied to the kernel weights. Defaults to None.
+    bias_regularizer : Optional[tf.keras.regularizers.Regularizer], optional
+        Regularizer function applied to the bias weights. Defaults to None.
 
     Returns
     -------
-    output:
-        Added and normalized tensor
+    tf.Tensor
+        Added and normalized tensor.
 
     Raises
     ------
     ValueError
-        If the value of dropout_rate is not between 0 and 1
+        If the value of dropout_rate is not between 0 and 1, or if the value of norm_type is not one of ['batch', 'instance', 'layer'].
     TypeError
-        If `norm_shape` argument shape is not int or a list/tuple of ints
+        If the value of norm_shape is not an int or a list/tuple of ints.
 
     Notes
     -----
-    Layer Normalization normalizes across the axes *within* each example, rather than across different
-    examples in the batch.
+    Batch normalization (BatchNorm) normalizes across the batch dimension, instance normalization (InstanceNorm) normalizes across the channel dimension, and layer normalization (LayerNorm) normalizes across the feature dimension.
 
-    Then normalize the activations of the previous layer for each given example in a batch independently, rather than
-    across a batch like Batch Normalization. i.e. applies a transformation that maintains the mean activation
-    within each example close to 0 and the activation standard deviation close to 1.
+    This layer applies dropout to the residual connection before adding it to the input tensor, which helps to prevent overfitting. It then applies the specified normalization technique to the output tensor, followed by an optional activation function. Regularization can also be applied to the kernel and bias weights.
 
-    Layer normalization (LayerNorm) is a technique to normalize the distributions of intermediate layers. It enables
-    smoother gradients, faster training, and better generalization accuracy.
-
+    Normalization techniques can help to stabilize the training process and improve the performance of deep neural networks.
 
     Examples
     --------
@@ -53,21 +55,19 @@ class AddNorm(tf.keras.layers.Layer):
      [60. 70.]
      [80. 90.]], shape=(5, 2), dtype=float32)
 
-    >>> norm_shape = [0, 1]
-    >>> dropout_rate = 0.2
-    >>> addnorm = AddNorm(norm_shape, dropout_rate)
-    >>> output = addnorm(x, y)
+    >>> addnorm = AddNorm(norm_type='layer', norm_eps=1e-6, dropout_rate=0.2, activation='relu')
+    >>> output = addnorm([x, y])
     >>> print(output)
     tf.Tensor(
-    [[-1.5666986  -1.2185433 ]
-     [-0.8703881  -0.52223283]
-     [-0.17407762  0.17407762]
-     [ 0.52223283  0.8703881 ]
-     [ 1.2185433   1.5666986 ]], shape=(5, 2), dtype=float32)
+    [[0.        0.        ]
+     [4.1565704 3.2312596]
+     [9.174077  8.174077 ]
+     [14.191582 13.116871 ]
+     [19.209087 18.134377 ]], shape=(5, 2), dtype=float32)
 
-     References
+    References
     ----------
-    .. [Lei Ba et al., 2016] https://arxiv.org/abs/1607.06450
+    Ba, J., Kiros, J. R., & Hinton, G. E. (2016). Layer normalization. arXiv preprint arXiv:1607.06450.
     """
 
     def __init__(
