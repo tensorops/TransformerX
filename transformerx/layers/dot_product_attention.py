@@ -96,7 +96,7 @@ class DotProductAttention(tf.keras.layers.Layer):
     # Shape of values: (batch_size, no. of key-value pairs, value dimension)
     # Shape of attention_mask: (batch_size,) or (batch_size, no. of queries)
     def call(self, queries: tf.Tensor, keys: tf.Tensor, values: tf.Tensor, attention_mask: tf.Tensor = None,
-             causal_mask: tf.Tensor = None, **kwargs) -> tf.Tensor:
+             causal_mask: bool = None, **kwargs) -> tf.Tensor:
         scores = tf.matmul(queries, keys, transpose_b=True)
         if self.scaled:
             depth = queries.shape[-1]
@@ -104,25 +104,17 @@ class DotProductAttention(tf.keras.layers.Layer):
                 tf.cast(depth, dtype=tf.float32)
             )
 
-        if causal_mask is not None:
-            num_windows = causal_mask.shape[0]
-            n, num_queries, num_kv_pairs = scores.shape
-            # Shape of causal_mask: (num_windows, no. of queries,
-            # no. of key-value pairs)
-            scores = tf.reshape(
-                scores,
-                (
-                    n // (num_windows * self.num_heads),
-                    num_windows,
-                    self.num_heads,
-                    num_queries,
-                    num_kv_pairs,
-                ),
-            ) + tf.expand_dims(tf.expand_dims(causal_mask, 1), 0)
-            scores = tf.reshape(scores, (n, num_queries, num_kv_pairs))
-        # if attention_mask is not None:
-        #     print("here info: ", scores.shape, attention_mask.shape)
-        #     scores += -1e9 * attention_mask
-        # self.attention_weights = tf.nn.softmax(scores)
+        # apply causal mask
+        if causal_mask:
+            seq_len = tf.shape(queries)[2]
+            heads = tf.shape(queries)[1]
+            causal_mask = tf.ones((heads, seq_len)) * -1e9
+            causal_mask = tf.linalg.LinearOperatorLowerTriangular(causal_mask).to_dense()
+            causal_mask = tf.expand_dims(causal_mask, axis=0)  # add batch dimension
+            print("causal mask shape: ", causal_mask.shape, "scores shape: ", scores.shape, tf.expand_dims(causal_mask, -1).shape)
+            print("causal mask: ", causal_mask)
+            # scores += causal_mask
+            scores += tf.broadcast_to(tf.expand_dims(causal_mask, -1), scores.shape)  # broadcast across batch dimension
+
         self.attention_weights = masked_softmax(scores, attention_mask)
         return tf.matmul(self.dropout(self.attention_weights, **kwargs), values)
