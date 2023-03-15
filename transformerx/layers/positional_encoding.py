@@ -97,8 +97,6 @@ class AbsolutePositionalEncoding(tf.keras.layers.Layer):
         odd_encoding = tf.cos(positions[:, tf.newaxis] / denominator)
         self.P = tf.concat([even_encoding, odd_encoding], axis=-1)[tf.newaxis, :, :]
 
-
-
     def call(self, X, **kwargs):
         X = X + self.P[:, :tf.shape(X)[1], :]
         X = self.dropout(X, **kwargs)
