@@ -111,9 +111,6 @@ class DotProductAttention(tf.keras.layers.Layer):
             causal_mask = tf.ones((heads, seq_len)) * -1e9
             causal_mask = tf.linalg.LinearOperatorLowerTriangular(causal_mask).to_dense()
             causal_mask = tf.expand_dims(causal_mask, axis=0)  # add batch dimension
-            print("causal mask shape: ", causal_mask.shape, "scores shape: ", scores.shape, tf.expand_dims(causal_mask, -1).shape)
-            print("causal mask: ", causal_mask)
-            # scores += causal_mask
             scores += tf.broadcast_to(tf.expand_dims(causal_mask, -1), scores.shape)  # broadcast across batch dimension
 
         self.attention_weights = masked_softmax(scores, attention_mask)

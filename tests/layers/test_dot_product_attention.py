@@ -7,6 +7,7 @@ from transformerx.layers import DotProductAttention
 
 
 class TestDotProductAttention:
+    "this class tests the dot-product attention class"
     # Set up the test class with some test data
     @pytest.fixture(autouse=True)
     def setup(self):
