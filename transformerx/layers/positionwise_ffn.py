@@ -2,7 +2,7 @@ import os
 
 import tensorflow as tf
 
-
+# todo: remove commented old implementation after writing tests
 # class PositionWiseFFN(tf.keras.layers.Layer):
 #     """Compute position-wise feed-forward network [1]_.
 #
@@ -125,7 +125,7 @@ class PositionWiseFFN(tf.keras.layers.Layer):
     """
 
     def __init__(self, input_hidden_units, output_hidden_units, activation='relu', init='glorot_uniform',
-                 non_linear_proj=None, contextualized_embeddings=None):
+                 non_linear_proj=None, contextualized_embeddings=None, dropout_rate=0.0):
         super().__init__()
         self.dense1 = tf.keras.layers.Dense(input_hidden_units, activation=activation, kernel_initializer=init)
         self.non_linear_proj = non_linear_proj
@@ -136,6 +136,7 @@ class PositionWiseFFN(tf.keras.layers.Layer):
         else:
             self.dense2 = tf.keras.layers.Dense(output_hidden_units, activation=activation, kernel_initializer=init)
         self.contextualized_embeddings = contextualized_embeddings
+        self.dropout = tf.keras.layers.Dropout(rate=dropout_rate)
 
     def call(self, x):
         # x.shape: (batch size, number of time steps or sequence length in tokens, number of hidden units or
@@ -146,14 +147,17 @@ class PositionWiseFFN(tf.keras.layers.Layer):
         if self.non_linear_proj == 'glu':
             x = self.dense1(x)
             split_units = x.shape[-1] // 2
+            x = self.dropout(x)
             return x[:, :, :split_units] * tf.keras.activations.sigmoid(self.glu(x[:, :, split_units:]))[:, :,
                                            :split_units]
         elif self.non_linear_proj == 'selu':
             x = self.dense1(x)
             split_units = x.shape[-1] // 2
+            x = self.dropout(x)
             return x[:, :, :split_units] * tf.keras.activations.sigmoid(self.selu(x[:, :, split_units:]))[:, :,
                                            :split_units]
         else:
+            x = self.dropout(x)
             return self.dense2(self.dense1(x))
 
 
