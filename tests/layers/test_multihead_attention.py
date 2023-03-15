@@ -142,3 +142,41 @@ class TestMultiHeadAttention:
         # assert weights[0, 1, 2] == 0
         # assert weights[1, 0, 1] == 0
 
+    def test_call_with_causal_mask(self, attention):
+        queries = tf.random.normal((4, 10, 32))
+        values = tf.random.normal((4, 20, 32))
+        keys = tf.random.normal((4, 20, 32))
+
+        output = attention(queries, values, keys, causal_mask=True)
+
+        assert output.shape == (4, 10, 32)
+
+    def test_call_with_both_masks(self, attention):
+        queries = tf.random.normal((4, 10, 32))
+        values = tf.random.normal((4, 10, 64))
+        keys = tf.random.normal((4, 10, 32))
+        attention_mask = tf.random.uniform((4, 10), maxval=2, dtype=tf.int32)
+
+        output = attention(queries, keys, values, attention_mask=attention_mask, causal_mask=True)
+
+        assert output.shape == (4, 10, 32)
+
+    def test_call_with_zero_mask(self, attention):
+        queries = tf.random.normal((4, 10, 32))
+        values = tf.random.normal((4, 10, 64))
+        keys = tf.random.normal((4, 10, 32))
+        attention_mask = tf.zeros((4, 10), dtype=tf.int32)
+
+        output = attention(queries, keys, values, attention_mask=attention_mask)
+
+        assert output.shape == (4, 10, 32)
+
+    def test_call_with_ones_mask(self, attention):
+        queries = tf.random.normal((4, 10, 32))
+        values = tf.random.normal((4, 10, 64))
+        keys = tf.random.normal((4, 10, 32))
+        attention_mask = tf.ones((4, 10), dtype=tf.int32)
+
+        output = attention(queries, keys, values, attention_mask=attention_mask)
+
+        assert output.shape == (4, 10, 32)
