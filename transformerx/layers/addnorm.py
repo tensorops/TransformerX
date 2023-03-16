@@ -1,6 +1,6 @@
 import numpy as np
 import tensorflow as tf
-from typing import Tuple, Optional
+from typing import Optional
 
 
 class AddNorm(tf.keras.layers.Layer):
@@ -164,6 +164,7 @@ class AddNorm(tf.keras.layers.Layer):
 
         # return self.ln(self.dropout(residual, **kwargs) + x)
         return x
+
     def get_config(self):
         config = super(AddNorm, self).get_config()
         config.update({
@@ -176,11 +177,10 @@ class AddNorm(tf.keras.layers.Layer):
         })
         return config
 
+
 if __name__ == '__main__':
     X = tf.constant(np.arange(10).reshape(5, 2) * 10, dtype=tf.float32)
     Y = tf.constant(np.arange(10).reshape(5, 2) * 10, dtype=tf.float32)
-
-    # attention = MultiHeadAttention(d_model=64, num_heads=8)
 
     addnorm = AddNorm(norm_type='layer', norm_eps=1e-6, dropout_rate=0.2, activation='relu')
     output = addnorm(X, X)
