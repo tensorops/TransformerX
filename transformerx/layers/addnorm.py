@@ -107,19 +107,19 @@ class AddNorm(tf.keras.layers.Layer):
         self.dropout = tf.keras.layers.Dropout(dropout_rate)
         self.norm_layer = None
 
-        def build(self, input_shape):
-            if self.norm_type == 'batch':
-                self.norm_layer = tf.keras.layers.BatchNormalization(epsilon=self.norm_eps)
-            elif self.norm_type == 'instance':
-                self.norm_layer = tf.keras.layers.LayerNormalization(epsilon=self.norm_eps, axis=-1)
-            elif self.norm_type == 'layer':
-                self.norm_layer = tf.keras.layers.LayerNormalization(epsilon=self.norm_eps, axis=-1)
+    def build(self, input_shape):
+        if self.norm_type == 'batch':
+            self.norm_layer = tf.keras.layers.BatchNormalization(epsilon=self.norm_eps)
+        elif self.norm_type == 'instance':
+            self.norm_layer = tf.keras.layers.LayerNormalization(epsilon=self.norm_eps, axis=-1)
+        elif self.norm_type == 'layer':
+            self.norm_layer = tf.keras.layers.LayerNormalization(epsilon=self.norm_eps, axis=-1)
 
-            # Build activation layer if specified
-            if self.activation is not None:
-                self.activation_layer = tf.keras.layers.Activation(self.activation)
+        # Build activation layer if specified
+        if self.activation is not None:
+            self.activation_layer = tf.keras.layers.Activation(self.activation)
 
-            super(AddNorm, self).build(input_shape)
+        super(AddNorm, self).build(input_shape)
 
         # self.ln = tf.keras.layers.LayerNormalization(norm_shape)
 
@@ -175,3 +175,13 @@ class AddNorm(tf.keras.layers.Layer):
             'bias_regularizer': self.bias_regularizer
         })
         return config
+
+if __name__ == '__main__':
+    X = tf.constant(np.arange(10).reshape(5, 2) * 10, dtype=tf.float32)
+    Y = tf.constant(np.arange(10).reshape(5, 2) * 10, dtype=tf.float32)
+
+    # attention = MultiHeadAttention(d_model=64, num_heads=8)
+
+    addnorm = AddNorm(norm_type='layer', norm_eps=1e-6, dropout_rate=0.2, activation='relu')
+    output = addnorm(X, X)
+    print(output)
