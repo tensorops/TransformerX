@@ -43,8 +43,8 @@ from transformerx.layers.positionwise_ffn import PositionWiseFFN
 #         self.ffn = PositionWiseFFN(ffn_num_hiddens, d_model)
 #         self.addnorm2 = AddNorm(norm_type, dropout_rate)
 #
-#     def call(self, X, valid_lens, **kwargs):
-#         Y = self.addnorm1(X, self.attention(X, X, X, valid_lens, **kwargs), **kwargs)
+#     def call(self, X, attention_mask, **kwargs):
+#         Y = self.addnorm1(X, self.attention(X, X, X, attention_mask, **kwargs), **kwargs)
 #         return self.addnorm2(Y, self.ffn(Y), **kwargs)
 
 class TransformerEncoderBlock(tf.keras.layers.Layer):
@@ -68,7 +68,7 @@ class TransformerEncoderBlock(tf.keras.layers.Layer):
         super().__init__()
         assert isinstance(d_model, int) and d_model > 0, 'Invalid d_model: {}'.format(d_model)
         assert isinstance(ffn_num_hiddens, int) and ffn_num_hiddens > 0, 'Invalid ffn_num_hiddens: {}'.format(ffn_num_hiddens)
-        assert isinstance(num_heads, int) and num_heads > 0 and d_model//num_heads==0, 'Invalid num_heads: {}'.format(num_heads)
+        assert isinstance(num_heads, int) and num_heads > 0 and d_model%num_heads==0, 'Invalid num_heads: {}'.format(num_heads)
         assert isinstance(dropout_rate, float) and 0.0 <= dropout_rate <= 1.0, 'Invalid dropout rate: {}'.format(dropout_rate)
         assert norm_type in ['layer', 'batch', 'instance'], 'Invalid norm_type: {}'.format(norm_type)
         assert isinstance(bias, bool), 'Invalid bias: {}'.format(bias)
@@ -88,7 +88,7 @@ class TransformerEncoderBlock(tf.keras.layers.Layer):
         if learning_rate_schedule is not None:
             assert callable(learning_rate_schedule), 'learning_rate_schedule should be a callable object'
 
-        self.dmodel = d_model
+        self.d_model = d_model
         self.attention = MultiHeadAttention(d_model, num_heads, dropout_rate, bias)
         self.addnorm1 = AddNorm(norm_type, dropout_rate) if use_norm else None
         self.ffn = PositionWiseFFN(ffn_num_hiddens, d_model, activation_fn, kernel_initializer, bias_initializer)
@@ -98,13 +98,16 @@ class TransformerEncoderBlock(tf.keras.layers.Layer):
         self.mixed_precision = mixed_precision
         self.learning_rate_schedule = learning_rate_schedule
 
-    def call(self, X, valid_lens, training=None, **kwargs):
+    def call(self, X, attention_mask=None, training=None, **kwargs):
         assert len(X.shape) == 3, 'Input tensor should have rank 3'
         assert X.shape[-1] == self.d_model, 'Last dimension of input tensor should be equal to d_model'
-        assert len(valid_lens.shape) == 1, 'valid_lens should be a 1D tensor'
-        assert isinstance(valid_lens[0], int), 'Elements of valid_lens should be integers'
+        if attention_mask is not None:
+            attention_mask = tf.cast(attention_mask, tf.int32)
+            assert len(attention_mask.shape) == 1, 'attention_mask should be a 1D tensor'
+            print(attention_mask[0])
+            # assert isinstance(attention_mask[0].numpy(), int), 'Elements of attention_mask should be integers'
 
-        attn_output = self.attention(X, X, X, valid_lens, training=training, **kwargs)
+        attn_output = self.attention(X, X, X, attention_mask, training=training, **kwargs)
         if self.addnorm1:
             attn_output = self.addnorm1(X, attn_output, training=training, **kwargs)
         ffn_output = self.ffn(attn_output, training=training, **kwargs)
@@ -127,3 +130,25 @@ class TransformerEncoderBlock(tf.keras.layers.Layer):
             self.add_metric(learning_rate, name='learning_rate')
         return output
 
+def main():
+    # Set up a dummy batch of inputs and attention_mask
+    batch_size = 4
+    seq_length = 10
+    d_model = 32
+    inputs = tf.random.normal((batch_size, seq_length, d_model))
+    attention_mask = tf.constant([10, 8, 6, 10], dtype=tf.int32)
+    attention_mask = tf.cast(attention_mask, tf.int32)
+
+    # Initialize a TransformerEncoderBlock object
+    encoder_block = TransformerEncoderBlock(d_model=d_model, ffn_num_hiddens=64, num_heads=4, dropout_rate=0.1)
+
+    # Pass the inputs through the encoder block
+    outputs = encoder_block(inputs, attention_mask=tf.cast(attention_mask, tf.int32))
+
+    # Check that the output tensor has the correct shape
+    assert outputs.shape == (batch_size, seq_length)
+
+    print("Test passed.")
+
+if __name__ == '__main__':
+    main()

@@ -7,16 +7,37 @@ def masked_softmax(X, attention_mask):
     """Perform softmax operation by masking elements on the last axis."""
 
     # x: 3D tensor, attention_mask: 1D or 2D tensor
-    def _sequence_mask(X, attention_mask, value=0):
-        maxlen = X.shape[1]
-        mask = tf.range(start=0, limit=maxlen, dtype=tf.float32)[None, :] < tf.cast(
-                attention_mask[:, None], dtype=tf.float32
-        )
+    # old implementation -> might be recovered
+    # def _sequence_mask(X, attention_mask, value=-1e9):
+    #     maxlen = X.shape[1]
+    #     mask = tf.range(start=0, limit=maxlen, dtype=tf.float32)[None, :] < tf.cast(
+    #             attention_mask[:, None], dtype=tf.float32
+    #     )
+    #     print("X.shape: ", X.shape, mask.shape, attention_mask.shape)
+    #     mask = tf.expand_dims(mask, axis=0)
+    #     print("X.shape: ", X.shape, mask.shape)
+    #     # mask = tf.broadcast_to(mask, X.shape)
+    #     if len(X.shape) == 3:
+    #         return tf.where(tf.expand_dims(mask, axis=-1), X, value)
+    #     else:
+    #         return tf.where(mask, X, value)
 
-        if len(X.shape) == 3:
-            return tf.where(tf.expand_dims(mask, axis=-1), X, value)
+    def _sequence_mask2(X, attention_mask, value=-1e9):
+        if len(attention_mask.shape) == 2:
+            maxlen = X.shape[1]
+            mask = tf.range(start=0, limit=maxlen, dtype=tf.float32)[None, :] < tf.cast(
+                attention_mask, dtype=tf.float32
+            )
         else:
-            return tf.where(mask, X, value)
+            maxlen = X.shape[0]
+            mask = tf.range(start=0, limit=maxlen, dtype=tf.float32) < tf.cast(
+                attention_mask, dtype=tf.float32
+            )
+        mask = tf.expand_dims(mask, axis=-1)
+        if len(X.shape) > 3:
+            X = tf.reshape(X, shape=(-1, X.shape[-1]))
+            mask = tf.broadcast_to(mask, X.shape)
+        return tf.where(mask, X, value)
 
     if attention_mask is None:
         return tf.nn.softmax(X, axis=-1)
