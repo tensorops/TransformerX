@@ -125,7 +125,7 @@ class TestMultiHeadAttention:
         # create a batch of inputs and a mask
         inputs = tf.random.normal((32, 64, 128), dtype=tf.float32)
 
-        attention_mask = tf.random.uniform((32, 64), maxval=2, dtype=tf.float32)
+        attention_mask = tf.random.uniform((32,1,1, 64), maxval=2, dtype=tf.float32)
         # call the layer with the inputs and mask
         outputs = attention(inputs, inputs, inputs, attention_mask=attention_mask)
 

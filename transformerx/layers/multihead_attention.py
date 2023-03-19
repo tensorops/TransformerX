@@ -225,7 +225,7 @@ class MultiHeadAttention(tf.keras.layers.Layer):
              values: tf.Tensor,
              keys: tf.Tensor,
              attention_mask: tf.Tensor = None,
-             causal_mask: bool = None,
+             causal_mask: bool = False,
              **kwargs) -> tf.Tensor:
         """Compute the multi-head attention for the given queries, keys, and values.
 
