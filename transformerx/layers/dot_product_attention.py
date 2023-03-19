@@ -104,6 +104,12 @@ class DotProductAttention(tf.keras.layers.Layer):
                 tf.cast(depth, dtype=tf.float32)
             )
 
+        # Apply the attention mask to the scores (if provided)
+        # if attention_mask is not None:
+        #     attention_mask = tf.cast(attention_mask, dtype=scores.dtype)
+        #     print("scores and attention shapes: ", scores.shape, attention_mask.shape)
+        #     scores += attention_mask * -1e9
+
         # apply causal mask
         if causal_mask:
             seq_len = tf.shape(queries)[2]
@@ -114,4 +120,5 @@ class DotProductAttention(tf.keras.layers.Layer):
             scores += tf.broadcast_to(tf.expand_dims(causal_mask, -1), scores.shape)  # broadcast across batch dimension
 
         self.attention_weights = masked_softmax(scores, attention_mask)
+        # self.attention_weights = tf.nn.softmax(scores, axis=-1)
         return tf.matmul(self.dropout(self.attention_weights, **kwargs), values)

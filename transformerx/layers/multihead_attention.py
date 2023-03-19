@@ -312,6 +312,7 @@ class MultiHeadAttention(tf.keras.layers.Layer):
             # times, then copy the next item, and so on
             attention_mask = tf.repeat(attention_mask, repeats=self.num_heads, axis=0)
 
+
         # Shape of output: (batch_size * num_heads, no. of queries,
         # depth / num_heads)
         output = self.attention(

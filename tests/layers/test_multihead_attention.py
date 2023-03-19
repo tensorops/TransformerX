@@ -88,7 +88,7 @@ from transformerx.layers import MultiHeadAttention
 class TestMultiHeadAttention:
     @pytest.fixture
     def attention(self):
-        return MultiHeadAttention(d_model=32, num_heads=4, dropout=0.1)
+        return MultiHeadAttention(d_model=32, num_heads=4, dropout_rate=0.1)
 
     @pytest.fixture
     def inputs(self):
@@ -123,24 +123,17 @@ class TestMultiHeadAttention:
     def test_multihead_attention_with_mask(self):
         attention = MultiHeadAttention(d_model=64, num_heads=8)
         # create a batch of inputs and a mask
-        inputs = tf.random.normal((32, 64, 64), dtype=tf.float32)
-        mask = tf.random.uniform((32, 1, 64), dtype=tf.float32)
+        inputs = tf.random.normal((32, 64, 128), dtype=tf.float32)
 
+        attention_mask = tf.random.uniform((32, 64), maxval=2, dtype=tf.float32)
         # call the layer with the inputs and mask
-        outputs = attention(inputs, inputs, inputs, attention_mask=mask)
+        outputs = attention(inputs, inputs, inputs, attention_mask=attention_mask)
 
         # check that the output shape is correct
         assert outputs.shape == (32, 64, 64)
 
         # check that the output values are not all zero
         assert not tf.reduce_all(tf.math.equal(outputs, 0.0))
-
-        # x = tf.constant(np.random.random([2, 3, 20]), dtype=tf.float32)
-        # mask = tf.constant([[1, 1, 0], [1, 0, 0]], dtype=tf.float32)
-        # weights = attention(x, x, x, attention_mask=mask)
-        # assert weights[0, 0, 2].numpy() == 0
-        # assert weights[0, 1, 2] == 0
-        # assert weights[1, 0, 1] == 0
 
     def test_call_with_causal_mask(self, attention):
         queries = tf.random.normal((4, 10, 32))
@@ -180,3 +173,44 @@ class TestMultiHeadAttention:
         output = attention(queries, keys, values, attention_mask=attention_mask)
 
         assert output.shape == (4, 10, 32)
+
+    # def test_multihead_attention_masking(self):
+    #     # Define a test case
+    #     batch_size = 2
+    #     sequence_length = 4
+    #     num_heads = 2
+    #     d_model = 3
+    #
+    #     # Create a random input tensor
+    #     inputs = tf.random.normal((batch_size, sequence_length, d_model))
+    #
+    #     # Create a random mask tensor
+    #     mask = tf.constant([[1, 1, 0, 0], [1, 1, 1, 0]], dtype=tf.float32)
+    #
+    #
+    #     # Instantiate the multi-head attention layer
+    #     attention_layer = MultiHeadAttention(num_heads=num_heads, d_model=d_model)
+    #
+    #     # Call the layer with the input and mask tensors
+    #     outputs = attention_layer(inputs, mask=mask)
+    #
+    #     # Assert that the output tensor has the expected shape
+    #     assert outputs.shape == (batch_size, sequence_length, num_heads * d_model)
+    #
+    #     # Compute the attention weights manually
+    #     q = attention_layer.query_projection(inputs)
+    #     k = attention_layer.key_projection(inputs)
+    #     v = attention_layer.value_projection(inputs)
+    #     q_split = attention_layer.split_heads(q, batch_size)
+    #     k_split = attention_layer.split_heads(k, batch_size)
+    #     v_split = attention_layer.split_heads(v, batch_size)
+    #     mask = tf.cast(mask[:, :, tf.newaxis], tf.float32)
+    #     attention_weights = tf.matmul(q_split, k_split, transpose_b=True)
+    #     attention_weights = attention_weights / np.sqrt(d_model)
+    #     attention_weights = tf.nn.softmax(attention_weights + (1 - mask) * -1e9)
+    #     outputs_manual = tf.matmul(attention_weights, v_split)
+    #     outputs_manual = tf.transpose(outputs_manual, perm=[0, 2, 1, 3])
+    #     outputs_manual = tf.reshape(outputs_manual, (batch_size, sequence_length, num_heads * d_model))
+    #
+    #     # Assert that the output tensor is equal to the manually computed output tensor
+    #     assert np.allclose(outputs.numpy(), outputs_manual.numpy())
