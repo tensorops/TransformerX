@@ -8,24 +8,23 @@ from transformerx.layers import AddNorm
 class TestAddNorm:
     def test_init(self):
         # Test that the layer initializes correctly
-        norm_shape = (1, 2)
+        norm_type = "layer"
         dropout_rate = 0.2
-        addnorm = AddNorm(norm_shape, dropout_rate)
+        addnorm = AddNorm(norm_type=norm_type, dropout_rate=dropout_rate)
 
-        assert addnorm.norm_shape == norm_shape
         assert addnorm.dropout_rate == dropout_rate
 
         # Test for invalid input for dropout_rate
-        norm_shape = [0, 1]
+        norm_type = "batch"
         dropout_rate = 1.2
         with pytest.raises(ValueError):
-            addnorm = AddNorm(norm_shape, dropout_rate)
+            addnorm = AddNorm(norm_type=norm_type, dropout_rate=dropout_rate)
 
         # Test for invalid input type for norm_shape
-        norm_shape = [0, 1, 2]
+        norm_type = "instance2"
         dropout_rate = 0.2
         with pytest.raises(TypeError):
-            addnorm = AddNorm(norm_shape, dropout_rate)
+            addnorm = AddNorm(norm_type, dropout_rate)
 
     def test_call(self):
         def test_call():
