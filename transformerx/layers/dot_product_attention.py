@@ -99,6 +99,14 @@ class DotProductAttention(tf.keras.layers.Layer):
         self.normalize = normalize
         self.attention_weights = None
 
+    def build(self, input_shape):
+        if self.scaled:
+            depth = input_shape[-1]
+            self.scale = self.add_weight(
+                name="scale", shape=(depth,), initializer="ones", trainable=True
+            )
+        super().build(input_shape)
+
     # Shape of queries: (batch_size, no. of queries, d)
     # Shape of keys: (batch_size, no. of key-value pairs, d)
     # Shape of values: (batch_size, no. of key-value pairs, value dimension)
