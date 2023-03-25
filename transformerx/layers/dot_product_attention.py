@@ -84,34 +84,60 @@ class DotProductAttention(tf.keras.layers.Layer):
     is all you need, in: NIPS, pp. 5998–6008.
     """
 
-    def __init__(self, dropout_rate: float = 0, num_heads: int = 8, scaled: bool = True):
-
+    def __init__(
+        self,
+        dropout_rate: float = 0,
+        num_heads: int = 8,
+        scaled: bool = True,
+        normalize: bool = False,
+    ):
         super().__init__()
         self.dropout = tf.keras.layers.Dropout(dropout_rate)
         self.num_heads = num_heads  # To be covered later
         self.scaled = scaled
+        self.normalize = normalize
 
     # Shape of queries: (batch_size, no. of queries, d)
     # Shape of keys: (batch_size, no. of key-value pairs, d)
     # Shape of values: (batch_size, no. of key-value pairs, value dimension)
     # Shape of attention_mask: (batch_size,) or (batch_size, no. of queries)
-    def call(self, queries: tf.Tensor, keys: tf.Tensor, values: tf.Tensor, attention_mask: tf.Tensor = None,
-             causal_mask: bool = None, **kwargs) -> tf.Tensor:
+    def call(
+        self,
+        queries: tf.Tensor,
+        keys: tf.Tensor,
+        values: tf.Tensor,
+        attention_mask: tf.Tensor = None,
+        causal_mask: bool = None,
+        **kwargs
+    ) -> tf.Tensor:
         scores = tf.matmul(queries, keys, transpose_b=True)
         if self.scaled:
             depth = queries.shape[-1]
-            scores = scores / tf.math.sqrt(
-                tf.cast(depth, dtype=tf.float32)
-            )
+            scores = scores / tf.math.sqrt(tf.cast(depth, dtype=tf.float32))
+
+        # Apply the attention mask to the scores (if provided)
+        # if attention_mask is not None:
+        #     attention_mask = tf.cast(attention_mask, dtype=scores.dtype)
+        #     print("scores and attention shapes: ", scores.shape, attention_mask.shape)
+        #     scores += attention_mask * -1e9
 
         # apply causal mask
         if causal_mask:
             seq_len = tf.shape(queries)[2]
             heads = tf.shape(queries)[1]
             causal_mask = tf.ones((heads, seq_len)) * -1e9
-            causal_mask = tf.linalg.LinearOperatorLowerTriangular(causal_mask).to_dense()
+            causal_mask = tf.linalg.LinearOperatorLowerTriangular(
+                causal_mask
+            ).to_dense()
             causal_mask = tf.expand_dims(causal_mask, axis=0)  # add batch dimension
-            scores += tf.broadcast_to(tf.expand_dims(causal_mask, -1), scores.shape)  # broadcast across batch dimension
+            scores += tf.broadcast_to(
+                tf.expand_dims(causal_mask, -1), scores.shape
+            )  # broadcast across batch dimension
 
         self.attention_weights = masked_softmax(scores, attention_mask)
-        return tf.matmul(self.dropout(self.attention_weights, **kwargs), values)
+        # self.attention_weights = tf.nn.softmax(scores, axis=-1)
+        scores = tf.matmul(self.dropout(self.attention_weights, **kwargs), values)
+        if self.normalize:
+            depth = tf.cast(tf.shape(keys)[-1], tf.float32)
+            scores /= tf.sqrt(depth)
+        return scores

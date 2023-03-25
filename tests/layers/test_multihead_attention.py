@@ -85,10 +85,11 @@ from transformerx.layers import MultiHeadAttention
 #
 #
 
+
 class TestMultiHeadAttention:
     @pytest.fixture
     def attention(self):
-        return MultiHeadAttention(d_model=32, num_heads=4, dropout=0.1)
+        return MultiHeadAttention(d_model=32, num_heads=4, dropout_rate=0.1)
 
     @pytest.fixture
     def inputs(self):
@@ -123,24 +124,17 @@ class TestMultiHeadAttention:
     def test_multihead_attention_with_mask(self):
         attention = MultiHeadAttention(d_model=64, num_heads=8)
         # create a batch of inputs and a mask
-        inputs = tf.random.normal((32, 64, 64), dtype=tf.float32)
-        mask = tf.random.uniform((32, 1, 64), dtype=tf.float32)
+        inputs = tf.random.normal((32, 64, 128), dtype=tf.float32)
 
+        attention_mask = tf.random.uniform((32, 1, 1, 64), maxval=2, dtype=tf.float32)
         # call the layer with the inputs and mask
-        outputs = attention(inputs, inputs, inputs, attention_mask=mask)
+        outputs = attention(inputs, inputs, inputs, attention_mask=attention_mask)
 
         # check that the output shape is correct
         assert outputs.shape == (32, 64, 64)
 
         # check that the output values are not all zero
         assert not tf.reduce_all(tf.math.equal(outputs, 0.0))
-
-        # x = tf.constant(np.random.random([2, 3, 20]), dtype=tf.float32)
-        # mask = tf.constant([[1, 1, 0], [1, 0, 0]], dtype=tf.float32)
-        # weights = attention(x, x, x, attention_mask=mask)
-        # assert weights[0, 0, 2].numpy() == 0
-        # assert weights[0, 1, 2] == 0
-        # assert weights[1, 0, 1] == 0
 
     def test_call_with_causal_mask(self, attention):
         queries = tf.random.normal((4, 10, 32))
@@ -157,7 +151,9 @@ class TestMultiHeadAttention:
         keys = tf.random.normal((4, 10, 32))
         attention_mask = tf.random.uniform((4, 10), maxval=2, dtype=tf.int32)
 
-        output = attention(queries, keys, values, attention_mask=attention_mask, causal_mask=True)
+        output = attention(
+            queries, keys, values, attention_mask=attention_mask, causal_mask=True
+        )
 
         assert output.shape == (4, 10, 32)
 
@@ -180,3 +176,41 @@ class TestMultiHeadAttention:
         output = attention(queries, keys, values, attention_mask=attention_mask)
 
         assert output.shape == (4, 10, 32)
+
+    def test_sparse_attention_masking(self):
+        # Create a multi-head attention layer
+        num_heads = 4
+        model_dim = 32
+        attention = MultiHeadAttention(model_dim, num_heads=num_heads)
+
+        # Create a 3D tensor with shape (batch_size, seq_len, model_dim)
+        batch_size = 4
+        seq_len = 10
+        input_tensor = tf.constant(
+            np.random.randn(batch_size, seq_len, model_dim), dtype=tf.float32
+        )
+
+        # todo: needs to be revised -> shapes
+        # Create a sparse attention mask
+        padding_mask = np.array(
+            [
+                [0, 0, 1, 1, 1, 0, 0, 0, 0, 0],
+            ]
+        )
+        # padding_mask = tf.repeat(padding_mask, seq_len, axis=0).numpy()
+        attention_mask = tf.sparse.SparseTensor(
+            indices=np.array([[i, j] for i in range(seq_len) for j in range(seq_len)]),
+            values=padding_mask.flatten(),
+            dense_shape=[seq_len, seq_len],
+        )
+
+        # Compute the attention weights and outputs
+        attention_output = attention(
+            input_tensor, input_tensor, input_tensor, attention_mask
+        )
+
+        # Check that the attention weights sum to 1 on the last axis
+        np.testing.assert_allclose(
+            tf.reduce_sum(attention_output, axis=-1),
+            np.ones((batch_size, num_heads, seq_len)),
+        )

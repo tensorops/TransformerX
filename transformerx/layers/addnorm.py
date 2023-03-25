@@ -71,14 +71,14 @@ class AddNorm(tf.keras.layers.Layer):
     """
 
     def __init__(
-            self,
-            norm_type: str = 'layer',
-            norm_eps: float = 1e-6,
-            dropout_rate: float = 0.1,
-            activation: Optional[str] = None,
-            kernel_regularizer: Optional[tf.keras.regularizers.Regularizer] = None,
-            bias_regularizer: Optional[tf.keras.regularizers.Regularizer] = None,
-            **kwargs
+        self,
+        norm_type: str = "layer",
+        norm_eps: float = 1e-6,
+        dropout_rate: float = 0.1,
+        activation: Optional[str] = None,
+        kernel_regularizer: Optional[tf.keras.regularizers.Regularizer] = None,
+        bias_regularizer: Optional[tf.keras.regularizers.Regularizer] = None,
+        **kwargs,
     ):
         super(AddNorm, self).__init__()
         if isinstance(dropout_rate, (int, float)) and not 0 <= dropout_rate <= 1:
@@ -87,9 +87,10 @@ class AddNorm(tf.keras.layers.Layer):
                 "`dropout_rate`, expected a value between 0 and 1."
             )
         # Check normalization type
-        if norm_type not in ['batch', 'instance', 'layer']:
-            raise ValueError(
-                f"Invalid value {norm_type} received for 'norm_type', expected one of ['batch', 'instance', 'layer'].")
+        if norm_type not in ["batch", "instance", "layer"]:
+            raise TypeError(
+                f"Invalid type {norm_type} received for 'norm_type', expected one of ['batch', 'instance', 'layer']."
+            )
 
         self.norm_type = norm_type
         self.norm_eps = norm_eps
@@ -108,12 +109,16 @@ class AddNorm(tf.keras.layers.Layer):
         self.norm_layer = None
 
     def build(self, input_shape):
-        if self.norm_type == 'batch':
+        if self.norm_type == "batch":
             self.norm_layer = tf.keras.layers.BatchNormalization(epsilon=self.norm_eps)
-        elif self.norm_type == 'instance':
-            self.norm_layer = tf.keras.layers.LayerNormalization(epsilon=self.norm_eps, axis=-1)
-        elif self.norm_type == 'layer':
-            self.norm_layer = tf.keras.layers.LayerNormalization(epsilon=self.norm_eps, axis=-1)
+        elif self.norm_type == "instance":
+            self.norm_layer = tf.keras.layers.LayerNormalization(
+                epsilon=self.norm_eps, axis=-1
+            )
+        elif self.norm_type == "layer":
+            self.norm_layer = tf.keras.layers.LayerNormalization(
+                epsilon=self.norm_eps, axis=-1
+            )
 
         # Build activation layer if specified
         if self.activation is not None:
@@ -140,8 +145,7 @@ class AddNorm(tf.keras.layers.Layer):
         """
         if not isinstance(x, tf.Tensor):
             raise TypeError(
-                f"Expected a tensor for the "
-                f"argument 'x', but received: {x}"
+                f"Expected a tensor for the " f"argument 'x', but received: {x}"
             )
         if not isinstance(residual, tf.Tensor):
             raise TypeError(
@@ -150,7 +154,7 @@ class AddNorm(tf.keras.layers.Layer):
             )
 
         # Apply dropout
-        residual = self.dropout(residual, training=kwargs.get('training', False))
+        residual = self.dropout(residual, training=kwargs.get("training", False))
 
         # Add residual connection
         x = tf.keras.layers.Add()([x, residual])
@@ -167,21 +171,25 @@ class AddNorm(tf.keras.layers.Layer):
 
     def get_config(self):
         config = super(AddNorm, self).get_config()
-        config.update({
-            'norm_type': self.norm_type,
-            'norm_eps': self.norm_eps,
-            'dropout_rate': self.dropout_rate,
-            'activation': self.activation,
-            'kernel_regularizer': self.kernel_regularizer,
-            'bias_regularizer': self.bias_regularizer
-        })
+        config.update(
+            {
+                "norm_type": self.norm_type,
+                "norm_eps": self.norm_eps,
+                "dropout_rate": self.dropout_rate,
+                "activation": self.activation,
+                "kernel_regularizer": self.kernel_regularizer,
+                "bias_regularizer": self.bias_regularizer,
+            }
+        )
         return config
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     X = tf.constant(np.arange(10).reshape(5, 2) * 10, dtype=tf.float32)
     Y = tf.constant(np.arange(10).reshape(5, 2) * 10, dtype=tf.float32)
 
-    addnorm = AddNorm(norm_type='layer', norm_eps=1e-6, dropout_rate=0.2, activation='relu')
+    addnorm = AddNorm(
+        norm_type="layer", norm_eps=1e-6, dropout_rate=0.2, activation="relu"
+    )
     output = addnorm(X, X)
     print(output)

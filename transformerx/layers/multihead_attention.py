@@ -225,7 +225,7 @@ class MultiHeadAttention(tf.keras.layers.Layer):
              values: tf.Tensor,
              keys: tf.Tensor,
              attention_mask: tf.Tensor = None,
-             causal_mask: bool = None,
+             causal_mask: bool = False,
              **kwargs) -> tf.Tensor:
         """Compute the multi-head attention for the given queries, keys, and values.
 
@@ -311,6 +311,7 @@ class MultiHeadAttention(tf.keras.layers.Layer):
             # On axis 0, copy the first item (scalar or vector) for num_heads
             # times, then copy the next item, and so on
             attention_mask = tf.repeat(attention_mask, repeats=self.num_heads, axis=0)
+
 
         # Shape of output: (batch_size * num_heads, no. of queries,
         # depth / num_heads)
