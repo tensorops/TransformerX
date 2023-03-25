@@ -129,7 +129,6 @@ class DotProductAttention(tf.keras.layers.Layer):
             # self.scale = tf.broadcast_to(
             #     tf.expand_dims(tf.expand_dims(self.scale, -1), -1), scores.shape
             # )
-            print(self.scale, scores.shape)
             scores = (
                 scores
                 / tf.math.sqrt(tf.cast(self.scale[0], dtype=tf.float32))
@@ -167,20 +166,6 @@ class DotProductAttention(tf.keras.layers.Layer):
         batch_size, num_queries, dim_queries = input_shape[0]
         batch_size, num_kv_pairs, dim_values = input_shape[1]
         return (batch_size, num_queries, dim_values)
-
-    def get_config(self):
-        config = {
-            "dropout_rate": self.dropout_rate,
-            "scaled": self.scaled,
-            "normalize": self.normalize,
-        }
-        base_config = super().get_config()
-        return {**base_config, **config}
-
-    @classmethod
-    def from_config(cls, config):
-        layer = cls(**config)
-        return layer
 
     def get_attention_weights(self):
         return self.attention_weights

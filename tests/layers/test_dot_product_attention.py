@@ -106,3 +106,11 @@ class TestDotProductAttention:
         attention_layer.attention_weights = np.random.rand(5, 10)
         weights = attention_layer.get_attention_weights()
         assert weights.shape == (5, 10)
+
+    def test_get_config(self, attention_layer):
+        config = attention_layer.get_config()
+        print(config)
+        assert isinstance(config, dict)
+        assert config["dropout_rate"] == 0.2
+        assert config["scaled"] == True
+        assert config["normalize"] == False
