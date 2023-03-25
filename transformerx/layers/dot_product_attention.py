@@ -176,3 +176,8 @@ class DotProductAttention(tf.keras.layers.Layer):
         }
         base_config = super().get_config()
         return {**base_config, **config}
+
+    @classmethod
+    def from_config(cls, config):
+        layer = cls(**config)
+        return layer
