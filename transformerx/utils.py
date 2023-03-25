@@ -38,7 +38,9 @@ def masked_softmax(X, attention_mask, temperature=1.0):
         return tf.nn.softmax(X / temperature, axis=-1)
     else:
         shape = X.shape
-        if len(attention_mask.shape) == 1:
+        if isinstance(attention_mask, tf.SparseTensor):
+            attention_mask = tf.sparse.reshape(attention_mask, shape=(-1,))
+        elif len(attention_mask.shape) == 1:
             attention_mask = tf.repeat(attention_mask, repeats=shape[1])
         else:
             attention_mask = tf.reshape(attention_mask, shape=-1)
@@ -48,112 +50,6 @@ def masked_softmax(X, attention_mask, temperature=1.0):
             tf.reshape(X, shape=(-1, shape[-1])), attention_mask, value=1e-7
         )
         return tf.nn.softmax(tf.reshape(X, shape=shape) / temperature, axis=-1)
-
-
-def masked_softmax1(
-    X,
-    attention_mask,
-    axis=-1,
-    temperature=1.0,
-    mask_value=1e-7,
-    activation=tf.nn.softmax,
-    dropout_rate=0.0,
-    masked_func=None,
-    num_heads=1,
-    head_axis=1,
-    head_mask=None,
-    distributed=False,
-):
-    if attention_mask is None:
-        attention_mask = tf.ones_like(X[..., 0])
-
-    if num_heads == 1:
-        if head_mask is not None:
-            raise ValueError("head_mask is only applicable for multi-head attention")
-        if distributed:
-            X = tf.split(
-                X,
-                num_or_size_splits=tf.distribute.get_strategy().num_replicas_in_sync,
-                axis=0,
-            )
-            attention_mask = tf.split(
-                attention_mask,
-                num_or_size_splits=tf.distribute.get_strategy().num_replicas_in_sync,
-                axis=0,
-            )
-            softmax_list = []
-            for x, mask in zip(X, attention_mask):
-                softmax_list.append(
-                    masked_softmax(
-                        x,
-                        mask,
-                        axis=axis,
-                        temperature=temperature,
-                        mask_value=mask_value,
-                        activation=activation,
-                        dropout_rate=dropout_rate,
-                        masked_func=masked_func,
-                        num_heads=num_heads,
-                        head_axis=head_axis,
-                        distributed=False,
-                    )
-                )
-            return tf.concat(softmax_list, axis=0)
-        else:
-            masked_X = sequence_mask(X, attention_mask, value=mask_value)
-            if masked_func is not None:
-                masked_X = masked_func(masked_X)
-            if activation is not None:
-                masked_X = activation(masked_X / temperature)
-            if dropout_rate > 0.0:
-                masked_X = tf.nn.dropout(masked_X, rate=dropout_rate)
-            return masked_X
-    else:
-        if X.shape[head_axis] % num_heads != 0:
-            raise ValueError("hidden_size must be divisible by num_heads")
-        head_size = X.shape[head_axis] // num_heads
-        X = tf.reshape(
-            X,
-            [-1]
-            + list(X.shape[1:head_axis])
-            + [num_heads, head_size]
-            + list(X.shape[head_axis + 1 :]),
-        )
-        attention_mask = tf.expand_dims(attention_mask, axis=1)
-        attention_mask = tf.tile(attention_mask, [1, num_heads, 1])
-        if head_mask is not None:
-            head_mask = tf.expand_dims(head_mask, axis=-1)
-            head_mask = tf.tile(head_mask, [1, 1, 1, head_size])
-            attention_mask = attention_mask * head_mask
-        attention_mask = tf.reshape(
-            attention_mask, [-1] + list(attention_mask.shape[-1:])
-        )
-        softmax_list = []
-        for x, mask in zip(
-            tf.unstack(X, num=num_heads, axis=head_axis),
-            tf.unstack(attention_mask, num=num_heads, axis=0),
-        ):
-            softmax_list.append(
-                masked_softmax(
-                    x,
-                    mask,
-                    axis=axis,
-                    temperature=temperature,
-                    mask_value=mask_value,
-                    activation=None,
-                    dropout_rate=0.0,
-                    masked_func=masked_func,
-                    num_heads=1,
-                    distributed=False,
-                )
-            )
-        softmax = tf.stack(softmax_list, axis=head_axis)
-        softmax = tf.reshape(softmax, [-1] + list(softmax.shape[head_axis + 1 :]))
-        if activation is not None:
-            softmax = activation(softmax / temperature)
-        if dropout_rate > 0.0:
-            softmax = tf.nn.dropout(softmax, rate=dropout_rate)
-        return softmax
 
 
 def use_device(device):

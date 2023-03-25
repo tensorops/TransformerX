@@ -85,6 +85,7 @@ from transformerx.layers import MultiHeadAttention
 #
 #
 
+
 class TestMultiHeadAttention:
     @pytest.fixture
     def attention(self):
@@ -125,7 +126,7 @@ class TestMultiHeadAttention:
         # create a batch of inputs and a mask
         inputs = tf.random.normal((32, 64, 128), dtype=tf.float32)
 
-        attention_mask = tf.random.uniform((32,1,1, 64), maxval=2, dtype=tf.float32)
+        attention_mask = tf.random.uniform((32, 1, 1, 64), maxval=2, dtype=tf.float32)
         # call the layer with the inputs and mask
         outputs = attention(inputs, inputs, inputs, attention_mask=attention_mask)
 
@@ -150,7 +151,9 @@ class TestMultiHeadAttention:
         keys = tf.random.normal((4, 10, 32))
         attention_mask = tf.random.uniform((4, 10), maxval=2, dtype=tf.int32)
 
-        output = attention(queries, keys, values, attention_mask=attention_mask, causal_mask=True)
+        output = attention(
+            queries, keys, values, attention_mask=attention_mask, causal_mask=True
+        )
 
         assert output.shape == (4, 10, 32)
 
@@ -174,43 +177,40 @@ class TestMultiHeadAttention:
 
         assert output.shape == (4, 10, 32)
 
-    # def test_multihead_attention_masking(self):
-    #     # Define a test case
-    #     batch_size = 2
-    #     sequence_length = 4
-    #     num_heads = 2
-    #     d_model = 3
-    #
-    #     # Create a random input tensor
-    #     inputs = tf.random.normal((batch_size, sequence_length, d_model))
-    #
-    #     # Create a random mask tensor
-    #     mask = tf.constant([[1, 1, 0, 0], [1, 1, 1, 0]], dtype=tf.float32)
-    #
-    #
-    #     # Instantiate the multi-head attention layer
-    #     attention_layer = MultiHeadAttention(num_heads=num_heads, d_model=d_model)
-    #
-    #     # Call the layer with the input and mask tensors
-    #     outputs = attention_layer(inputs, mask=mask)
-    #
-    #     # Assert that the output tensor has the expected shape
-    #     assert outputs.shape == (batch_size, sequence_length, num_heads * d_model)
-    #
-    #     # Compute the attention weights manually
-    #     q = attention_layer.query_projection(inputs)
-    #     k = attention_layer.key_projection(inputs)
-    #     v = attention_layer.value_projection(inputs)
-    #     q_split = attention_layer.split_heads(q, batch_size)
-    #     k_split = attention_layer.split_heads(k, batch_size)
-    #     v_split = attention_layer.split_heads(v, batch_size)
-    #     mask = tf.cast(mask[:, :, tf.newaxis], tf.float32)
-    #     attention_weights = tf.matmul(q_split, k_split, transpose_b=True)
-    #     attention_weights = attention_weights / np.sqrt(d_model)
-    #     attention_weights = tf.nn.softmax(attention_weights + (1 - mask) * -1e9)
-    #     outputs_manual = tf.matmul(attention_weights, v_split)
-    #     outputs_manual = tf.transpose(outputs_manual, perm=[0, 2, 1, 3])
-    #     outputs_manual = tf.reshape(outputs_manual, (batch_size, sequence_length, num_heads * d_model))
-    #
-    #     # Assert that the output tensor is equal to the manually computed output tensor
-    #     assert np.allclose(outputs.numpy(), outputs_manual.numpy())
+    def test_sparse_attention_masking(self):
+        # Create a multi-head attention layer
+        num_heads = 4
+        model_dim = 32
+        attention = MultiHeadAttention(model_dim, num_heads=num_heads)
+
+        # Create a 3D tensor with shape (batch_size, seq_len, model_dim)
+        batch_size = 4
+        seq_len = 10
+        input_tensor = tf.constant(
+            np.random.randn(batch_size, seq_len, model_dim), dtype=tf.float32
+        )
+
+        # todo: needs to be revised -> shapes
+        # Create a sparse attention mask
+        padding_mask = np.array(
+            [
+                [0, 0, 1, 1, 1, 0, 0, 0, 0, 0],
+            ]
+        )
+        # padding_mask = tf.repeat(padding_mask, seq_len, axis=0).numpy()
+        attention_mask = tf.sparse.SparseTensor(
+            indices=np.array([[i, j] for i in range(seq_len) for j in range(seq_len)]),
+            values=padding_mask.flatten(),
+            dense_shape=[seq_len, seq_len],
+        )
+
+        # Compute the attention weights and outputs
+        attention_output = attention(
+            input_tensor, input_tensor, input_tensor, attention_mask
+        )
+
+        # Check that the attention weights sum to 1 on the last axis
+        np.testing.assert_allclose(
+            tf.reduce_sum(attention_output, axis=-1),
+            np.ones((batch_size, num_heads, seq_len)),
+        )
