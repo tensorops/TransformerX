@@ -181,3 +181,6 @@ class DotProductAttention(tf.keras.layers.Layer):
     def from_config(cls, config):
         layer = cls(**config)
         return layer
+
+    def get_attention_weights(self):
+        return self.attention_weights
