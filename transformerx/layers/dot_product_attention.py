@@ -15,8 +15,6 @@ class DotProductAttention(tf.keras.layers.Layer):
     ----------
     dropout_rate : float
         Fraction of the input units to drop. A float between 0 and 1.
-    num_heads : int
-        Number of heads
     scaled : bool
         Indicate whether to scale the dot-product
 
@@ -66,7 +64,7 @@ class DotProductAttention(tf.keras.layers.Layer):
 
     The next example shows the dot-product (multiplicative) self-attention of tensor `x`.
 
-    >>> dot_product = DotProductAttention(dropout_rate=0.1, num_heads=8, scaled=False)
+    >>> dot_product = DotProductAttention(dropout_rate=0.1, scaled=False)
     >>> output = dot_product(queries, keys, values)
     >>> print(output)
     tf.Tensor(
@@ -87,14 +85,12 @@ class DotProductAttention(tf.keras.layers.Layer):
     def __init__(
         self,
         dropout_rate: float = 0,
-        num_heads: int = 8,
         scaled: bool = True,
         normalize: bool = False,
         **kwargs
     ):
         super().__init__(**kwargs)
         self.dropout = tf.keras.layers.Dropout(dropout_rate)
-        self.num_heads = num_heads  # To be covered later
         self.scaled = scaled
         self.normalize = normalize
         self.attention_weights = None
@@ -118,12 +114,26 @@ class DotProductAttention(tf.keras.layers.Layer):
         values: tf.Tensor,
         attention_mask: tf.Tensor = None,
         causal_mask: bool = None,
+        training=None,
         **kwargs
     ) -> tf.Tensor:
         scores = tf.matmul(queries, keys, transpose_b=True)
         if self.scaled:
+            self.scale = self.add_weight(
+                name="scale", shape=(scores.shape), initializer="ones", trainable=True
+            )
             depth = queries.shape[-1]
-            scores = scores / tf.math.sqrt(tf.cast(depth, dtype=tf.float32))
+            # print(self.scale, scores.shape)
+            # self.scale = tf.broadcast_to(scores.shape)
+            # self.scale = tf.broadcast_to(
+            #     tf.expand_dims(tf.expand_dims(self.scale, -1), -1), scores.shape
+            # )
+            print(self.scale, scores.shape)
+            scores = (
+                scores
+                / tf.math.sqrt(tf.cast(self.scale[0], dtype=tf.float32))
+                * self.scale
+            )
 
         # Apply the attention mask to the scores (if provided)
         # if attention_mask is not None:

@@ -8,12 +8,13 @@ from transformerx.layers import DotProductAttention
 
 class TestDotProductAttention:
     "this class tests the dot-product attention class"
+
     # Set up the test class with some test data
     @pytest.fixture(autouse=True)
     def setup(self):
         self.x = tf.cast(np.random.random([2, 3, 2]), dtype=tf.float32)
         self.dot_product_scaled = DotProductAttention(0.2)
-        self.dot_product_unscaled = DotProductAttention(dropout_rate=0.1, num_heads=8, scaled=False)
+        self.dot_product_unscaled = DotProductAttention(dropout_rate=0.1, scaled=False)
 
     # Test that the output shape of the `call` method is the same as the input shape of the queries, keys, and values
     def test_output_shape(self):
@@ -42,7 +43,7 @@ class TestDotProductAttention:
         # Feed the input tensor to queries, keys, and values
         queries, keys, values = x, x, x
         for num in head_nums:
-            dot_product = DotProductAttention(num_heads=num)
+            dot_product = DotProductAttention()
 
             # Compute the dot-product attention
             attention = dot_product(queries, keys, values)
@@ -68,13 +69,22 @@ class TestDotProductAttention:
         output = dot_product(queries, keys, values)
         assert output.shape == queries.shape
 
-    @pytest.mark.parametrize("queries, keys, values, expected_output_shape, expected_output_values", [
-        (tf.zeros((2, 3, 4)), tf.zeros((2, 3, 4)), tf.zeros((2, 3, 4)), (2, 3, 4), 0),
-        (tf.ones((2, 3, 4)), tf.ones((2, 3, 4)), tf.ones((2, 3, 4)), (2, 3, 4), 1),
-    ])
-
-    def test_call_with_different_values(self, queries, keys, values, expected_output_shape, expected_output_values):
-
+    @pytest.mark.parametrize(
+        "queries, keys, values, expected_output_shape, expected_output_values",
+        [
+            (
+                tf.zeros((2, 3, 4)),
+                tf.zeros((2, 3, 4)),
+                tf.zeros((2, 3, 4)),
+                (2, 3, 4),
+                0,
+            ),
+            (tf.ones((2, 3, 4)), tf.ones((2, 3, 4)), tf.ones((2, 3, 4)), (2, 3, 4), 1),
+        ],
+    )
+    def test_call_with_different_values(
+        self, queries, keys, values, expected_output_shape, expected_output_values
+    ):
         attention = DotProductAttention()
         output = attention(queries, keys, values)
 
