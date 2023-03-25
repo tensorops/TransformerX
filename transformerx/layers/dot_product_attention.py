@@ -87,6 +87,8 @@ class DotProductAttention(tf.keras.layers.Layer):
         dropout_rate: float = 0,
         scaled: bool = True,
         normalize: bool = False,
+        kernel_initializer: str = "ones",
+        kernel_regularizer: str = None,
         **kwargs
     ):
         super().__init__(**kwargs)
@@ -95,12 +97,18 @@ class DotProductAttention(tf.keras.layers.Layer):
         self.scaled = scaled
         self.normalize = normalize
         self.attention_weights = None
+        self.kernel_initializer = kernel_initializer
+        self.kernel_regularizer = kernel_regularizer
 
     def build(self, input_shape):
         if self.scaled:
             depth = input_shape[-1]
             self.scale = self.add_weight(
-                name="scale", shape=(depth,), initializer="ones", trainable=True
+                name="scale",
+                shape=(depth, depth),
+                initializer=self.kernel_initializer,
+                regularizer=self.kernel_regularizer,
+                trainable=True,
             )
         super().build(input_shape)
 
@@ -121,7 +129,11 @@ class DotProductAttention(tf.keras.layers.Layer):
         scores = tf.matmul(queries, keys, transpose_b=True)
         if self.scaled:
             self.scale = self.add_weight(
-                name="scale", shape=(scores.shape), initializer="ones", trainable=True
+                name="scale",
+                shape=(scores.shape),
+                initializer=self.kernel_initializer,
+                regularizer=self.kernel_regularizer,
+                trainable=True,
             )
             depth = queries.shape[-1]
             # print(self.scale, scores.shape)
@@ -134,12 +146,6 @@ class DotProductAttention(tf.keras.layers.Layer):
                 / tf.math.sqrt(tf.cast(self.scale[0], dtype=tf.float32))
                 * self.scale
             )
-
-        # Apply the attention mask to the scores (if provided)
-        # if attention_mask is not None:
-        #     attention_mask = tf.cast(attention_mask, dtype=scores.dtype)
-        #     print("scores and attention shapes: ", scores.shape, attention_mask.shape)
-        #     scores += attention_mask * -1e9
 
         # apply causal mask
         if causal_mask:
