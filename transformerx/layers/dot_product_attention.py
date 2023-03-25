@@ -90,7 +90,8 @@ class DotProductAttention(tf.keras.layers.Layer):
         **kwargs
     ):
         super().__init__(**kwargs)
-        self.dropout = tf.keras.layers.Dropout(dropout_rate)
+        self.dropout_rate = dropout_rate
+        self.dropout = tf.keras.layers.Dropout(self.dropout_rate)
         self.scaled = scaled
         self.normalize = normalize
         self.attention_weights = None
@@ -170,7 +171,6 @@ class DotProductAttention(tf.keras.layers.Layer):
     def get_config(self):
         config = {
             "dropout_rate": self.dropout_rate,
-            "num_heads": self.num_heads,
             "scaled": self.scaled,
             "normalize": self.normalize,
         }
