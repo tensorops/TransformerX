@@ -90,12 +90,14 @@ class DotProductAttention(tf.keras.layers.Layer):
         num_heads: int = 8,
         scaled: bool = True,
         normalize: bool = False,
+        **kwargs
     ):
-        super().__init__()
+        super().__init__(**kwargs)
         self.dropout = tf.keras.layers.Dropout(dropout_rate)
         self.num_heads = num_heads  # To be covered later
         self.scaled = scaled
         self.normalize = normalize
+        self.attention_weights = None
 
     # Shape of queries: (batch_size, no. of queries, d)
     # Shape of keys: (batch_size, no. of key-value pairs, d)
