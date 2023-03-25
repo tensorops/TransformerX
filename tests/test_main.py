@@ -5,8 +5,14 @@ import pytest
 import tensorflow as tf
 
 from transformerx.layers import (
-    MultiHeadAttention, AbsolutePositionalEncoding, PositionWiseFFN, AddNorm,
-    TransformerEncoderBlock, TransformerEncoder, TransformerDecoderBlock, DotProductAttention,
+    MultiHeadAttention,
+    SinePositionalEncoding,
+    PositionWiseFFN,
+    AddNorm,
+    TransformerEncoderBlock,
+    TransformerEncoder,
+    TransformerDecoderBlock,
+    DotProductAttention,
 )
 from transformerx.txplot import Plot
 
@@ -15,6 +21,7 @@ from transformerx.txplot import Plot
 def test_transpose_qkv():
     x = np.random.random([100, 10, 5])
     assert MultiHeadAttention.split_heads(x, x)
+
 
 x = tf.constant(np.random.random([2, 3, 2]), dtype=tf.float32)
 multihead = MultiHeadAttention(d_model=8)
@@ -25,7 +32,7 @@ print(output)
 
 
 depth, num_steps = 32, 50
-pos_encoding = AbsolutePositionalEncoding(depth, 0)
+pos_encoding = SinePositionalEncoding(depth, 0)
 X = pos_encoding(tf.zeros((2, num_steps, depth)), training=False)
 P = pos_encoding.P[:, : X.shape[1], :]
 plotter = Plot()
@@ -51,7 +58,7 @@ if __name__ == "__main__":
     output = dropout(Y) + X
     print("dropout_rate: ", output)
 
-    addnorm = AddNorm(norm_shape, .2)
+    addnorm = AddNorm(norm_shape, 0.2)
     output = addnorm(X, Y)
     print(output)
 # ====================================

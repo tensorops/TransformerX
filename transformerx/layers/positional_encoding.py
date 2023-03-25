@@ -28,7 +28,8 @@ from transformerx.utils import exists
 #         X = X + self.P[:, : X.shape[1], :]
 #         return self.dropout(X, **kwargs)
 
-class AbsolutePositionalEncoding(tf.keras.layers.Layer):
+
+class SinePositionalEncoding(tf.keras.layers.Layer):
     """Compute absolute positional encoding object [1]_.
 
     Generate a sinusoid for each dimension of the positional encoding where wavelengths form a geometric progression
@@ -66,7 +67,7 @@ class AbsolutePositionalEncoding(tf.keras.layers.Layer):
     Examples
     --------
     >>> depth, num_steps = 32, 50
-    >>> pos_encoding = AbsolutePositionalEncoding(depth, dropout_rate=0.2)
+    >>> pos_encoding = SinePositionalEncoding(depth, dropout_rate=0.2)
     >>> x = tf.zeros((1, num_steps, depth))
     >>> print(x.shape)
     (1, 50, 32)
@@ -84,7 +85,7 @@ class AbsolutePositionalEncoding(tf.keras.layers.Layer):
     """
 
     def __init__(self, depth, dropout_rate=0, max_len=1000):
-        super(AbsolutePositionalEncoding, self).__init__()
+        super(SinePositionalEncoding, self).__init__()
         self.depth = depth
         self.dropout = tf.keras.layers.Dropout(dropout_rate)
         # Create a long enough P
@@ -97,7 +98,7 @@ class AbsolutePositionalEncoding(tf.keras.layers.Layer):
         self.P = tf.concat([even_encoding, odd_encoding], axis=-1)[tf.newaxis, :, :]
 
     def call(self, X, **kwargs):
-        X = X + self.P[:, :tf.shape(X)[1], :]
+        X = X + self.P[:, : tf.shape(X)[1], :]
         X = self.dropout(X, **kwargs)
         return X
 
