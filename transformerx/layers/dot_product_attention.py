@@ -101,15 +101,6 @@ class DotProductAttention(tf.keras.layers.Layer):
         self.kernel_regularizer = kernel_regularizer
 
     def build(self, input_shape):
-        if self.scaled:
-            depth = input_shape[-1]
-            self.scale = self.add_weight(
-                name="scale",
-                shape=(depth, depth),
-                initializer=self.kernel_initializer,
-                regularizer=self.kernel_regularizer,
-                trainable=True,
-            )
         super().build(input_shape)
 
     # Shape of queries: (batch_size, no. of queries, d)
