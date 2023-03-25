@@ -101,3 +101,8 @@ class TestDotProductAttention:
         assert attention_layer.dropout.rate == new_layer.dropout.rate
         assert attention_layer.scaled == new_layer.scaled
         assert attention_layer.normalize == new_layer.normalize
+
+    def test_get_attention_weights(self, attention_layer):
+        attention_layer.attention_weights = np.random.rand(5, 10)
+        weights = attention_layer.get_attention_weights()
+        assert weights.shape == (5, 10)
