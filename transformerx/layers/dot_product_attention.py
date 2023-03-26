@@ -159,10 +159,5 @@ class DotProductAttention(tf.keras.layers.Layer):
             scores /= tf.sqrt(depth)
         return scores
 
-    def compute_output_shape(self, input_shape):
-        batch_size, num_queries, dim_queries = input_shape[0]
-        batch_size, num_kv_pairs, dim_values = input_shape[1]
-        return (batch_size, num_queries, dim_values)
-
     def get_attention_weights(self):
         return self.attention_weights
