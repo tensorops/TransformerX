@@ -8,12 +8,13 @@ from transformerx.layers import DotProductAttention
 
 class TestDotProductAttention:
     "this class tests the dot-product attention class"
+
     # Set up the test class with some test data
     @pytest.fixture(autouse=True)
     def setup(self):
         self.x = tf.cast(np.random.random([2, 3, 2]), dtype=tf.float32)
         self.dot_product_scaled = DotProductAttention(0.2)
-        self.dot_product_unscaled = DotProductAttention(dropout_rate=0.1, num_heads=8, scaled=False)
+        self.dot_product_unscaled = DotProductAttention(dropout_rate=0.1, scaled=False)
 
     # Test that the output shape of the `call` method is the same as the input shape of the queries, keys, and values
     def test_output_shape(self):
@@ -42,7 +43,7 @@ class TestDotProductAttention:
         # Feed the input tensor to queries, keys, and values
         queries, keys, values = x, x, x
         for num in head_nums:
-            dot_product = DotProductAttention(num_heads=num)
+            dot_product = DotProductAttention()
 
             # Compute the dot-product attention
             attention = dot_product(queries, keys, values)
@@ -68,15 +69,48 @@ class TestDotProductAttention:
         output = dot_product(queries, keys, values)
         assert output.shape == queries.shape
 
-    @pytest.mark.parametrize("queries, keys, values, expected_output_shape, expected_output_values", [
-        (tf.zeros((2, 3, 4)), tf.zeros((2, 3, 4)), tf.zeros((2, 3, 4)), (2, 3, 4), 0),
-        (tf.ones((2, 3, 4)), tf.ones((2, 3, 4)), tf.ones((2, 3, 4)), (2, 3, 4), 1),
-    ])
-
-    def test_call_with_different_values(self, queries, keys, values, expected_output_shape, expected_output_values):
-
+    @pytest.mark.parametrize(
+        "queries, keys, values, expected_output_shape, expected_output_values",
+        [
+            (
+                tf.zeros((2, 3, 4)),
+                tf.zeros((2, 3, 4)),
+                tf.zeros((2, 3, 4)),
+                (2, 3, 4),
+                0,
+            ),
+            (tf.ones((2, 3, 4)), tf.ones((2, 3, 4)), tf.ones((2, 3, 4)), (2, 3, 4), 1),
+        ],
+    )
+    def test_call_with_different_values(
+        self, queries, keys, values, expected_output_shape, expected_output_values
+    ):
         attention = DotProductAttention()
         output = attention(queries, keys, values)
 
         assert output.shape == expected_output_shape
         assert tf.reduce_all(output == expected_output_values)
+
+    @pytest.fixture
+    def attention_layer(self):
+        return DotProductAttention(dropout_rate=0.2, scaled=True, normalize=False)
+
+    def test_from_config(self, attention_layer):
+        config = attention_layer.get_config()
+        new_layer = DotProductAttention.from_config(config)
+        assert attention_layer.dropout.rate == new_layer.dropout.rate
+        assert attention_layer.scaled == new_layer.scaled
+        assert attention_layer.normalize == new_layer.normalize
+
+    def test_get_attention_weights(self, attention_layer):
+        attention_layer.attention_weights = np.random.rand(5, 10)
+        weights = attention_layer.get_attention_weights()
+        assert weights.shape == (5, 10)
+
+    def test_get_config(self, attention_layer):
+        config = attention_layer.get_config()
+        print(config)
+        assert isinstance(config, dict)
+        assert config["dropout_rate"] == 0.2
+        assert config["scaled"] == True
+        assert config["normalize"] == False

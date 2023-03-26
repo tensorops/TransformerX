@@ -1,6 +1,6 @@
 import tensorflow as tf
 
-from transformerx.layers.positional_encoding import AbsolutePositionalEncoding
+from transformerx.layers.positional_encoding import SinePositionalEncoding
 from transformerx.layers.transformer_decoder_block import TransformerDecoderBlock
 
 
@@ -44,7 +44,7 @@ class TransformerDecoder(tf.keras.layers.Layer):
         The number of TransformerDecoderBlock blocks in the decoder.
     embedding : tf.keras.layers.Embedding
         The embedding layer that maps the input sequences to their input representations.
-    pos_encoding : AbsolutePositionalEncoding
+    pos_encoding : SinePositionalEncoding
         The absolute positional encoding layer that adds position information to the input
         representations.
     blocks : List[TransformerDecoderBlock]
@@ -53,30 +53,29 @@ class TransformerDecoder(tf.keras.layers.Layer):
         The dense layer that maps the output representations to the output sequences.
     """
 
-
     def __init__(
-            self,
-            vocab_size,
-            depth,
-            norm_shape,
-            ffn_num_hiddens,
-            num_heads,
-            n_blocks,
-            dropout,
+        self,
+        vocab_size,
+        depth,
+        norm_shape,
+        ffn_num_hiddens,
+        num_heads,
+        n_blocks,
+        dropout,
     ):
         super().__init__()
         self.depth = depth
         self.n_blocks = n_blocks
         self.embedding = tf.keras.layers.Embedding(vocab_size, depth)
-        self.pos_encoding = AbsolutePositionalEncoding(depth, dropout)
+        self.pos_encoding = SinePositionalEncoding(depth, dropout)
         self.blocks = [
             TransformerDecoderBlock(
-                    depth,
-                    norm_shape,
-                    ffn_num_hiddens,
-                    num_heads,
-                    dropout,
-                    i,
+                depth,
+                norm_shape,
+                ffn_num_hiddens,
+                num_heads,
+                dropout,
+                i,
             )
             for i in range(n_blocks)
         ]
@@ -145,8 +144,8 @@ class TransformerDecoder(tf.keras.layers.Layer):
         """
 
         X = self.pos_encoding(
-                self.embedding(X) * tf.math.sqrt(tf.cast(self.depth, dtype=tf.float32)),
-                **kwargs,
+            self.embedding(X) * tf.math.sqrt(tf.cast(self.depth, dtype=tf.float32)),
+            **kwargs,
         )
         # 2 attention layers in decoder
         self._attention_weights = [[None] * len(self.blocks) for _ in range(2)]
