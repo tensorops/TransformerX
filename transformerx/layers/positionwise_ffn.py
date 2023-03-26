@@ -66,7 +66,7 @@ import tensorflow as tf
 #
 
 
-class PositionWiseFFN(tf.keras.layers.Layer):
+class PositionwiseFFN(tf.keras.layers.Layer):
     """
     Position-wise feed-forward network layer.
 
@@ -106,8 +106,7 @@ class PositionWiseFFN(tf.keras.layers.Layer):
     Examples
     --------
     >>> tf.random.set_seed(1)
-    >>> ffn = PositionWiseFFN(input_hidden_units=6, output_hidden_units=4, activation='tanh', init='he_uniform',
-                              non_linear_proj='glu', contextualized_embeddings=TFBertModel.from_pretrained('bert-base-uncased'))
+    >>> ffn = PositionwiseFFN(input_hidden_units=6, output_hidden_units=4, activation='tanh', init='he_uniform', non_linear_proj='glu', contextualized_embeddings=TFBertModel.from_pretrained('bert-base-uncased'))
     >>> x = tf.ones((2, 3, 6))
     >>> print(ffn(x))
     tf.Tensor(
@@ -124,17 +123,34 @@ class PositionWiseFFN(tf.keras.layers.Layer):
     (2017). Attention Is All You Need. arXiv. https://doi.org/10.48550/arXiv.1706.03762
     """
 
-    def __init__(self, input_hidden_units, output_hidden_units, activation='relu', init='glorot_uniform',
-                 non_linear_proj=None, contextualized_embeddings=None, dropout_rate=0.0):
+    def __init__(
+        self,
+        input_hidden_units,
+        output_hidden_units,
+        activation="relu",
+        init="glorot_uniform",
+        non_linear_proj=None,
+        contextualized_embeddings=None,
+        dropout_rate=0.0,
+    ):
         super().__init__()
-        self.dense1 = tf.keras.layers.Dense(input_hidden_units, activation=activation, kernel_initializer=init)
+        self.dense1 = tf.keras.layers.Dense(
+            input_hidden_units, activation=activation, kernel_initializer=init
+        )
         self.non_linear_proj = non_linear_proj
-        if self.non_linear_proj == 'glu':
-            self.glu = tf.keras.layers.Dense(output_hidden_units * 2, activation='sigmoid', kernel_initializer=init)
-        elif self.non_linear_proj == 'selu':
-            self.selu = tf.keras.layers.Dense(output_hidden_units * 2, activation='selu', kernel_initializer=init)
+        if self.non_linear_proj == "glu":
+            self.glu = tf.keras.layers.Dense(
+                output_hidden_units * 2, activation="sigmoid", kernel_initializer=init
+            )
+        elif self.non_linear_proj == "selu":
+            print("uner selu sectoin")
+            self.selu = tf.keras.layers.Dense(
+                output_hidden_units * 2, activation="selu", kernel_initializer=init
+            )
         else:
-            self.dense2 = tf.keras.layers.Dense(output_hidden_units, activation=activation, kernel_initializer=init)
+            self.dense2 = tf.keras.layers.Dense(
+                output_hidden_units, activation=activation, kernel_initializer=init
+            )
         self.contextualized_embeddings = contextualized_embeddings
         self.dropout = tf.keras.layers.Dropout(rate=dropout_rate)
 
@@ -144,28 +160,41 @@ class PositionWiseFFN(tf.keras.layers.Layer):
         if self.contextualized_embeddings is not None:
             bert_output = self.contextualized_embeddings(x)
             x = bert_output[0]
-        if self.non_linear_proj == 'glu':
+        if self.non_linear_proj == "glu":
             x = self.dense1(x)
             split_units = x.shape[-1] // 2
             x = self.dropout(x)
-            return x[:, :, :split_units] * tf.keras.activations.sigmoid(self.glu(x[:, :, split_units:]))[:, :,
-                                           :split_units]
-        elif self.non_linear_proj == 'selu':
+            return (
+                x[:, :, :split_units]
+                * tf.keras.activations.sigmoid(self.glu(x[:, :, split_units:]))[
+                    :, :, :split_units
+                ]
+            )
+        elif self.non_linear_proj == "selu":
             x = self.dense1(x)
             split_units = x.shape[-1] // 2
             x = self.dropout(x)
-            return x[:, :, :split_units] * tf.keras.activations.sigmoid(self.selu(x[:, :, split_units:]))[:, :,
-                                           :split_units]
+            return (
+                x[:, :, :split_units]
+                * tf.keras.activations.sigmoid(self.selu(x[:, :, split_units:]))[
+                    :, :, :split_units
+                ]
+            )
         else:
             x = self.dropout(x)
             return self.dense2(self.dense1(x))
 
 
 os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
-if __name__ == '__main__':
+if __name__ == "__main__":
     tf.random.set_seed(1)
     # ffn = PositionWiseFFN(6, 4)
-    ffn = PositionWiseFFN(input_hidden_units=32, output_hidden_units=64, activation='tanh', init='he_uniform',
-                          non_linear_proj='glu')
+    ffn = PositionwiseFFN(
+        input_hidden_units=32,
+        output_hidden_units=64,
+        activation="tanh",
+        init="he_uniform",
+        non_linear_proj="glu",
+    )
     x = tf.ones((2, 3, 32))
     print(ffn(x))

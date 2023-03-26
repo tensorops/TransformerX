@@ -2,7 +2,7 @@ from .addnorm import AddNorm
 from .dot_product_attention import DotProductAttention
 from .multihead_attention import MultiHeadAttention
 from .positional_encoding import SinePositionalEncoding
-from .positionwise_ffn import PositionWiseFFN
+from .positionwise_ffn import PositionwiseFFN
 from .transformer_decoder import TransformerDecoder
 from .transformer_decoder_block import TransformerDecoderBlock
 from .transformer_encoder import TransformerEncoder

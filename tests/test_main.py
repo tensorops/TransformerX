@@ -7,7 +7,7 @@ import tensorflow as tf
 from transformerx.layers import (
     MultiHeadAttention,
     SinePositionalEncoding,
-    PositionWiseFFN,
+    PositionwiseFFN,
     AddNorm,
     TransformerEncoderBlock,
     TransformerEncoder,
@@ -41,7 +41,7 @@ plotter.plot_pe(np.arange(7, 11), P, num_steps)
 # ====================================
 
 
-ffn = PositionWiseFFN(4, 8)
+ffn = PositionwiseFFN(4, 8)
 print(ffn(tf.ones((2, 3, 4))).shape)
 # ====================================
 
@@ -63,7 +63,7 @@ if __name__ == "__main__":
     print(output)
 # ====================================
 
-ffn = PositionWiseFFN(4, 8)
+ffn = PositionwiseFFN(4, 8)
 print(ffn(tf.ones((2, 3, 4)))[0])
 # ====================================
 
