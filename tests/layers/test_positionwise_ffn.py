@@ -20,3 +20,8 @@ class TestPositionwiseFFN:
         input_tensor = tf.random.normal([32, 20, 128])
         output_tensor = layer(input_tensor)
         assert output_tensor.shape == (32, 20, 64)
+
+    def test_layer_output_type(self, layer):
+        input_tensor = tf.random.normal([32, 20, 128])
+        output_tensor = layer(input_tensor)
+        assert isinstance(output_tensor, tf.Tensor)
