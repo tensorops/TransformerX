@@ -28,6 +28,18 @@ class TestPositionwiseFFN:
             dropout_rate=0.1,
         )
 
+    @pytest.fixture
+    def layer_no_nonlinear(self):
+        return PositionwiseFFN(
+            input_hidden_units=128,
+            output_hidden_units=64,
+            activation="relu",
+            init="glorot_uniform",
+            non_linear_proj=None,
+            contextualized_embeddings=None,
+            dropout_rate=0.1,
+        )
+
     def test_layer_output_shape(self, layer):
         input_tensor = tf.random.normal([32, 20, 128])
         output_tensor = layer(input_tensor)
@@ -44,7 +56,11 @@ class TestPositionwiseFFN:
         assert output_tensor.shape == (32, 20, 64)
 
     def test_layer_selu_non_linear_proj(self, layer_selu):
-        # layer.non_linear_proj = "selu"
         input_tensor = tf.random.normal([32, 20, 128])
         output_tensor = layer_selu(input_tensor)
+        assert output_tensor.shape == (32, 20, 64)
+
+    def test_layer_no_non_linear_proj(self, layer_no_nonlinear):
+        input_tensor = tf.random.normal([32, 20, 128])
+        output_tensor = layer_no_nonlinear(input_tensor)
         assert output_tensor.shape == (32, 20, 64)
