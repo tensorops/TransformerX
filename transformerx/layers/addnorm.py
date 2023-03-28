@@ -81,11 +81,12 @@ class AddNorm(tf.keras.layers.Layer):
         **kwargs,
     ):
         super(AddNorm, self).__init__()
-        if isinstance(dropout_rate, (int, float)) and not 0 <= dropout_rate <= 1:
+        if not isinstance(dropout_rate, (int, float)) or not 0 <= dropout_rate <= 1:
             raise ValueError(
                 f"Invalid value {dropout_rate} received for "
                 "`dropout_rate`, expected a value between 0 and 1."
             )
+        print("did not raise: ", dropout_rate)
         # Check normalization type
         if norm_type not in ["batch", "instance", "layer"]:
             raise TypeError(

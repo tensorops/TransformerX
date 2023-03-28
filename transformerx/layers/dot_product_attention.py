@@ -119,13 +119,13 @@ class DotProductAttention(tf.keras.layers.Layer):
     ) -> tf.Tensor:
         scores = tf.matmul(queries, keys, transpose_b=True)
         if self.scaled:
-            self.scale = self.add_weight(
-                name="scale",
-                shape=(scores.shape),
-                initializer=self.kernel_initializer,
-                regularizer=self.kernel_regularizer,
-                trainable=True,
-            )
+            # self.scale = self.add_weight(
+            #     name="scale",
+            #     shape=(scores.shape),
+            #     initializer=self.kernel_initializer,
+            #     regularizer=self.kernel_regularizer,
+            #     trainable=True,
+            # )
             depth = queries.shape[-1]
             # print(self.scale, scores.shape)
             # self.scale = tf.broadcast_to(scores.shape)
@@ -134,8 +134,8 @@ class DotProductAttention(tf.keras.layers.Layer):
             # )
             scores = (
                 scores
-                / tf.math.sqrt(tf.cast(self.scale[0], dtype=tf.float32))
-                * self.scale
+                / tf.math.sqrt(tf.cast(depth, dtype=tf.float32))
+                # * self.scale
             )
 
         # apply causal mask
