@@ -156,7 +156,7 @@ class MultiHeadAttention(tf.keras.layers.Layer):
         attention: str = "scaled_dotproduct",
         **kwargs,
     ):
-        super(MultiHeadAttention, self).__init__()
+        super(MultiHeadAttention, self).__init__(**kwargs)
         self.d_model = d_model
         self.num_heads = num_heads
         self.dropout_rate = dropout_rate

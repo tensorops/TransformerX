@@ -80,7 +80,7 @@ class AddNorm(tf.keras.layers.Layer):
         bias_regularizer: Optional[tf.keras.regularizers.Regularizer] = None,
         **kwargs,
     ):
-        super(AddNorm, self).__init__()
+        super(AddNorm, self).__init__(**kwargs)
         if not isinstance(dropout_rate, (int, float)) or not 0 <= dropout_rate <= 1:
             raise ValueError(
                 f"Invalid value {dropout_rate} received for "

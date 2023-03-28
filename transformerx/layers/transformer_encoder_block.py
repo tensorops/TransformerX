@@ -52,9 +52,13 @@ class TransformerEncoderBlock(tf.keras.layers.Layer):
     def __init__(
         self,
         d_model: int,  # Dimensionality of the input and output tensors
-        ffn_num_hiddens: int,  # Number of hidden units in the feedforward network
         num_heads: int,  # Number of attention heads
         dropout_rate: float,  # Dropout rate for the attention and feedforward networks
+        norm_type: str = "layer",  # Type of normalization (layer or batch) (feedforward networks)
+        norm_eps: float = 1e-6,
+        attention_mechanism: str = "scaled_dotproduct",
+        input_hidden_units_ffn: int = 32,  # Number of input hidden units in the feedforward network
+        output_hidden_units_ffn: int = 64,  # Number of output hidden units in the feedforward network
         use_norm: bool = True,  # Whether to use normalization (layer or batch)
         residual_connections: Optional[
             Tuple[bool, bool]
@@ -62,6 +66,7 @@ class TransformerEncoderBlock(tf.keras.layers.Layer):
         activation_fn: Optional[
             Callable
         ] = None,  # Activation function for the feedforward network
+        non_linear_proj=None,  # Non-linear projection for poistionwise feedforward network
         clip_norm: Optional[float] = None,  # Maximum norm for gradient clipping
         kernel_initializer: Optional[
             Callable
@@ -71,16 +76,24 @@ class TransformerEncoderBlock(tf.keras.layers.Layer):
         learning_rate_schedule: Optional[
             Callable
         ] = None,  # Learning rate schedule function
-        norm_type: str = "layer",  # Type of normalization (layer or batch)
         bias: bool = False,  # Whether to include bias terms in the attention computation
+        kernel_regularizer: Optional[
+            tf.keras.regularizers.Regularizer
+        ] = None,  # kernel regularizer for AddNorm
+        bias_regularizer: Optional[
+            tf.keras.regularizers.Regularizer
+        ] = None,  # bias regularizer for AddNorm
+        contextualized_embeddings=None,
+        # incorporate pre-trained language models such as BERT or GPT-2 into the model (feedforward networks)
+        **kwargs,
     ):
         super().__init__()
         assert isinstance(d_model, int) and d_model > 0, "Invalid d_model: {}".format(
             d_model
         )
         assert (
-            isinstance(ffn_num_hiddens, int) and ffn_num_hiddens > 0
-        ), "Invalid ffn_num_hiddens: {}".format(ffn_num_hiddens)
+            isinstance(input_hidden_units_ffn, int) and input_hidden_units_ffn > 0
+        ), "Invalid ffn_num_hiddens: {}".format(input_hidden_units_ffn)
         assert (
             isinstance(num_heads, int) and num_heads > 0 and d_model % num_heads == 0
         ), "Invalid num_heads: {}".format(num_heads)
@@ -120,16 +133,46 @@ class TransformerEncoderBlock(tf.keras.layers.Layer):
             ), "learning_rate_schedule should be a callable object"
 
         self.d_model = d_model
-        self.attention = MultiHeadAttention(d_model, num_heads, dropout_rate, bias)
-        self.addnorm1 = AddNorm(norm_type, dropout_rate) if use_norm else None
-        self.ffn = PositionwiseFFN(
-            ffn_num_hiddens,
-            d_model,
-            activation_fn,
-            kernel_initializer,
-            bias_initializer,
+        self.attention = MultiHeadAttention(
+            d_model, num_heads, dropout_rate, bias, attention_mechanism, **kwargs
         )
-        self.addnorm2 = AddNorm(norm_type, dropout_rate) if use_norm else None
+        self.addnorm1 = (
+            AddNorm(
+                norm_type,
+                norm_eps,
+                dropout_rate,
+                activation=activation_fn,
+                kernel_regularizer=kernel_regularizer,
+                bias_regularizer=bias_regularizer,
+                **kwargs,
+            )
+            if use_norm
+            else None
+        )
+        self.ffn = PositionwiseFFN(
+            input_hidden_units=input_hidden_units_ffn,
+            output_hidden_units=output_hidden_units_ffn,
+            activation=activation_fn,
+            dropout_rate=dropout_rate,
+            kernel_initializer=kernel_initializer,
+            bias_initializer=bias_initializer,
+            non_linear_proj=non_linear_proj,
+            contextualized_embeddings=contextualized_embeddings,
+            **kwargs,
+        )
+        self.addnorm2 = (
+            AddNorm(
+                norm_type,
+                norm_eps,
+                dropout_rate,
+                activation=activation_fn,
+                kernel_regularizer=kernel_regularizer,
+                bias_regularizer=bias_regularizer,
+                **kwargs,
+            )
+            if use_norm
+            else None
+        )
         self.residual_connections = residual_connections
         self.clip_norm = clip_norm
         self.mixed_precision = mixed_precision
@@ -191,7 +234,7 @@ def main():
 
     # Initialize a TransformerEncoderBlock object
     encoder_block = TransformerEncoderBlock(
-        d_model=d_model, ffn_num_hiddens=64, num_heads=4, dropout_rate=0.1
+        d_model=d_model, input_hidden_units_ffn=64, num_heads=4, dropout_rate=0.1
     )
 
     # Pass the inputs through the encoder block
