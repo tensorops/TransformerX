@@ -138,9 +138,9 @@ class TransformerEncoderBlock(tf.keras.layers.Layer):
         )
         self.addnorm1 = (
             AddNorm(
-                norm_type,
-                norm_eps,
-                dropout_rate,
+                norm_type=norm_type,
+                norm_eps=norm_eps,
+                dropout_rate=dropout_rate,
                 activation=activation_fn,
                 kernel_regularizer=kernel_regularizer,
                 bias_regularizer=bias_regularizer,
@@ -162,9 +162,9 @@ class TransformerEncoderBlock(tf.keras.layers.Layer):
         )
         self.addnorm2 = (
             AddNorm(
-                norm_type,
-                norm_eps,
-                dropout_rate,
+                norm_type=norm_type,
+                norm_eps=norm_eps,
+                dropout_rate=dropout_rate,
                 activation=activation_fn,
                 kernel_regularizer=kernel_regularizer,
                 bias_regularizer=bias_regularizer,
@@ -231,6 +231,8 @@ def main():
     inputs = tf.random.normal((batch_size, seq_length, d_model))
     attention_mask = tf.constant([10, 8, 6, 10], dtype=tf.int32)
     attention_mask = tf.cast(attention_mask, tf.int32)
+    attention_mask = tf.random.uniform((32, 1, 1, 64), maxval=2, dtype=tf.float32)
+    attention_mask = tf.zeros((10), dtype=tf.int32)
 
     # Initialize a TransformerEncoderBlock object
     encoder_block = TransformerEncoderBlock(

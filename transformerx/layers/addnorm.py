@@ -86,7 +86,6 @@ class AddNorm(tf.keras.layers.Layer):
                 f"Invalid value {dropout_rate} received for "
                 "`dropout_rate`, expected a value between 0 and 1."
             )
-        print("did not raise: ", dropout_rate)
         # Check normalization type
         if norm_type not in ["batch", "instance", "layer"]:
             raise TypeError(

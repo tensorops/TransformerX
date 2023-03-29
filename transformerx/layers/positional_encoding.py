@@ -59,8 +59,8 @@ class SinePositionalEncoding(tf.keras.layers.Layer):
     (2017). Attention Is All You Need. arXiv. https://doi.org/10.48550/arXiv.1706.03762
     """
 
-    def __init__(self, depth, dropout_rate=0, max_len=1000):
-        super(SinePositionalEncoding, self).__init__()
+    def __init__(self, depth, dropout_rate=0, max_len=1000, **kwargs):
+        super(SinePositionalEncoding, self).__init__(**kwargs)
         self.depth = depth
         self.dropout = tf.keras.layers.Dropout(dropout_rate)
         # Create a long enough P

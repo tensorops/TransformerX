@@ -136,7 +136,7 @@ class PositionwiseFFN(tf.keras.layers.Layer):
         contextualized_embeddings=None,
         **kwargs
     ):
-        super().__init__(kwargs)
+        super().__init__(**kwargs)
         self.dense1 = tf.keras.layers.Dense(
             input_hidden_units,
             activation=activation,
