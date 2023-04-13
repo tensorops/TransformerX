@@ -185,23 +185,19 @@ class TransformerEncoderBlock(tf.keras.layers.Layer):
         assert (
             X.shape[-1] == self.d_model
         ), "Last dimension of input tensor should be equal to d_model"
-        if attention_mask is not None:
-            # attention_mask = tf.cast(attention_mask, tf.int32)
-            # assert (
-            #     len(attention_mask.shape) == 1
-            # ), "attention_mask should be a 1D tensor"
-            print(attention_mask[0])
-            # assert isinstance(attention_mask[0].numpy(), int), 'Elements of attention_mask should be integers'
+        # if attention_mask is not None:
+        # attention_mask = tf.cast(attention_mask, tf.int32)
+        # assert (
+        #     len(attention_mask.shape) == 1
+        # ), "attention_mask should be a 1D tensor"
+        # assert isinstance(attention_mask[0].numpy(), int), 'Elements of attention_mask should be integers'
 
         attn_output = self.attention(
             X, X, X, attention_mask, training=training, **kwargs
         )
-        print("attn_output: ", attn_output.shape)
         if self.addnorm1:
             attn_output = self.addnorm1(X, attn_output, training=training, **kwargs)
-        print("addnorm1: ", attn_output.shape)
         ffn_output = self.ffn(attn_output, training=training, **kwargs)
-        print("ffn_output: ", ffn_output.shape)
         if self.addnorm2:
             ffn_output = self.addnorm2(
                 attn_output, ffn_output, training=training, **kwargs
@@ -242,7 +238,6 @@ def main():
     p = 0.5
     attention_mask = tf.random.uniform((batch_size, seq_length, seq_length)) < p
     attention_mask = tf.cast(attention_mask, dtype=tf.bool)
-    print(attention_mask)
     # Initialize a TransformerEncoderBlock object
     encoder_block = TransformerEncoderBlock(
         d_model=d_model, num_heads=d_model // seq_length, dropout_rate=0.1

@@ -92,7 +92,6 @@ def masked_softmax(logits, mask):
     # Cast the mask to float32
     mask = tf.cast(mask, dtype=tf.float32)
     mask = tf.reshape(mask, logits.shape)
-    print(mask.shape, logits.shape)
     # Subtract a large negative number from masked positions to make them close to zero after softmax
     logits -= (1.0 - mask) * 1e32
 
