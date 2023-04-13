@@ -7,53 +7,55 @@ from transformerx.layers.multihead_attention import MultiHeadAttention
 from transformerx.layers.positionwise_ffn import PositionwiseFFN
 
 
-# class TransformerEncoderBlock(tf.keras.layers.Layer):
-#     """Transformer encoder block [1]_.
-#
-#     Include a stack of layers used in the transformer encoder block.
-#
-#     Parameters
-#     ----------
-#     d_model : int
-#         Dimensions of the queries, keys, and values
-#     norm_type :
-#         Arbitrary. Shape of the input.
-#     ffn_num_hiddens :
-#         Number of input hidden units
-#     num_heads : int
-#         Number of the heads in the multi-head attention
-#     dropout_rate :
-#         Float between 0 and 1. Fraction of the input units to drop.
-#     bias : bool - default = False
-#         Indicates the usage of bias in the dense layers (i.e. W_q, W_k, W_v, and W_o)
-#     """
-#
-#     def __init__(
-#             self,
-#             d_model,
-#             ffn_num_hiddens,
-#             num_heads,
-#             dropout_rate,
-#             norm_type='layer',
-#             bias=False,
-#     ):
-#         super().__init__()
-#         self.attention = MultiHeadAttention(d_model, num_heads, dropout_rate, bias)
-#         self.addnorm1 = AddNorm(norm_type, dropout_rate)
-#         self.ffn = PositionWiseFFN(ffn_num_hiddens, d_model)
-#         self.addnorm2 = AddNorm(norm_type, dropout_rate)
-#
-#     def call(self, X, attention_mask, **kwargs):
-#         Y = self.addnorm1(X, self.attention(X, X, X, attention_mask, **kwargs), **kwargs)
-#         return self.addnorm2(Y, self.ffn(Y), **kwargs)
+class TransformerEncoderBlock1(tf.keras.layers.Layer):
+    """Transformer encoder block [1]_.
+
+    Include a stack of layers used in the transformer encoder block.
+
+    Parameters
+    ----------
+    d_model : int
+        Dimensions of the queries, keys, and values
+    norm_type :
+        Arbitrary. Shape of the input.
+    ffn_num_hiddens :
+        Number of input hidden units
+    num_heads : int
+        Number of the heads in the multi-head attention
+    dropout_rate :
+        Float between 0 and 1. Fraction of the input units to drop.
+    bias : bool - default = False
+        Indicates the usage of bias in the dense layers (i.e. W_q, W_k, W_v, and W_o)
+    """
+
+    def __init__(
+        self,
+        d_model,
+        ffn_num_hiddens,
+        num_heads,
+        dropout_rate,
+        norm_type="layer",
+        bias=False,
+    ):
+        super().__init__()
+        self.attention = MultiHeadAttention(d_model, num_heads, dropout_rate, bias)
+        self.addnorm1 = AddNorm(norm_type, dropout_rate)
+        self.ffn = PositionwiseFFN(ffn_num_hiddens, d_model)
+        self.addnorm2 = AddNorm(norm_type, dropout_rate)
+
+    def call(self, X, attention_mask, **kwargs):
+        Y = self.addnorm1(
+            X, self.attention(X, X, X, attention_mask, **kwargs), **kwargs
+        )
+        return self.addnorm2(Y, self.ffn(Y), **kwargs)
 
 
 class TransformerEncoderBlock(tf.keras.layers.Layer):
     def __init__(
         self,
-        d_model: int,  # Dimensionality of the input and output tensors
-        num_heads: int,  # Number of attention heads
-        dropout_rate: float,  # Dropout rate for the attention and feedforward networks
+        d_model: int = 512,  # Dimensionality of the input and output tensors
+        num_heads: int = 8,  # Number of attention heads
+        dropout_rate: float = 0.0,  # Dropout rate for the attention and feedforward networks
         norm_type: str = "layer",  # Type of normalization (layer or batch) (feedforward networks)
         norm_eps: float = 1e-6,
         attention_mechanism: str = "scaled_dotproduct",
@@ -184,19 +186,22 @@ class TransformerEncoderBlock(tf.keras.layers.Layer):
             X.shape[-1] == self.d_model
         ), "Last dimension of input tensor should be equal to d_model"
         if attention_mask is not None:
-            attention_mask = tf.cast(attention_mask, tf.int32)
-            assert (
-                len(attention_mask.shape) == 1
-            ), "attention_mask should be a 1D tensor"
+            # attention_mask = tf.cast(attention_mask, tf.int32)
+            # assert (
+            #     len(attention_mask.shape) == 1
+            # ), "attention_mask should be a 1D tensor"
             print(attention_mask[0])
             # assert isinstance(attention_mask[0].numpy(), int), 'Elements of attention_mask should be integers'
 
         attn_output = self.attention(
             X, X, X, attention_mask, training=training, **kwargs
         )
+        print("attn_output: ", attn_output.shape)
         if self.addnorm1:
             attn_output = self.addnorm1(X, attn_output, training=training, **kwargs)
+        print("addnorm1: ", attn_output.shape)
         ffn_output = self.ffn(attn_output, training=training, **kwargs)
+        print("ffn_output: ", ffn_output.shape)
         if self.addnorm2:
             ffn_output = self.addnorm2(
                 attn_output, ffn_output, training=training, **kwargs
@@ -226,24 +231,32 @@ class TransformerEncoderBlock(tf.keras.layers.Layer):
 def main():
     # Set up a dummy batch of inputs and attention_mask
     batch_size = 4
-    seq_length = 10
-    d_model = 32
+    seq_length = 32
+    d_model = 512
     inputs = tf.random.normal((batch_size, seq_length, d_model))
-    attention_mask = tf.constant([10, 8, 6, 10], dtype=tf.int32)
-    attention_mask = tf.cast(attention_mask, tf.int32)
-    attention_mask = tf.random.uniform((32, 1, 1, 64), maxval=2, dtype=tf.float32)
-    attention_mask = tf.zeros((10), dtype=tf.int32)
-
+    # attention_mask = tf.constant([10, 8, 6, 10], dtype=tf.int32)
+    # attention_mask = tf.cast(attention_mask, tf.int32)
+    # attention_mask = tf.random.uniform((32, 1, 1, 64), maxval=2, dtype=tf.float32)
+    # attention_mask = tf.zeros((seq_length), dtype=tf.int32)
+    attention_mask = tf.ones((batch_size, seq_length, seq_length), dtype=tf.bool)
+    p = 0.5
+    attention_mask = tf.random.uniform((batch_size, seq_length, seq_length)) < p
+    attention_mask = tf.cast(attention_mask, dtype=tf.bool)
+    print(attention_mask)
     # Initialize a TransformerEncoderBlock object
     encoder_block = TransformerEncoderBlock(
-        d_model=d_model, input_hidden_units_ffn=64, num_heads=4, dropout_rate=0.1
+        d_model=d_model, num_heads=d_model // seq_length, dropout_rate=0.1
     )
 
     # Pass the inputs through the encoder block
-    outputs = encoder_block(inputs, attention_mask=tf.cast(attention_mask, tf.int32))
+    outputs = encoder_block(inputs, attention_mask=attention_mask)
 
     # Check that the output tensor has the correct shape
-    assert outputs.shape == (batch_size, seq_length)
+    assert outputs.shape == (
+        batch_size,
+        seq_length,
+        d_model,
+    ), f"{outputs.shape}, ({batch_size}, {seq_length})"
 
     print("Test passed.")
 
