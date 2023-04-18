@@ -148,23 +148,23 @@ class MultiHeadAttention(tf.keras.layers.Layer):
     """
 
     def __init__(
-            self,
-            d_model: int = 512,
-            num_heads: int = 8,
-            dropout_rate: float = 0,
-            bias: bool = False,
-            attention: str = "scaled_dotproduct",
-            **kwargs,
+        self,
+        d_model: int = 512,
+        num_heads: int = 8,
+        dropout_rate: float = 0,
+        bias: bool = False,
+        attention: str = "scaled_dotproduct",
+        **kwargs,
     ):
-        super(MultiHeadAttention, self).__init__()
+        super(MultiHeadAttention, self).__init__(**kwargs)
         self.d_model = d_model
         self.num_heads = num_heads
         self.dropout_rate = dropout_rate
         self.bias = bias
         if attention == "scaled_dotproduct" or attention == None:
-            self.attention = DotProductAttention(self.dropout_rate, self.num_heads, scaled=True)
+            self.attention = DotProductAttention(self.dropout_rate, scaled=True)
         elif attention == "dotproduct":
-            self.attention = DotProductAttention(self.dropout_rate, self.num_heads, scaled=False)
+            self.attention = DotProductAttention(self.dropout_rate, scaled=False)
         self.W_q = tf.keras.layers.Dense(self.d_model, use_bias=self.bias)
         self.W_k = tf.keras.layers.Dense(self.d_model, use_bias=self.bias)
         self.W_v = tf.keras.layers.Dense(self.d_model, use_bias=self.bias)
@@ -219,14 +219,15 @@ class MultiHeadAttention(tf.keras.layers.Layer):
         X = rearrange(X, "b l h d -> b l (h d)")
         return X
 
-
-    def call(self,
-             queries: tf.Tensor,
-             values: tf.Tensor,
-             keys: tf.Tensor,
-             attention_mask: tf.Tensor = None,
-             causal_mask: bool = False,
-             **kwargs) -> tf.Tensor:
+    def call(
+        self,
+        queries: tf.Tensor,
+        values: tf.Tensor,
+        keys: tf.Tensor,
+        attention_mask: tf.Tensor = None,
+        causal_mask: bool = False,
+        **kwargs,
+    ) -> tf.Tensor:
         """Compute the multi-head attention for the given queries, keys, and values.
 
             This method computes the multi-head attention for the given queries, keys, and values,
@@ -311,7 +312,6 @@ class MultiHeadAttention(tf.keras.layers.Layer):
             # On axis 0, copy the first item (scalar or vector) for num_heads
             # times, then copy the next item, and so on
             attention_mask = tf.repeat(attention_mask, repeats=self.num_heads, axis=0)
-
 
         # Shape of output: (batch_size * num_heads, no. of queries,
         # depth / num_heads)

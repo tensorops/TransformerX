@@ -2,6 +2,7 @@ import os
 
 import tensorflow as tf
 
+
 # todo: remove commented old implementation after writing tests
 # class PositionWiseFFN(tf.keras.layers.Layer):
 #     """Compute position-wise feed-forward network [1]_.
@@ -81,7 +82,7 @@ class PositionwiseFFN(tf.keras.layers.Layer):
         Number of output hidden units.
     activation : str or callable, optional
         Activation function to use in the dense layers. Default is 'relu'.
-    init : str or callable, optional
+    kernel_initializer : str or callable, optional
         Weight initialization strategy to use in the dense layers. Default is 'glorot_uniform'.
     non_linear_proj : str, optional
         Non-linear projection layer to use. Default is None, but you can also use 'glu' for a Gated Linear Unit or
@@ -106,7 +107,7 @@ class PositionwiseFFN(tf.keras.layers.Layer):
     Examples
     --------
     >>> tf.random.set_seed(1)
-    >>> ffn = PositionwiseFFN(input_hidden_units=6, output_hidden_units=4, activation='tanh', init='he_uniform', non_linear_proj='glu', contextualized_embeddings=TFBertModel.from_pretrained('bert-base-uncased'))
+    >>> ffn = PositionwiseFFN(input_hidden_units=6, output_hidden_units=4, activation='tanh', kernel_initializer='he_uniform', non_linear_proj='glu', contextualized_embeddings=TFBertModel.from_pretrained('bert-base-uncased'))
     >>> x = tf.ones((2, 3, 6))
     >>> print(ffn(x))
     tf.Tensor(
@@ -128,28 +129,39 @@ class PositionwiseFFN(tf.keras.layers.Layer):
         input_hidden_units,
         output_hidden_units,
         activation="relu",
-        init="glorot_uniform",
+        dropout_rate=0.0,
+        kernel_initializer="glorot_uniform",
+        bias_initializer=None,
         non_linear_proj=None,
         contextualized_embeddings=None,
-        dropout_rate=0.0,
+        **kwargs
     ):
-        super().__init__()
+        super().__init__(**kwargs)
         self.dense1 = tf.keras.layers.Dense(
-            input_hidden_units, activation=activation, kernel_initializer=init
+            input_hidden_units,
+            activation=activation,
+            kernel_initializer=kernel_initializer,
+            bias_initializer=bias_initializer,
         )
         self.non_linear_proj = non_linear_proj
         if self.non_linear_proj == "glu":
             self.glu = tf.keras.layers.Dense(
-                output_hidden_units * 2, activation="sigmoid", kernel_initializer=init
+                output_hidden_units * 2,
+                activation="sigmoid",
+                kernel_initializer=kernel_initializer,
             )
         elif self.non_linear_proj == "selu":
             print("uner selu sectoin")
             self.selu = tf.keras.layers.Dense(
-                output_hidden_units * 2, activation="selu", kernel_initializer=init
+                output_hidden_units * 2,
+                activation="selu",
+                kernel_initializer=kernel_initializer,
             )
         else:
             self.dense2 = tf.keras.layers.Dense(
-                output_hidden_units, activation=activation, kernel_initializer=init
+                output_hidden_units,
+                activation=activation,
+                kernel_initializer=kernel_initializer,
             )
         self.contextualized_embeddings = contextualized_embeddings
         self.dropout = tf.keras.layers.Dropout(rate=dropout_rate)
@@ -193,7 +205,7 @@ if __name__ == "__main__":
         input_hidden_units=32,
         output_hidden_units=64,
         activation="tanh",
-        init="he_uniform",
+        kernel_initializer="he_uniform",
         non_linear_proj="glu",
     )
     x = tf.ones((2, 3, 32))

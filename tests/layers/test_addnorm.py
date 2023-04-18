@@ -53,8 +53,7 @@ class TestAddNorm:
 
     def test_invalid_dropout_rate(self):
         # Test that a ValueError is raised if an invalid dropout rate is provided
-        norm_shape = (1, 2)
         dropout_rate = -0.2  # This should be between 0 and 1
 
         with pytest.raises(ValueError):
-            addnorm = AddNorm(norm_shape, dropout_rate)
+            addnorm = AddNorm("layer", dropout_rate=dropout_rate)

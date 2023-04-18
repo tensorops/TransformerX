@@ -10,7 +10,7 @@ class TestPositionwiseFFN:
             input_hidden_units=128,
             output_hidden_units=64,
             activation="relu",
-            init="glorot_uniform",
+            kernel_initializer="glorot_uniform",
             non_linear_proj="glu",
             contextualized_embeddings=None,
             dropout_rate=0.1,
@@ -22,7 +22,7 @@ class TestPositionwiseFFN:
             input_hidden_units=128,
             output_hidden_units=64,
             activation="relu",
-            init="glorot_uniform",
+            kernel_initializer="glorot_uniform",
             non_linear_proj="selu",
             contextualized_embeddings=None,
             dropout_rate=0.1,
@@ -32,9 +32,9 @@ class TestPositionwiseFFN:
     def layer_no_nonlinear(self):
         return PositionwiseFFN(
             input_hidden_units=128,
-            output_hidden_units=64,
+            output_hidden_units=256,
             activation="relu",
-            init="glorot_uniform",
+            kernel_initializer="glorot_uniform",
             non_linear_proj=None,
             contextualized_embeddings=None,
             dropout_rate=0.1,
@@ -63,4 +63,4 @@ class TestPositionwiseFFN:
     def test_layer_no_non_linear_proj(self, layer_no_nonlinear):
         input_tensor = tf.random.normal([32, 20, 128])
         output_tensor = layer_no_nonlinear(input_tensor)
-        assert output_tensor.shape == (32, 20, 64)
+        assert output_tensor.shape == (32, 20, 256)

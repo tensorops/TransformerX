@@ -4,31 +4,6 @@ import tensorflow as tf
 from transformerx.utils import exists
 
 
-# class AbsolutePositionalEncoding(tf.keras.layers.Layer):
-#     def __init__(self, depth, dropout_rate=0, max_len=1000):
-#         super(AbsolutePositionalEncoding, self).__init__()
-#         self.dropout = tf.keras.layers.Dropout(dropout_rate)
-#         # Create a long enough P
-#
-#         self.P = np.zeros((1, max_len, depth))
-#         X = np.arange(max_len, dtype=np.float32).reshape(-1, 1) / np.power(
-#             10000, np.arange(0, depth, 2, dtype=np.float32) / depth
-#         )
-#
-#         self.P[:, :, 0::2] = tf.sin(
-#             X
-#         )  # x[low::stride] -> positions: 0, 2, 4, ... of all rows and columns
-#         self.P[:, :, 1::2] = tf.cos(
-#             X
-#         )  # x[low::stride] -> positions: 1, 3, 5 , ... of all rows and columns
-#
-#     def call(self, X, **kwargs):
-#         # print("x.shape[1]: ", x.shape[1])
-#         # print("self.P[:, : x.shape[1], :]: ", self.P[:, : x.shape[1], :].shape)
-#         X = X + self.P[:, : X.shape[1], :]
-#         return self.dropout(X, **kwargs)
-
-
 class SinePositionalEncoding(tf.keras.layers.Layer):
     """Compute absolute positional encoding object [1]_.
 
@@ -84,8 +59,8 @@ class SinePositionalEncoding(tf.keras.layers.Layer):
     (2017). Attention Is All You Need. arXiv. https://doi.org/10.48550/arXiv.1706.03762
     """
 
-    def __init__(self, depth, dropout_rate=0, max_len=1000):
-        super(SinePositionalEncoding, self).__init__()
+    def __init__(self, depth, dropout_rate=0, max_len=1000, **kwargs):
+        super(SinePositionalEncoding, self).__init__(**kwargs)
         self.depth = depth
         self.dropout = tf.keras.layers.Dropout(dropout_rate)
         # Create a long enough P
