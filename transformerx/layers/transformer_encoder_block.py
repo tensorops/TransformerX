@@ -127,6 +127,37 @@ class TransformerEncoderBlock(tf.keras.layers.Layer):
         - learning_rate_schedule is not callable.
         - mixed_precision is True but TensorFlow is not configured for mixed precision training.
         - bias is not a boolean.
+
+    Examples
+    --------
+    >>> # Example 1: Initialize a custom transformer layer with default parameters
+    >>> encoder_block = TransformerEncoderBlock()
+
+
+    >>> # Example 2: Initialize a custom transformer layer with custom parameters
+    >>> encoder_block = TransformerEncoderBlock(
+    ...     d_model=256,
+    ...     num_heads=4,
+    ...     dropout_rate=0.1,
+    ...     norm_type="batch",
+    ...     norm_eps=1e-5,
+    ...     attention_mechanism="scaled_dotproduct",
+    ...     input_hidden_units_ffn=64,
+    ...     output_hidden_units_ffn=128,
+    ...     use_norm=True,
+    ...     residual_connections=(True, True),
+    ...     activation_fn=tf.nn.relu,
+    ...     non_linear_proj=None,
+    ...     clip_norm=1.0,
+    ...     kernel_initializer=tf.keras.initializers.GlorotUniform(),
+    ...     bias_initializer=tf.keras.initializers.Zeros(),
+    ...     mixed_precision=False,
+    ...     learning_rate_schedule=None,
+    ...     bias=True,
+    ...     kernel_regularizer=tf.keras.regularizers.l2(0.01),
+    ...     bias_regularizer=None,
+    ...     contextualized_embeddings=None
+    ... )
     """
 
     def __init__(
@@ -318,6 +349,29 @@ def main():
     attention_mask = tf.cast(attention_mask, dtype=tf.bool)
     # Initialize a TransformerEncoderBlock object
     encoder_block = TransformerEncoderBlock(
+        d_model=256,
+        num_heads=4,
+        dropout_rate=0.1,
+        norm_type="batch",
+        norm_eps=1e-5,
+        attention_mechanism="scaled_dotproduct",
+        input_hidden_units_ffn=64,
+        output_hidden_units_ffn=128,
+        use_norm=True,
+        residual_connections=(True, True),
+        activation_fn=tf.nn.relu,
+        non_linear_proj=None,
+        clip_norm=1.0,
+        kernel_initializer=tf.keras.initializers.GlorotUniform(),
+        bias_initializer=tf.keras.initializers.Zeros(),
+        mixed_precision=False,
+        learning_rate_schedule=None,
+        bias=True,
+        kernel_regularizer=tf.keras.regularizers.l2(0.01),
+        bias_regularizer=None,
+        contextualized_embeddings=None,
+    )
+    encoder_block2 = TransformerEncoderBlock(
         d_model=d_model, num_heads=d_model // seq_length, dropout_rate=0.1
     )
 
