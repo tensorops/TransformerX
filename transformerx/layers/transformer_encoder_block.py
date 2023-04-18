@@ -54,7 +54,7 @@ class TransformerEncoderBlock(tf.keras.layers.Layer):
     """Transformer Encoder Block
 
     The TransformerEncoderBlock is a custom layer in TensorFlow Keras that implements a single block of the Transformer
-    encoder architecture, which is a key component of the Transformer model for natural language processing tasks such
+    encoder architecture [1]_, which is a key component of the Transformer model for natural language processing tasks such
     as machine translation, text classification, and language generation. The layer includes self-attention mechanism,
     feedforward networks, and residual connections with optional normalization and other customization options.
 
@@ -158,6 +158,35 @@ class TransformerEncoderBlock(tf.keras.layers.Layer):
     ...     bias_regularizer=None,
     ...     contextualized_embeddings=None
     ... )
+
+    See Also
+    --------
+    :func:`MultiHeadAttention` : The multi-head self-attention layer used in the TransformerEncoderBlock.
+    :func:`PositionwiseFFN` : The position-wise feed-forward network used in the TransformerEncoderBlock.
+    :func:`AddNorm` : The residual connection with layer normalization used in the TransformerEncoderBlock.
+
+    References
+    ----------
+    .. [1] Vaswani, A., Shazeer, N., Parmar, N., Uszkoreit, J., Jones, L., Gomez, A. N., Kaiser, L.,
+        & Polosukhin, I. (2017). Attention is all you need. In Advances in neural information
+        processing systems (pp. 5998-6008).
+
+    Notes
+    -----
+    - This implementation follows the original Transformer model proposed by Vaswani et al. [1]_.
+    - The `attention_mechanism` parameter allows the user to specify the type of attention
+      mechanism to use in the multi-head self-attention layer. Possible values are "scaled_dot_product"
+      and "masked". If not specified, "scaled_dot_product" is used by default.
+    - The `use_norm` parameter controls whether to apply layer normalization after the multi-head
+      self-attention and FFN layers. If set to False, no layer normalization is applied.
+    - The `contextualized_embeddings` parameter allows the user to specify pre-trained contextualized
+      embeddings, such as BERT or ELMo embeddings, to be used in the FFN layer. If not specified,
+      standard embeddings are used by default.
+    - The `mixed_precision` parameter enables mixed precision training using TensorFlow's
+      experimental `mixed_float16` policy.
+    - The `learning_rate_schedule` parameter allows the user to specify a custom learning rate
+      schedule for the optimizer. The learning rate schedule should be a callable object that takes
+      the current training step as input and returns the learning rate for that step.
     """
 
     def __init__(
