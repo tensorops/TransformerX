@@ -152,7 +152,7 @@ class DotProductAttention(tf.keras.layers.Layer):
             )  # broadcast across batch dimension
 
         self.attention_weights = masked_softmax(scores, attention_mask)
-        # self.attention_weights = tf.nn.softmax(scores, axis=-1)
+        # self.attention_weights = tf.nn.softmax(scores, axis=-1, mask=attention_mask)
         scores = tf.matmul(self.dropout(self.attention_weights, **kwargs), values)
         if self.normalize:
             depth = tf.cast(tf.shape(keys)[-1], tf.float32)

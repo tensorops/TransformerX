@@ -80,13 +80,12 @@ class AddNorm(tf.keras.layers.Layer):
         bias_regularizer: Optional[tf.keras.regularizers.Regularizer] = None,
         **kwargs,
     ):
-        super(AddNorm, self).__init__()
+        super(AddNorm, self).__init__(**kwargs)
         if not isinstance(dropout_rate, (int, float)) or not 0 <= dropout_rate <= 1:
             raise ValueError(
                 f"Invalid value {dropout_rate} received for "
                 "`dropout_rate`, expected a value between 0 and 1."
             )
-        print("did not raise: ", dropout_rate)
         # Check normalization type
         if norm_type not in ["batch", "instance", "layer"]:
             raise TypeError(
@@ -153,6 +152,8 @@ class AddNorm(tf.keras.layers.Layer):
                 f"Expected a tensor for the "
                 f"argument 'residual', but received: {residual}"
             )
+
+        residual = tf.keras.layers.Dense(x.shape[-1])(residual)
 
         # Apply dropout
         residual = self.dropout(residual, training=kwargs.get("training", False))
