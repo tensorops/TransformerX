@@ -51,6 +51,66 @@ class TransformerEncoderBlock1(tf.keras.layers.Layer):
 
 
 class TransformerEncoderBlock(tf.keras.layers.Layer):
+    """Transformer Encoder Block
+
+    The TransformerEncoderBlock is a custom layer in TensorFlow Keras that implements a single block of the Transformer
+    encoder architecture, which is a key component of the Transformer model for natural language processing tasks such
+    as machine translation, text classification, and language generation. The layer includes self-attention mechanism,
+    feedforward networks, and residual connections with optional normalization and other customization options.
+
+    Parameters
+    ----------
+    d_model: int (default=512)
+        Dimensionality of the input and output tensors.
+    num_heads: int (default=8)
+        Number of attention heads.
+    dropout_rate: float (default=0.0)
+        Dropout rate for the attention and feedforward networks.
+    norm_type: str (default="layer")
+        Type of normalization to be applied to the output of the feedforward networks. Can be either "layer", "batch",
+        or "instance".
+    norm_eps: float (default=1e-6)
+        Epsilon value for numerical stability in normalization.
+    attention_mechanism: str (default="scaled_dotproduct")
+        Type of attention mechanism to be used in the self-attention layer. Currently supports "scaled_dotproduct" and
+        other custom attention mechanisms.
+    input_hidden_units_ffn: int (default=32)
+        Number of hidden units in the input layer of the feedforward networks.
+    output_hidden_units_ffn: int (default=64)
+        Number of hidden units in the output layer of the feedforward networks.
+    use_norm: bool (default=True)
+        Whether to apply normalization to the output of the feedforward networks.
+    residual_connections: Optional[Tuple[bool, bool]] (default=None)
+        Tuple indicating whether to apply residual connections before and after the self-attention and feedforward
+        networks. If None, residual connections will be used by default.
+    activation_fn: Optional[Callable] (default=None)
+        Activation function to be used in the feedforward networks. If None, ReLU activation will be used by default.
+    non_linear_proj: Optional (default=None)
+        Non-linear projection function to be applied after the self-attention layer. If None, no non-linear projection
+        will be applied.
+    clip_norm: Optional[float] (default=None)
+        Maximum norm for gradient clipping during training.
+    kernel_initializer: Optional[Callable] (default=None)
+        Initializer for the kernel weights of the self-attention and feedforward networks.
+    bias_initializer: Optional[Callable] (default=None)
+        Initializer for the bias weights of the self-attention and feedforward networks.
+    mixed_precision: bool (default=False)
+        Whether to use mixed precision training, which combines float16 and float32 data types for faster training.
+    learning_rate_schedule: Optional[Callable] (default=None)
+        Learning rate schedule function to be applied during training. If None, no learning rate schedule will be used.
+    bias: bool (default=False)
+        Whether to include bias terms in the computation of the self-attention weights.
+    kernel_regularizer: Optional[tf.keras.regularizers.Regularizer] (default=None)
+        Regularizer for the kernel weights of the AddNorm layer.
+    bias_regularizer: Optional[tf.keras.regularizers.Regularizer] (default=None)
+        Regularizer for the bias weights of the AddNorm layer.
+    contextualized_embeddings: None (default=None)
+        Pre-trained language model embeddings to be incorporated into the feedforward networks for contextualization of
+        input embeddings.
+    **kwargs:
+        Additional keyword arguments for the parent class tf.keras.layers.Layer.
+    """
+
     def __init__(
         self,
         d_model: int = 512,  # Dimensionality of the input and output tensors
