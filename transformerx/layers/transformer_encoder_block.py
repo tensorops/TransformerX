@@ -109,6 +109,24 @@ class TransformerEncoderBlock(tf.keras.layers.Layer):
         input embeddings.
     **kwargs:
         Additional keyword arguments for the parent class tf.keras.layers.Layer.
+
+    Raises
+    ------
+    ValueError
+        If any of the input arguments are invalid:
+        - d_model is not a positive integer.
+        - input_hidden_units_ffn is not a positive integer.
+        - num_heads is not a positive integer or not divisible by d_model.
+        - dropout_rate is not a float between 0 and 1.
+        - norm_type is not one of "layer", "batch", or "instance".
+        - residual_connections is not None and not a tuple of two boolean values.
+        - activation_fn is not callable.
+        - clip_norm is not None and not a positive float.
+        - kernel_initializer is not callable.
+        - bias_initializer is not callable.
+        - learning_rate_schedule is not callable.
+        - mixed_precision is True but TensorFlow is not configured for mixed precision training.
+        - bias is not a boolean.
     """
 
     def __init__(
