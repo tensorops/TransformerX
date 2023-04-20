@@ -167,8 +167,21 @@ class GlobalAttentionMask:
         self.dilation_rate = dilation_rate
 
     def get_mask(self, input_shape):
-        # Assumes the input shape is 4-d ('b', 'h', 'l', 'd')
-        batch_size, seq_len = input_shape[0], input_shape[2]
+        if len(input_shape) == 4:
+            # Assumes the input shape is 4-d ('b', 'h', 'l', 'd')
+            input_shape = input_shape[1:]
+            batch_size, seq_len = input_shape[0], input_shape[2]
+        elif len(input_shape) == 3:
+            # Assumes the input shape is 3-d ('b', 'l', 'd')
+            batch_size, seq_len = input_shape[0], input_shape[1]
+        elif len(input_shape) == 2:
+            # Assumes the input shape is 2-d ('b', 'd')
+            batch_size, seq_len = input_shape[0], input_shape[1]
+        else:
+            raise ValueError(
+                "The input shape must be 2-d ('b', 'd'), 3-d ('b', 'l', 'd') or 4-d ('b', 'h', 'l', 'd')"
+            )
+
         mask = tf.ones((batch_size, seq_len, seq_len), dtype=tf.float32)
 
         if self.mask_type == "none":
