@@ -1,8 +1,7 @@
-import os
-
 import numpy as np
 import tensorflow as tf
 
+from transformerx.layers.masks.global_attention_mask import GlobalAttentionMask
 from transformerx.utils import masked_softmax
 
 
@@ -86,19 +85,29 @@ class DotProductAttention(tf.keras.layers.Layer):
         self,
         dropout_rate: float = 0,
         scaled: bool = True,
-        normalize: bool = False,
         kernel_initializer: str = "ones",
         kernel_regularizer: str = None,
-        **kwargs
+        mask_type="dilated",
+        mask_prob=0.0,
+        dilation_rate=1,
+        **kwargs,
     ):
         super().__init__(**kwargs)
         self.dropout_rate = dropout_rate
         self.dropout = tf.keras.layers.Dropout(self.dropout_rate)
         self.scaled = scaled
-        self.normalize = normalize
         self.attention_weights = None
         self.kernel_initializer = kernel_initializer
         self.kernel_regularizer = kernel_regularizer
+
+        self.mask_type = mask_type
+        self.mask_prob = mask_prob
+        self.dilation_rate = dilation_rate
+        self.global_mask = GlobalAttentionMask(
+            mask_type=self.mask_type,
+            mask_prob=self.mask_prob,
+            dilation_rate=self.dilation_rate,
+        )
 
     def build(self, input_shape):
         super().build(input_shape)
@@ -115,28 +124,13 @@ class DotProductAttention(tf.keras.layers.Layer):
         attention_mask: tf.Tensor = None,
         causal_mask: bool = None,
         training=None,
-        **kwargs
+        **kwargs,
     ) -> tf.Tensor:
         scores = tf.matmul(queries, keys, transpose_b=True)
         if self.scaled:
-            # self.scale = self.add_weight(
-            #     name="scale",
-            #     shape=(scores.shape),
-            #     initializer=self.kernel_initializer,
-            #     regularizer=self.kernel_regularizer,
-            #     trainable=True,
-            # )
             depth = queries.shape[-1]
-            # print(self.scale, scores.shape)
-            # self.scale = tf.broadcast_to(scores.shape)
-            # self.scale = tf.broadcast_to(
-            #     tf.expand_dims(tf.expand_dims(self.scale, -1), -1), scores.shape
-            # )
-            scores = (
-                scores
-                / tf.math.sqrt(tf.cast(depth, dtype=tf.float32))
-                # * self.scale
-            )
+
+            scores = scores / tf.math.sqrt(tf.cast(depth, dtype=tf.float32))
 
         # apply causal mask
         if causal_mask:
@@ -151,12 +145,18 @@ class DotProductAttention(tf.keras.layers.Layer):
                 tf.expand_dims(causal_mask, -1), scores.shape
             )  # broadcast across batch dimension
 
+        # to be uncommented later
+        # apply global mask
+        # gmask = self.global_mask.get_mask(keys.shape)
+        # masked_attention_scores = tf.math.multiply(scores, gmask)
+        # attention_probs = tf.nn.softmax(masked_attention_scores, axis=-1)
+        # uncomment until here
+
         self.attention_weights = masked_softmax(scores, attention_mask)
         # self.attention_weights = tf.nn.softmax(scores, axis=-1, mask=attention_mask)
+        # scores = tf.matmul(self.dropout(self.attention_weights, **kwargs), values)
         scores = tf.matmul(self.dropout(self.attention_weights, **kwargs), values)
-        if self.normalize:
-            depth = tf.cast(tf.shape(keys)[-1], tf.float32)
-            scores /= tf.sqrt(depth)
+
         return scores
 
     def get_attention_weights(self):

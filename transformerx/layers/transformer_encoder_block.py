@@ -378,7 +378,7 @@ def main():
     attention_mask = tf.cast(attention_mask, dtype=tf.bool)
     # Initialize a TransformerEncoderBlock object
     encoder_block = TransformerEncoderBlock(
-        d_model=256,
+        d_model=512,
         num_heads=4,
         dropout_rate=0.1,
         norm_type="batch",

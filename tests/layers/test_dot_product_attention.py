@@ -93,14 +93,13 @@ class TestDotProductAttention:
 
     @pytest.fixture
     def attention_layer(self):
-        return DotProductAttention(dropout_rate=0.2, scaled=True, normalize=False)
+        return DotProductAttention(dropout_rate=0.2, scaled=True)
 
     def test_from_config(self, attention_layer):
         config = attention_layer.get_config()
         new_layer = DotProductAttention.from_config(config)
         assert attention_layer.dropout.rate == new_layer.dropout.rate
         assert attention_layer.scaled == new_layer.scaled
-        assert attention_layer.normalize == new_layer.normalize
 
     def test_get_attention_weights(self, attention_layer):
         attention_layer.attention_weights = np.random.rand(5, 10)
@@ -113,4 +112,3 @@ class TestDotProductAttention:
         assert isinstance(config, dict)
         assert config["dropout_rate"] == 0.2
         assert config["scaled"] == True
-        assert config["normalize"] == False
