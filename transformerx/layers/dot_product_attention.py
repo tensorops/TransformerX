@@ -153,7 +153,7 @@ class DotProductAttention(tf.keras.layers.Layer):
         # uncomment until here
 
         self.attention_weights = masked_softmax(scores, attention_mask)
-        self.attention_weights = tf.nn.softmax(scores, axis=-1, mask=attention_mask)
+        # self.attention_weights = tf.nn.softmax(scores, axis=-1, mask=attention_mask)
         # scores = tf.matmul(self.dropout(self.attention_weights, **kwargs), values)
         scores = tf.matmul(self.dropout(self.attention_weights, **kwargs), values)
 
