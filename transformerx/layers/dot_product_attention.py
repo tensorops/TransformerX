@@ -2,6 +2,7 @@ import numpy as np
 import tensorflow as tf
 
 from transformerx.layers.masks.global_attention_mask import GlobalAttentionMask
+from transformerx.utils import masked_softmax
 
 
 class DotProductAttention(tf.keras.layers.Layer):
@@ -144,13 +145,17 @@ class DotProductAttention(tf.keras.layers.Layer):
                 tf.expand_dims(causal_mask, -1), scores.shape
             )  # broadcast across batch dimension
 
-        gmask = self.global_mask.get_mask(keys.shape)
-        masked_attention_scores = tf.math.multiply(scores, gmask)
-        attention_probs = tf.nn.softmax(masked_attention_scores, axis=-1)
-        # self.attention_weights = masked_softmax(scores, attention_mask)
-        # self.attention_weights = tf.nn.softmax(scores, axis=-1, mask=attention_mask)
+        # to be uncommented later
+        # apply global mask
+        # gmask = self.global_mask.get_mask(keys.shape)
+        # masked_attention_scores = tf.math.multiply(scores, gmask)
+        # attention_probs = tf.nn.softmax(masked_attention_scores, axis=-1)
+        # uncomment until here
+
+        self.attention_weights = masked_softmax(scores, attention_mask)
+        self.attention_weights = tf.nn.softmax(scores, axis=-1, mask=attention_mask)
         # scores = tf.matmul(self.dropout(self.attention_weights, **kwargs), values)
-        scores = tf.matmul(self.dropout(attention_probs, **kwargs), values)
+        scores = tf.matmul(self.dropout(self.attention_weights, **kwargs), values)
 
         return scores
 
