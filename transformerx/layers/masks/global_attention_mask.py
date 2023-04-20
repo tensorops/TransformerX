@@ -2,6 +2,13 @@ import tensorflow as tf
 
 
 class GlobalAttentionMask:
+    """Global attention mask class.
+
+    This class creates a global attention mask for the input.
+    It is created by applying a random mask to the input.
+    The mask is applied by randomly selecting a number of tokens from the input.
+    The number of tokens selected is determined by the mask probability."""
+
     def __init__(self, mask_type="none", mask_prob=0.0, dilation_rate=1):
         self.mask_type = mask_type
         self.mask_prob = mask_prob
