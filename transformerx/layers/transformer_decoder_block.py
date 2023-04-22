@@ -76,3 +76,68 @@ class TransformerDecoderBlock(tf.keras.layers.Layer):
         Y2 = self.attention2(Y, enc_outputs, enc_outputs, enc_valid_lens, **kwargs)
         Z = self.addnorm2(Y, Y2, **kwargs)
         return self.addnorm3(Z, self.ffn(Z), **kwargs), state
+
+
+class TransformerDecoderBlock1(tf.keras.layers.Layer):
+    def __init__(
+        self,
+        num_hiddens,
+        norm_shape,
+        ffn_num_hiddens,
+        num_heads,
+        dropout_rate,
+        i,
+        use_masking=True,
+        layer_norm_eps=1e-6,
+        residual_dropout_rate=0.1,
+        attention_dropout_rate=0.1,
+        ffn_activation="relu",
+        name=None,
+    ):
+        super().__init__(name=name)
+        self.i = i
+
+        # Multi-head attention 1
+        self.attention1 = MultiHeadAttention(
+            num_hiddens=num_hiddens,
+            num_heads=num_heads,
+            dropout_rate=attention_dropout_rate,
+            causal_mask=use_masking,
+            name=f"multi_head_attention_1_{i}",
+        )
+        self.addnorm1 = AddNorm(
+            norm_shape=norm_shape,
+            dropout_rate=residual_dropout_rate,
+            eps=layer_norm_eps,
+            name=f"add_norm_1_{i}",
+        )
+
+        # Multi-head attention 2
+        self.attention2 = MultiHeadAttention(
+            num_hiddens=num_hiddens,
+            num_heads=num_heads,
+            dropout_rate=attention_dropout_rate,
+            use_masking=use_masking,
+            name=f"multi_head_attention_2_{i}",
+        )
+        self.addnorm2 = AddNorm(
+            norm_shape=norm_shape,
+            dropout_rate=residual_dropout_rate,
+            eps=layer_norm_eps,
+            name=f"add_norm_2_{i}",
+        )
+
+        # Position-wise feedforward network
+        self.ffn = PositionwiseFFN(
+            hidden_size=ffn_num_hiddens,
+            output_size=num_hiddens,
+            dropout_rate=residual_dropout_rate,
+            activation=ffn_activation,
+            name=f"positionwise_ffn_{i}",
+        )
+        self.addnorm3 = AddNorm(
+            norm_shape=norm_shape,
+            dropout_rate=residual_dropout_rate,
+            eps=layer_norm_eps,
+            name=f"add_norm_3_{i}",
+        )

@@ -154,6 +154,7 @@ class MultiHeadAttention(tf.keras.layers.Layer):
         dropout_rate: float = 0,
         bias: bool = False,
         attention: str = "scaled_dotproduct",
+        causal_mask: bool = False,
         **kwargs,
     ):
         super(MultiHeadAttention, self).__init__(**kwargs)
@@ -161,10 +162,15 @@ class MultiHeadAttention(tf.keras.layers.Layer):
         self.num_heads = num_heads
         self.dropout_rate = dropout_rate
         self.bias = bias
+        self.causal_mask = causal_mask
         if attention == "scaled_dotproduct" or attention == None:
-            self.attention = DotProductAttention(self.dropout_rate, scaled=True)
+            self.attention = DotProductAttention(
+                self.dropout_rate, scaled=True, causal_mask=self.causal_mask
+            )
         elif attention == "dotproduct":
-            self.attention = DotProductAttention(self.dropout_rate, scaled=False)
+            self.attention = DotProductAttention(
+                self.dropout_rate, scaled=False, causal_mask=self.causal_mask
+            )
         self.W_q = tf.keras.layers.Dense(self.d_model, use_bias=self.bias)
         self.W_k = tf.keras.layers.Dense(self.d_model, use_bias=self.bias)
         self.W_v = tf.keras.layers.Dense(self.d_model, use_bias=self.bias)
@@ -225,7 +231,6 @@ class MultiHeadAttention(tf.keras.layers.Layer):
         values: tf.Tensor,
         keys: tf.Tensor,
         attention_mask: tf.Tensor = None,
-        causal_mask: bool = False,
         **kwargs,
     ) -> tf.Tensor:
         """Compute the multi-head attention for the given queries, keys, and values.
@@ -315,9 +320,7 @@ class MultiHeadAttention(tf.keras.layers.Layer):
 
         # Shape of output: (batch_size * num_heads, no. of queries,
         # depth / num_heads)
-        output = self.attention(
-            queries, keys, values, attention_mask, causal_mask, **kwargs
-        )
+        output = self.attention(queries, keys, values, attention_mask, **kwargs)
 
         # Shape of output_concat: (batch_size, no. of queries, depth)
         output_concat = self.inverse_transpose_qkv(output)

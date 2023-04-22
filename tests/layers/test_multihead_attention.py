@@ -92,6 +92,12 @@ class TestMultiHeadAttention:
         return MultiHeadAttention(d_model=32, num_heads=4, dropout_rate=0.1)
 
     @pytest.fixture
+    def attention_causal_mask(self):
+        return MultiHeadAttention(
+            d_model=32, num_heads=4, dropout_rate=0.1, causal_mask=True
+        )
+
+    @pytest.fixture
     def inputs(self):
         # Create some dummy input tensors for testing
         x = tf.constant(np.random.random([2, 3, 2]), dtype=tf.float32)
@@ -136,23 +142,23 @@ class TestMultiHeadAttention:
         # check that the output values are not all zero
         assert not tf.reduce_all(tf.math.equal(outputs, 0.0))
 
-    def test_call_with_causal_mask(self, attention):
+    def test_call_with_causal_mask(self, attention_causal_mask):
         queries = tf.random.normal((4, 10, 32))
         values = tf.random.normal((4, 20, 32))
         keys = tf.random.normal((4, 20, 32))
 
-        output = attention(queries, values, keys, causal_mask=True)
+        output = attention_causal_mask(queries, values, keys)
 
         assert output.shape == (4, 10, 32)
 
-    def test_call_with_both_masks(self, attention):
+    def test_call_with_both_masks(self, attention_causal_mask):
         queries = tf.random.normal((4, 10, 32))
         values = tf.random.normal((4, 10, 64))
         keys = tf.random.normal((4, 10, 32))
         attention_mask = tf.random.uniform((4, 10), maxval=2, dtype=tf.int32)
 
-        output = attention(
-            queries, keys, values, attention_mask=attention_mask, causal_mask=True
+        output = attention_causal_mask(
+            queries, keys, values, attention_mask=attention_mask
         )
 
         assert output.shape == (4, 10, 32)

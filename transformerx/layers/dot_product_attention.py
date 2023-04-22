@@ -87,6 +87,7 @@ class DotProductAttention(tf.keras.layers.Layer):
         scaled: bool = True,
         kernel_initializer: str = "ones",
         kernel_regularizer: str = None,
+        causal_mask: bool = None,
         mask_type="dilated",
         mask_prob=0.0,
         dilation_rate=1,
@@ -99,6 +100,7 @@ class DotProductAttention(tf.keras.layers.Layer):
         self.attention_weights = None
         self.kernel_initializer = kernel_initializer
         self.kernel_regularizer = kernel_regularizer
+        self.causal_mask = causal_mask
 
         self.mask_type = mask_type
         self.mask_prob = mask_prob
@@ -122,7 +124,6 @@ class DotProductAttention(tf.keras.layers.Layer):
         keys: tf.Tensor,
         values: tf.Tensor,
         attention_mask: tf.Tensor = None,
-        causal_mask: bool = None,
         training=None,
         **kwargs,
     ) -> tf.Tensor:
@@ -133,7 +134,7 @@ class DotProductAttention(tf.keras.layers.Layer):
             scores = scores / tf.math.sqrt(tf.cast(depth, dtype=tf.float32))
 
         # apply causal mask
-        if causal_mask:
+        if self.causal_mask:
             seq_len = tf.shape(queries)[2]
             heads = tf.shape(queries)[1]
             causal_mask = tf.ones((heads, seq_len)) * -1e9
