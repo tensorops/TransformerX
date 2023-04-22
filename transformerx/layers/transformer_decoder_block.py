@@ -1,3 +1,5 @@
+from typing import Optional, Tuple, Callable
+
 import tensorflow as tf
 
 from transformerx.layers.addnorm import AddNorm
@@ -81,63 +83,129 @@ class TransformerDecoderBlock(tf.keras.layers.Layer):
 class TransformerDecoderBlock1(tf.keras.layers.Layer):
     def __init__(
         self,
-        num_hiddens,
-        norm_shape,
-        ffn_num_hiddens,
-        num_heads,
-        dropout_rate,
-        i,
-        use_masking=True,
-        layer_norm_eps=1e-6,
-        residual_dropout_rate=0.1,
-        attention_dropout_rate=0.1,
-        ffn_activation="relu",
-        name=None,
+        d_model: int = 512,  # Dimensionality of the input and output tensors
+        num_heads: int = 8,  # Number of attention heads
+        i: int = 0,  # Index of the block
+        dropout_rate: float = 0.1,  # Dropout rate for the attention and feedforward networks
+        norm_type: str = "layer",  # Type of normalization (layer or batch) (feedforward networks)
+        norm_eps: float = 1e-6,
+        attention_mechanism: str = "scaled_dotproduct",
+        input_hidden_units_ffn: int = 32,  # Number of input hidden units in the feedforward network
+        output_hidden_units_ffn: int = 64,  # Number of output hidden units in the feedforward network
+        use_norm: bool = True,  # Whether to use normalization (layer or batch)
+        residual_connections: Optional[
+            Tuple[bool, bool]
+        ] = None,  # Whether to use residual connections
+        activation_fn: Optional[
+            Tuple[Callable, str]
+        ] = "relu",  # Activation function for the feedforward network,
+        non_linear_proj=None,  # Non-linear projection for poistionwise feedforward network
+        clip_norm: Optional[float] = None,  # Maximum norm for gradient clipping
+        kernel_initializer: Optional[
+            Callable
+        ] = None,  # Initializer for the kernel weights
+        bias_initializer: Optional[Callable] = None,  # Initializer for the bias weights
+        mixed_precision: bool = False,  # Whether to use mixed precision training
+        learning_rate_schedule: Optional[
+            Callable
+        ] = None,  # Learning rate schedule function
+        bias: bool = False,  # Whether to include bias terms in the attention computation
+        kernel_regularizer: Optional[
+            tf.keras.regularizers.Regularizer
+        ] = None,  # kernel regularizer for AddNorm
+        bias_regularizer: Optional[
+            tf.keras.regularizers.Regularizer
+        ] = None,  # bias regularizer for AddNorm
+        contextualized_embeddings=None,  # incorporate pre-trained language models such as BERT or GPT-2 into the
+        # model (feedforward networks)
+        causal_mask: bool = True,  # Whether to use a causal mask
+        name=None,  # Name of the layer
+        **kwargs,
     ):
         super().__init__(name=name)
+        self.d_model = d_model
+        self.num_heads = num_heads
         self.i = i
+        self.dropout_rate = dropout_rate
+        self.norm_type = norm_type
+        self.bias = bias
+        self.attention_mechanism = attention_mechanism
 
         # Multi-head attention 1
         self.attention1 = MultiHeadAttention(
-            num_hiddens=num_hiddens,
-            num_heads=num_heads,
-            dropout_rate=attention_dropout_rate,
-            causal_mask=use_masking,
-            name=f"multi_head_attention_1_{i}",
+            d_model=self.d_model,
+            num_heads=self.num_heads,
+            dropout_rate=self.dropout_rate,
+            bias=self.bias,
+            attention=self.attention_mechanism,
+            causal_mask=causal_mask,
+            **kwargs,
         )
-        self.addnorm1 = AddNorm(
-            norm_shape=norm_shape,
-            dropout_rate=residual_dropout_rate,
-            eps=layer_norm_eps,
-            name=f"add_norm_1_{i}",
+        self.addnorm1 = (
+            AddNorm(
+                norm_type=norm_type,
+                norm_eps=norm_eps,
+                dropout_rate=dropout_rate,
+                activation=activation_fn,
+                kernel_regularizer=kernel_regularizer,
+                bias_regularizer=bias_regularizer,
+                **kwargs,
+            )
+            if use_norm
+            else None
         )
 
         # Multi-head attention 2
         self.attention2 = MultiHeadAttention(
-            num_hiddens=num_hiddens,
-            num_heads=num_heads,
-            dropout_rate=attention_dropout_rate,
-            use_masking=use_masking,
-            name=f"multi_head_attention_2_{i}",
+            d_model=self.d_model,
+            num_heads=self.num_heads,
+            dropout_rate=self.dropout_rate,
+            bias=self.bias,
+            attention=self.attention_mechanism,
+            causal_mask=causal_mask,
+            **kwargs,
         )
-        self.addnorm2 = AddNorm(
-            norm_shape=norm_shape,
-            dropout_rate=residual_dropout_rate,
-            eps=layer_norm_eps,
-            name=f"add_norm_2_{i}",
+        self.addnorm2 = (
+            AddNorm(
+                norm_type=norm_type,
+                norm_eps=norm_eps,
+                dropout_rate=dropout_rate,
+                activation=activation_fn,
+                kernel_regularizer=kernel_regularizer,
+                bias_regularizer=bias_regularizer,
+                **kwargs,
+            )
+            if use_norm
+            else None
         )
 
         # Position-wise feedforward network
         self.ffn = PositionwiseFFN(
-            hidden_size=ffn_num_hiddens,
-            output_size=num_hiddens,
-            dropout_rate=residual_dropout_rate,
-            activation=ffn_activation,
-            name=f"positionwise_ffn_{i}",
+            input_hidden_units=input_hidden_units_ffn,
+            output_hidden_units=output_hidden_units_ffn,
+            activation=activation_fn,
+            dropout_rate=dropout_rate,
+            kernel_initializer=kernel_initializer,
+            bias_initializer=bias_initializer,
+            non_linear_proj=non_linear_proj,
+            contextualized_embeddings=contextualized_embeddings,
+            **kwargs,
         )
-        self.addnorm3 = AddNorm(
-            norm_shape=norm_shape,
-            dropout_rate=residual_dropout_rate,
-            eps=layer_norm_eps,
-            name=f"add_norm_3_{i}",
+        self.addnorm3 = (
+            AddNorm(
+                norm_type=norm_type,
+                norm_eps=norm_eps,
+                dropout_rate=dropout_rate,
+                activation=activation_fn,
+                kernel_regularizer=kernel_regularizer,
+                bias_regularizer=bias_regularizer,
+                **kwargs,
+            )
+            if use_norm
+            else None
         )
+
+        self.residual_connections = residual_connections
+        self.clip_norm = clip_norm
+        self.mixed_precision = mixed_precision
+        self.learning_rate_schedule = learning_rate_schedule
