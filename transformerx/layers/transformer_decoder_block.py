@@ -7,7 +7,7 @@ from transformerx.layers.multihead_attention import MultiHeadAttention
 from transformerx.layers.positionwise_ffn import PositionwiseFFN
 
 
-class TransformerDecoderBlock(tf.keras.layers.Layer):
+class TransformerDecoderBlockOld(tf.keras.layers.Layer):
     """Transformer decoder block [1]_.
 
     Include a stack of layers used in the transformer decoder block.
@@ -80,7 +80,7 @@ class TransformerDecoderBlock(tf.keras.layers.Layer):
         return self.addnorm3(Z, self.ffn(Z), **kwargs), state
 
 
-class TransformerDecoderBlock1(tf.keras.layers.Layer):
+class TransformerDecoderBlock(tf.keras.layers.Layer):
     def __init__(
         self,
         d_model: int = 512,  # Dimensionality of the input and output tensors
