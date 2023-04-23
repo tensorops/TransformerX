@@ -213,7 +213,9 @@ class TransformerDecoderBlock1(tf.keras.layers.Layer):
     # the call method of the transformer decoder block
     def call(self, queries, keys, values, valid_lens, **kwargs):
         # Multi-head attention 1 (self-attention)
-        attn_output1 = self.attention1(queries, queries, queries, **kwargs)
+        attn_output1, attn1_weights = self.attention1(
+            queries, queries, queries, **kwargs
+        )
         if self.addnorm1 is not None:
             attn_output1 = self.addnorm1(queries, attn_output1, **kwargs)
         else:
