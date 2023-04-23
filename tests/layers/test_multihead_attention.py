@@ -119,7 +119,7 @@ class TestMultiHeadAttention:
         # Test the call method of the MultiHeadAttention class
         x, y, z = inputs
         multihead = MultiHeadAttention(d_model=8)
-        output = multihead(x, y, z)
+        output, _ = multihead(x, y, z)
         assert output.shape == (2, 3, 8)
 
     def test_inverse_transpose_qkv(self, attention):
@@ -134,7 +134,7 @@ class TestMultiHeadAttention:
 
         attention_mask = tf.random.uniform((32, 1, 1, 64), maxval=2, dtype=tf.float32)
         # call the layer with the inputs and mask
-        outputs = attention(inputs, inputs, inputs, attention_mask=attention_mask)
+        outputs, _ = attention(inputs, inputs, inputs, attention_mask=attention_mask)
 
         # check that the output shape is correct
         assert outputs.shape == (32, 64, 64)
@@ -147,7 +147,7 @@ class TestMultiHeadAttention:
         values = tf.random.normal((4, 20, 32))
         keys = tf.random.normal((4, 20, 32))
 
-        output = attention_causal_mask(queries, values, keys)
+        output, _ = attention_causal_mask(queries, values, keys)
 
         assert output.shape == (4, 10, 32)
 
@@ -157,7 +157,7 @@ class TestMultiHeadAttention:
         keys = tf.random.normal((4, 10, 32))
         attention_mask = tf.random.uniform((4, 10), maxval=2, dtype=tf.int32)
 
-        output = attention_causal_mask(
+        output, _ = attention_causal_mask(
             queries, keys, values, attention_mask=attention_mask
         )
 
@@ -169,7 +169,7 @@ class TestMultiHeadAttention:
         keys = tf.random.normal((4, 10, 32))
         attention_mask = tf.zeros((4, 10), dtype=tf.int32)
 
-        output = attention(queries, keys, values, attention_mask=attention_mask)
+        output, _ = attention(queries, keys, values, attention_mask=attention_mask)
 
         assert output.shape == (4, 10, 32)
 
@@ -179,7 +179,7 @@ class TestMultiHeadAttention:
         keys = tf.random.normal((4, 10, 32))
         attention_mask = tf.ones((4, 10), dtype=tf.int32)
 
-        output = attention(queries, keys, values, attention_mask=attention_mask)
+        output, _ = attention(queries, keys, values, attention_mask=attention_mask)
 
         assert output.shape == (4, 10, 32)
 
@@ -211,7 +211,7 @@ class TestMultiHeadAttention:
         )
 
         # Compute the attention weights and outputs
-        attention_output = attention(
+        attention_output, _ = attention(
             input_tensor, input_tensor, input_tensor, attention_mask
         )
 

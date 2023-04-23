@@ -228,8 +228,8 @@ class MultiHeadAttention(tf.keras.layers.Layer):
     def call(
         self,
         queries: tf.Tensor,
-        values: tf.Tensor,
         keys: tf.Tensor,
+        values: tf.Tensor,
         attention_mask: tf.Tensor = None,
         **kwargs,
     ) -> tf.Tensor:
@@ -320,8 +320,12 @@ class MultiHeadAttention(tf.keras.layers.Layer):
 
         # Shape of output: (batch_size * num_heads, no. of queries,
         # depth / num_heads)
-        output = self.attention(queries, keys, values, attention_mask, **kwargs)
+        attention_output, attention_weights = self.attention(
+            queries, keys, values, attention_mask, **kwargs
+        )
 
         # Shape of output_concat: (batch_size, no. of queries, depth)
-        output_concat = self.inverse_transpose_qkv(output)
-        return self.W_o(output_concat)
+        output_concat = self.inverse_transpose_qkv(attention_output)
+        final_output = self.W_o(output_concat)
+
+        return final_output, attention_weights

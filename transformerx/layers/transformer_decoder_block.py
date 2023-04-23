@@ -85,7 +85,6 @@ class TransformerDecoderBlock1(tf.keras.layers.Layer):
         self,
         d_model: int = 512,  # Dimensionality of the input and output tensors
         num_heads: int = 8,  # Number of attention heads
-        i: int = 0,  # Index of the block
         dropout_rate: float = 0.1,  # Dropout rate for the attention and feedforward networks
         norm_type: str = "layer",  # Type of normalization (layer or batch) (feedforward networks)
         norm_eps: float = 1e-6,
@@ -120,6 +119,7 @@ class TransformerDecoderBlock1(tf.keras.layers.Layer):
         # model (feedforward networks)
         causal_mask: bool = True,  # Whether to use a causal mask
         name=None,  # Name of the layer
+        i: int = 0,  # Index of the block
         **kwargs,
     ):
         super().__init__(name=name)
@@ -209,3 +209,29 @@ class TransformerDecoderBlock1(tf.keras.layers.Layer):
         self.clip_norm = clip_norm
         self.mixed_precision = mixed_precision
         self.learning_rate_schedule = learning_rate_schedule
+
+    # the call method of the transformer decoder block
+    def call(self, queries, keys, values, valid_lens, **kwargs):
+        # Multi-head attention 1 (self-attention)
+        attn_output1 = self.attention1(queries, queries, queries, **kwargs)
+        if self.addnorm1 is not None:
+            attn_output1 = self.addnorm1(queries, attn_output1, **kwargs)
+        else:
+            attn_output1 = queries + attn_output1
+
+        # Multi-head attention 2 (encoder-decoder --cross-- attention)
+        attn2_output, attn2_weights = self.attention2(
+            attn_output1, keys, values, **kwargs
+        )
+        if self.addnorm2 is not None:
+            attn2_output = self.addnorm2(attn_output1, attn2_output, **kwargs)
+        else:
+            attn2_output = attn_output1 + attn2_output
+
+        # Position-wise feedforward network
+        ffn_output = self.ffn(attn2_output)
+        if self.addnorm3 is not None:
+            ffn_output = self.addnorm3(attn2_output, ffn_output, **kwargs)
+        else:
+            ffn_output = attn2_output + ffn_output
+        return ffn_output, attn1_weights, attn2_weights

@@ -19,8 +19,8 @@ class TestDotProductAttention:
     # Test that the output shape of the `call` method is the same as the input shape of the queries, keys, and values
     def test_output_shape(self):
         queries, keys, values = self.x, self.x, self.x
-        output_scaled = self.dot_product_scaled(queries, keys, values)
-        output_unscaled = self.dot_product_unscaled(queries, keys, values)
+        output_scaled, _ = self.dot_product_scaled(queries, keys, values)
+        output_unscaled, _ = self.dot_product_unscaled(queries, keys, values)
         assert output_scaled.shape == (2, 3, 2)
         assert output_unscaled.shape == (2, 3, 2)
 
@@ -32,7 +32,7 @@ class TestDotProductAttention:
         queries, keys, values = x, x, x
 
         # Compute the dot-product attention
-        attention = dot_product(queries, keys, values)
+        attention, _ = dot_product(queries, keys, values)
 
         # Check that the attention tensor has the same shape as the input tensor
         assert attention.shape == x.shape
@@ -46,7 +46,7 @@ class TestDotProductAttention:
             dot_product = DotProductAttention()
 
             # Compute the dot-product attention
-            attention = dot_product(queries, keys, values)
+            attention, _ = dot_product(queries, keys, values)
 
             # Check that the attention tensor has the same shape as the input tensor
             assert attention.shape == queries.shape
@@ -59,14 +59,14 @@ class TestDotProductAttention:
         queries = tf.random.uniform([2, 2])
         keys = tf.random.uniform([2, 2])
         values = tf.random.uniform([2, 2])
-        output = dot_product(queries, keys, values)
+        output, _ = dot_product(queries, keys, values)
         assert output.shape == queries.shape
 
         # Test the call method with 3D input tensors
         queries = tf.random.uniform([2, 3, 2])
         keys = tf.random.uniform([2, 3, 2])
         values = tf.random.uniform([2, 3, 2])
-        output = dot_product(queries, keys, values)
+        output, _ = dot_product(queries, keys, values)
         assert output.shape == queries.shape
 
     @pytest.mark.parametrize(
@@ -86,7 +86,7 @@ class TestDotProductAttention:
         self, queries, keys, values, expected_output_shape, expected_output_values
     ):
         attention = DotProductAttention()
-        output = attention(queries, keys, values)
+        output, _ = attention(queries, keys, values)
 
         assert output.shape == expected_output_shape
         assert tf.reduce_all(output == expected_output_values)
