@@ -80,3 +80,11 @@ class TestTransformerEncoderBlock:
             input_tensor, global_step=10
         )
         assert transformer_encoder_block.learning_rate == 1e-3
+
+    def test_transformer_encoder_block_with_kernel_regularizer(
+        self, transformer_encoder_block
+    ):
+        input_tensor = tf.random.uniform((32, 10, 512))
+        transformer_encoder_block.kernel_regularizer = tf.keras.regularizers.l2(1e-4)
+        output_tensor, attn_weights = transformer_encoder_block(input_tensor)
+        assert output_tensor.shape == (32, 10, 512)
