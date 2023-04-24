@@ -1,11 +1,7 @@
-import os
-import sys
 import pytest
 import numpy as np
 import tensorflow as tf
 from tensorflow import keras
-
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../..")))
 
 from transformerx.layers import MultiHeadAttention
 
