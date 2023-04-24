@@ -1,6 +1,8 @@
 <div align="center">
 <h1><b>TransformerX</b></h1>
 <hr>
+<img src="logo.jpeg">
+
 <p><b>TransformerX</b> is a Python library for building transformer-based models.</p>
 </div>
 
@@ -44,12 +46,15 @@
 <p>Check out these blog posts on Medium:
 
 - <a href="https://towardsdatascience.com/the-map-of-transformers-e14952226398">The Map Of Transformers</a></p>
-- <a href="https://towardsdatascience.com/transformers-in-action-attention-is-all-you-need-ac10338a023a">Transformers in Action: Attention Is All You Need</a></p>
-- <a href="https://towardsdatascience.com/rethinking-thinking-how-do-attention-mechanisms-actually-work-a6f67d313f99">Rethinking Thinking: How Do Attention Mechanisms Actually Work?</a></p>
+- <a href="https://towardsdatascience.com/transformers-in-action-attention-is-all-you-need-ac10338a023a">Transformers in
+  Action: Attention Is All You Need</a></p>
+- <a href="https://towardsdatascience.com/rethinking-thinking-how-do-attention-mechanisms-actually-work-a6f67d313f99">
+  Rethinking Thinking: How Do Attention Mechanisms Actually Work?</a></p>
 
-<b>Note</b>: The <code>data_loader</code> and <code>training</code> modules are still under development and you may 
-want to use your own training and input pipeline. However, 
-the <code>layers</code> package is the core component and will remain the same (you can integrate it with Tensorflow already 🔜 Pytorch and JAX). 
+<b>Note</b>: The <code>data_loader</code> and <code>training</code> modules are still under development and you may
+want to use your own training and input pipeline. However,
+the <code>layers</code> package is the core component and will remain the same (you can integrate it with Tensorflow
+already 🔜 Pytorch and JAX).
 
 ```python
 from transformerx.data_loader import BaseDataset
@@ -101,25 +106,29 @@ trainer.fit(model, data)
 
 - [x] Support Tensorflow
 - [ ] Extensive documentation
-  - <a href="https://github.com/tensorops/TransformerX/issues/30">Documentation</a>
-  - Examples (Colab, etc.)
-  - Add more contents to the <a href="https://github.com/tensorops/TransformerX/blob/master/README.md">README.md</a>
+    - <a href="https://github.com/tensorops/TransformerX/issues/30">Documentation</a>
+    - Examples (Colab, etc.)
+    - Add more contents to the <a href="https://github.com/tensorops/TransformerX/blob/master/README.md">README.md</a>
 - [ ] Support Pytorch and JAX
 - [ ] More layers
     - <a href="https://github.com/tensorops/TransformerX/issues/44">Attention layers</a>
-  - <a href="https://github.com/tensorops/TransformerX/issues/42">Residual and residual gate layers</a>
-  - <a href="https://github.com/tensorops/TransformerX/issues/41">Embedding layers</a>
+    - <a href="https://github.com/tensorops/TransformerX/issues/42">Residual and residual gate layers</a>
+    - <a href="https://github.com/tensorops/TransformerX/issues/41">Embedding layers</a>
+
 </div>
 <div>
 <h2>Contribution</h2>
 
-Contributions are what make the open source community such an amazing place to learn, inspire, and create. Any contributions you make are <b>greatly appreciated</b>.
+Contributions are what make the open source community such an amazing place to learn, inspire, and create. Any
+contributions you make are <b>greatly appreciated</b>.
 
-In case you want to get ideas or just work on a ready-to-solve issue, please check out issues with the label `issue list`.
-Here is  a <a href="https://github.com/tensorops/TransformerX/issues?q=is%3Aissue+is%3Aopen+label%3A%22issue+list%22">
-list of issue lists</a> 
+In case you want to get ideas or just work on a ready-to-solve issue, please check out issues with the
+label `issue list`.
+Here is a <a href="https://github.com/tensorops/TransformerX/issues?q=is%3Aissue+is%3Aopen+label%3A%22issue+list%22">
+list of issue lists</a>
 
-If you have a suggestion that would make this better, please fork the repo and create a pull request. You can also simply open an issue with the tag "enhancement" or "bug". 
+If you have a suggestion that would make this better, please fork the repo and create a pull request. You can also
+simply open an issue with the tag "enhancement" or "bug".
 
 <ol>
 <li>Fork the Project</li>
@@ -129,7 +138,8 @@ If you have a suggestion that would make this better, please fork the repo and c
 <li>Open a Pull Request</li>
 </ol>
 
-<h3>If you find this project helpful or valuable, please consider giving it a star ⭐️</h3> Your support helps us to reach 
+<h3>If you find this project helpful or valuable, please consider giving it a star ⭐️</h3> Your support helps us to
+reach
 a wider audience and improve the project for everyone. <b>Thank you for your support!</b>
 </div>
 
