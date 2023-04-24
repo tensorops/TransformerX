@@ -2,7 +2,7 @@
 <h1><b>TransformerX</b></h1>
 <hr>
 <div>
-<img src="logo.jpeg" height="400">
+<img src="logo.jpeg" height="400" width="400">
 </div>
 <p><b>TransformerX</b> is a Python library for building transformer-based models.</p>
 </div>
