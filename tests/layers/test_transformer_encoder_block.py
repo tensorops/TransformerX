@@ -36,3 +36,9 @@ class TestTransformerEncoderBlock:
         transformer_encoder_block.clip_norm = 1.0
         output_tensor, attn_weights = transformer_encoder_block(input_tensor)
         assert tf.math.reduce_max(tf.norm(output_tensor, axis=-1)) <= 1.0
+
+    def test_transformer_encoder_block_with_layer_norm(self, transformer_encoder_block):
+        input_tensor = tf.random.uniform((32, 10, 512))
+        transformer_encoder_block.use_norm = True
+        output_tensor, attn_weights = transformer_encoder_block(input_tensor)
+        assert output_tensor.shape == (32, 10, 512)
