@@ -1,8 +1,9 @@
 <div align="center">
 <h1><b>TransformerX</b></h1>
 <hr>
-<img src="logo.jpeg">
-
+<div>
+<img src="logo.jpeg" height="400">
+</div>
 <p><b>TransformerX</b> is a Python library for building transformer-based models.</p>
 </div>
 
