@@ -1,13 +1,7 @@
-import numpy as np
 import pytest
 import tensorflow as tf
-from keras.layers import Layer, Input
-from keras.models import Model
 
 from transformerx.layers import TransformerDecoderBlock
-
-
-# Assuming the necessary imports for the TransformerDecoderBlock and its dependencies are done
 
 
 def test_transformer_decoder_block():
