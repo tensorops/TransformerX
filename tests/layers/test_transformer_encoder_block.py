@@ -12,3 +12,13 @@ class TestTransformerEncoderBlock:
         input_tensor = tf.random.uniform((32, 10, 512))
         output_tensor, attn_weights = transformer_encoder_block(input_tensor)
         assert output_tensor.shape == (32, 10, 512)
+
+    def test_transformer_encoder_block_with_attention_mask(
+        self, transformer_encoder_block
+    ):
+        input_tensor = tf.random.uniform((32, 10, 512))
+        attention_mask = tf.ones((32, 10))
+        output_tensor, attn_weights = transformer_encoder_block(
+            input_tensor, attention_mask=attention_mask
+        )
+        assert output_tensor.shape == (32, 10, 512)
