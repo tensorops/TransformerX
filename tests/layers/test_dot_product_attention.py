@@ -1,8 +1,11 @@
+import os
+import sys
 import numpy as np
 import pytest
 import tensorflow as tf
 
-from transformerx.utils import masked_softmax
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../..")))
+
 from transformerx.layers import DotProductAttention
 
 
