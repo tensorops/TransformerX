@@ -28,7 +28,7 @@
 
 <b>Here's why:</b>
 
-- Your time should be focused on creating something amazing
+- Your time should be focused on creating more advanced and complex tasks
 - You shouldn't be doing the same tasks over and over
 
 <div>
@@ -43,6 +43,7 @@
 
 <p>Check out these blog posts on Medium:
 
+- <a href="https://towardsdatascience.com/the-map-of-transformers-e14952226398">The Map Of Transformers</a></p>
 - <a href="https://towardsdatascience.com/transformers-in-action-attention-is-all-you-need-ac10338a023a">Transformers in Action: Attention Is All You Need</a></p>
 - <a href="https://towardsdatascience.com/rethinking-thinking-how-do-attention-mechanisms-actually-work-a6f67d313f99">Rethinking Thinking: How Do Attention Mechanisms Actually Work?</a></p>
 
@@ -115,7 +116,8 @@ trainer.fit(model, data)
 Contributions are what make the open source community such an amazing place to learn, inspire, and create. Any contributions you make are <b>greatly appreciated</b>.
 
 In case you want to get ideas or just work on a ready-to-solve issue, please check out issues with the label `issue list`.
-Here is  a list of lists: https://github.com/tensorops/TransformerX/issues?q=is%3Aissue+is%3Aopen+label%3A%22issue+list%22
+Here is  a <a href="https://github.com/tensorops/TransformerX/issues?q=is%3Aissue+is%3Aopen+label%3A%22issue+list%22">
+list of issue lists</a> 
 
 If you have a suggestion that would make this better, please fork the repo and create a pull request. You can also simply open an issue with the tag "enhancement" or "bug". 
 
@@ -127,16 +129,24 @@ If you have a suggestion that would make this better, please fork the repo and c
 <li>Open a Pull Request</li>
 </ol>
 
-<h3>Don't forget to give the project a star ⭐️! Thanks again!</h3>
+<h3>If you find this project helpful or valuable, please consider giving it a star ⭐️</h3> Your support helps us to reach 
+a wider audience and improve the project for everyone. <b>Thank you for your support!</b>
+</div>
+
+<div>
+<h2>Contributors</h2>
+<a href = "https://github.com/Tanu-N-Prabhu/Python/graphs/contributors">
+  <img src = "https://contrib.rocks/image?repo=tensorops/transformerx"/>
+</a>
 </div>
 
 <div>
 <h2>License</h2>
-<p>Released under the Apache 2.0 license</p>
+<p>Released under the Apache 2.0 license -> To be changed to MIT license after the first stable release</p>
 </div>
 
 <h2>Contact</h2>
-<div class="footer"><pre>Copyright &copy; 2021-2022 <b>TensorOps</b> Developers
+<div class="footer"><pre>Copyright &copy; 2021-2023 <b>TensorOps</b> Developers
 <a href="https://soran-ghaderi.github.io/"><b>Soran Ghaderi</b></a> (soran.gdr.cs@gmail.com)
 follow me on <a href="https://github.com/soran-ghaderi"><img alt="Github" src="https://img.shields.io/badge/GitHub-100000?&logo=github&logoColor=white"></a> <a href="https://twitter.com/soranghadri"><img alt="Twitter" src="https://img.shields.io/badge/Twitter-1DA1F2?&logo=twitter&logoColor=white"></a> <a href="https://www.linkedin.com/in/soran-ghaderi/"><img alt="Linkedin" src="https://img.shields.io/badge/LinkedIn-0077B5?&logo=linkedin&logoColor=white"></a>
 <br>
