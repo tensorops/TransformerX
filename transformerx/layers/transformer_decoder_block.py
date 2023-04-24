@@ -89,8 +89,8 @@ class TransformerDecoderBlock(tf.keras.layers.Layer):
         norm_type: str = "layer",  # Type of normalization (layer or batch) (feedforward networks)
         norm_eps: float = 1e-6,
         attention_mechanism: str = "scaled_dotproduct",
-        input_hidden_units_ffn: int = 32,  # Number of input hidden units in the feedforward network
-        output_hidden_units_ffn: int = 64,  # Number of output hidden units in the feedforward network
+        input_hidden_units_ffn: int = 2048,  # Number of input hidden units in the feedforward network
+        output_hidden_units_ffn: int = 512,  # Number of output hidden units in the feedforward network
         use_norm: bool = True,  # Whether to use normalization (layer or batch)
         residual_connections: Optional[
             Tuple[bool, bool]
@@ -182,7 +182,7 @@ class TransformerDecoderBlock(tf.keras.layers.Layer):
         # Position-wise feedforward network
         self.ffn = PositionwiseFFN(
             input_hidden_units=input_hidden_units_ffn,
-            output_hidden_units=output_hidden_units_ffn,
+            # output_hidden_units=output_hidden_units_ffn,
             activation=activation_fn,
             dropout_rate=dropout_rate,
             kernel_initializer=kernel_initializer,
@@ -211,7 +211,7 @@ class TransformerDecoderBlock(tf.keras.layers.Layer):
         self.learning_rate_schedule = learning_rate_schedule
 
     # the call method of the transformer decoder block
-    def call(self, queries, keys, values, valid_lens, **kwargs):
+    def call(self, queries, keys, values, attention_mask=None, **kwargs):
         # Multi-head attention 1 (self-attention)
         attn_output1, attn1_weights = self.attention1(
             queries, queries, queries, **kwargs
@@ -236,4 +236,22 @@ class TransformerDecoderBlock(tf.keras.layers.Layer):
             ffn_output = self.addnorm3(attn2_output, ffn_output, **kwargs)
         else:
             ffn_output = attn2_output + ffn_output
+
+        if self.clip_norm is not None:
+            ffn_output = tf.clip_by_norm(ffn_output, self.clip_norm)
+
+        if self.mixed_precision:
+            ffn_output = tf.keras.mixed_precision.experimental.cast(
+                ffn_output, dtype=tf.float32
+            )
+
+        if self.learning_rate_schedule is not None:
+            global_step = kwargs.get("global_step", None)
+            if global_step is None:
+                raise ValueError(
+                    "global_step must be provided if learning_rate_schedule is not None"
+                )
+            learning_rate = self.learning_rate_schedule(global_step)
+            self.add_metric(learning_rate, name="learning_rate")
+
         return ffn_output, attn1_weights, attn2_weights

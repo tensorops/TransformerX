@@ -126,8 +126,8 @@ class PositionwiseFFN(tf.keras.layers.Layer):
 
     def __init__(
         self,
-        input_hidden_units,
-        output_hidden_units,
+        input_hidden_units=2048,
+        # output_hidden_units=512,
         activation="relu",
         dropout_rate=0.0,
         kernel_initializer="glorot_uniform",
@@ -137,34 +137,47 @@ class PositionwiseFFN(tf.keras.layers.Layer):
         **kwargs
     ):
         super().__init__(**kwargs)
-        self.dense1 = tf.keras.layers.Dense(
-            input_hidden_units,
-            activation=activation,
-            kernel_initializer=kernel_initializer,
-            bias_initializer=bias_initializer,
-        )
+        self.input_hidden_units = input_hidden_units
+        # self.output_hidden_units = output_hidden_units
+
+        self.activation = activation
+        self.kernel_initializer = kernel_initializer
+        self.bias_initializer = bias_initializer
+
         self.non_linear_proj = non_linear_proj
+
+        self.contextualized_embeddings = contextualized_embeddings
+        self.dropout = tf.keras.layers.Dropout(rate=dropout_rate)
+
+    def build(self, input_shape):
+        super().build(input_shape)
+        output_hidden_units = input_shape[-1]
+        self.dense1 = tf.keras.layers.Dense(
+            self.input_hidden_units,
+            activation=self.activation,
+            kernel_initializer=self.kernel_initializer,
+            bias_initializer=self.bias_initializer,
+        )
+
         if self.non_linear_proj == "glu":
             self.glu = tf.keras.layers.Dense(
                 output_hidden_units * 2,
                 activation="sigmoid",
-                kernel_initializer=kernel_initializer,
+                kernel_initializer=self.kernel_initializer,
             )
         elif self.non_linear_proj == "selu":
             print("uner selu sectoin")
             self.selu = tf.keras.layers.Dense(
                 output_hidden_units * 2,
                 activation="selu",
-                kernel_initializer=kernel_initializer,
+                kernel_initializer=self.kernel_initializer,
             )
         else:
             self.dense2 = tf.keras.layers.Dense(
                 output_hidden_units,
-                activation=activation,
-                kernel_initializer=kernel_initializer,
+                activation=self.activation,
+                kernel_initializer=self.kernel_initializer,
             )
-        self.contextualized_embeddings = contextualized_embeddings
-        self.dropout = tf.keras.layers.Dropout(rate=dropout_rate)
 
     def call(self, x):
         # x.shape: (batch size, number of time steps or sequence length in tokens, number of hidden units or

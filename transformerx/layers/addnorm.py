@@ -153,8 +153,6 @@ class AddNorm(tf.keras.layers.Layer):
                 f"argument 'residual', but received: {residual}"
             )
 
-        residual = tf.keras.layers.Dense(x.shape[-1])(residual)
-
         # Apply dropout
         residual = self.dropout(residual, training=kwargs.get("training", False))
 
