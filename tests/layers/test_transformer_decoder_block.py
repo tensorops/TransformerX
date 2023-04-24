@@ -147,17 +147,6 @@ class TestTransformerDecoderBlock:
         output = transformer_block.ffn(queries)
         assert output.shape == (2, 5, 512)
 
-    def test_clip_norm2(self, transformer_block):
-        # Test that the clip_norm parameter is being used correctly
-        transformer_block.clip_norm = 1.0
-        queries = tf.ones(shape=(2, 5, 512))
-        keys = tf.ones(shape=(2, 10, 512))
-        values = tf.ones(shape=(2, 10, 512))
-        valid_lens = tf.constant([5, 7])
-        with pytest.raises(tf.errors.InvalidArgumentError) as e:
-            transformer_block.addnorm1(queries, queries + 100)
-        assert "was clipped to norm" in str(e.value)
-
     def test_clip_norm(self, transformer_block):
         block = TransformerDecoderBlock(
             d_model=512, num_heads=8, input_hidden_units_ffn=2048
