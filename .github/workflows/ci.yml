@@ -19,5 +19,5 @@ jobs:
       run: |
         pytest tests/
       env:
-        PYTHONPATH: ${{ github.workspace }}/TransformerX
+        PYTHONPATH: ${{ github.workspace }}
     - run: flake8
