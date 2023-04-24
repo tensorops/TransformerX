@@ -20,4 +20,7 @@ jobs:
         pytest tests/
       env:
         PYTHONPATH: ${{ github.workspace }}
+
+    - name: Install dependencies
+      run: pip install flake8
     - run: flake8
