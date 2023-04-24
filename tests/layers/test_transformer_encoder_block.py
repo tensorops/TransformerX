@@ -88,3 +88,11 @@ class TestTransformerEncoderBlock:
         transformer_encoder_block.kernel_regularizer = tf.keras.regularizers.l2(1e-4)
         output_tensor, attn_weights = transformer_encoder_block(input_tensor)
         assert output_tensor.shape == (32, 10, 512)
+
+    def test_transformer_encoder_block_with_bias_regularizer(
+        self, transformer_encoder_block
+    ):
+        input_tensor = tf.random.uniform((32, 10, 512))
+        transformer_encoder_block.bias_regularizer = tf.keras.regularizers.l2(1e-4)
+        output_tensor, attn_weights = transformer_encoder_block(input_tensor)
+        assert output_tensor.shape == (32, 10, 512)
