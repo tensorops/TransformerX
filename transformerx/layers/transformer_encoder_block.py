@@ -320,10 +320,10 @@ class TransformerEncoderBlock(tf.keras.layers.Layer):
             policy = mixed_precision.Policy("mixed_float16")
             mixed_precision.set_global_policy(policy)
 
-    def call(self, X, attention_mask=None, training=None, **kwargs):
-        assert len(X.shape) == 3, "Input tensor should have rank 3"
+    def call(self, queries, keys, values, attention_mask=None, training=None, **kwargs):
+        assert len(queries.shape) == 3, "Input tensor should have rank 3"
         assert (
-            X.shape[-1] == self.d_model
+            queries.shape[-1] == self.d_model
         ), "Last dimension of input tensor should be equal to d_model"
         # if attention_mask is not None:
         # attention_mask = tf.cast(attention_mask, tf.int32)
@@ -341,10 +341,12 @@ class TransformerEncoderBlock(tf.keras.layers.Layer):
             self.add_metric(self.learning_rate, name="learning_rate")
 
         attn_output, attn_weights = self.attention(
-            X, X, X, attention_mask, training=training, **kwargs
+            queries, keys, values, attention_mask, training=training, **kwargs
         )
         if self.addnorm1:
-            attn_output = self.addnorm1(X, attn_output, training=training, **kwargs)
+            attn_output = self.addnorm1(
+                queries, attn_output, training=training, **kwargs
+            )
         ffn_output = self.ffn(attn_output, training=training, **kwargs)
         if self.addnorm2:
             ffn_output = self.addnorm2(
@@ -354,7 +356,7 @@ class TransformerEncoderBlock(tf.keras.layers.Layer):
             output = ffn_output
         else:
             output = ffn_output if self.residual_connections[1] else attn_output
-            output = X + output if self.residual_connections[0] else output
+            output = queries + output if self.residual_connections[0] else output
         if self.clip_norm is not None:
             output = tf.clip_by_norm(output, self.clip_norm)
 

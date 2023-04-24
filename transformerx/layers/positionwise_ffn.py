@@ -161,13 +161,13 @@ class PositionwiseFFN(tf.keras.layers.Layer):
 
         if self.non_linear_proj == "glu":
             self.glu = tf.keras.layers.Dense(
-                output_hidden_units * 2,
+                output_hidden_units,
                 activation="sigmoid",
                 kernel_initializer=self.kernel_initializer,
             )
         elif self.non_linear_proj == "selu":
             self.selu = tf.keras.layers.Dense(
-                output_hidden_units * 2,
+                output_hidden_units,
                 activation="selu",
                 kernel_initializer=self.kernel_initializer,
             )
@@ -184,29 +184,19 @@ class PositionwiseFFN(tf.keras.layers.Layer):
         if self.contextualized_embeddings is not None:
             bert_output = self.contextualized_embeddings(x)
             x = bert_output[0]
-        if self.non_linear_proj == "glu":
-            x = self.dense1(x)
-            split_units = x.shape[-1] // 2
-            x = self.dropout(x)
-            return (
-                x[:, :, :split_units]
-                * tf.keras.activations.sigmoid(self.glu(x[:, :, split_units:]))[
-                    :, :, :split_units
-                ]
-            )
-        elif self.non_linear_proj == "selu":
-            x = self.dense1(x)
-            split_units = x.shape[-1] // 2
-            x = self.dropout(x)
-            return (
-                x[:, :, :split_units]
-                * tf.keras.activations.sigmoid(self.selu(x[:, :, split_units:]))[
-                    :, :, :split_units
-                ]
-            )
-        else:
+
+        if self.non_linear_proj is None:
             x = self.dropout(x)
             return self.dense2(self.dense1(x))
+        else:
+            x = self.dense1(x)
+            x = self.dropout(x)
+            if self.non_linear_proj == "glu":
+                gate = tf.keras.activations.sigmoid(self.glu(x))
+                return x * gate
+            elif self.non_linear_proj == "selu":
+                gate = tf.keras.activations.sigmoid(self.selu(x))
+                return x * gate
 
 
 os.environ["CUDA_VISIBLE_DEVICES"] = "-1"

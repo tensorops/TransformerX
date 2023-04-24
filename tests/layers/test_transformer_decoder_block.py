@@ -178,3 +178,4 @@ class TestTransformerDecoderBlock:
         # Check that the output tensor is of the correct shape and dtype
         assert output_tensor.shape == (2, 5, 512)
         assert output_tensor.dtype == tf.float16
+        # tf.keras.mixed_precision.set_global_policy("float32")

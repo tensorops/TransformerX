@@ -8,7 +8,6 @@ class TestPositionwiseFFN:
     def layer(self):
         return PositionwiseFFN(
             input_hidden_units=128,
-            output_hidden_units=64,
             activation="relu",
             kernel_initializer="glorot_uniform",
             non_linear_proj="glu",
@@ -20,7 +19,6 @@ class TestPositionwiseFFN:
     def layer_selu(self):
         return PositionwiseFFN(
             input_hidden_units=128,
-            output_hidden_units=64,
             activation="relu",
             kernel_initializer="glorot_uniform",
             non_linear_proj="selu",
@@ -32,7 +30,6 @@ class TestPositionwiseFFN:
     def layer_no_nonlinear(self):
         return PositionwiseFFN(
             input_hidden_units=128,
-            output_hidden_units=256,
             activation="relu",
             kernel_initializer="glorot_uniform",
             non_linear_proj=None,
@@ -43,7 +40,7 @@ class TestPositionwiseFFN:
     def test_layer_output_shape(self, layer):
         input_tensor = tf.random.normal([32, 20, 128])
         output_tensor = layer(input_tensor)
-        assert output_tensor.shape == (32, 20, 64)
+        assert output_tensor.shape == (32, 20, 128)
 
     def test_layer_output_type(self, layer):
         input_tensor = tf.random.normal([32, 20, 128])
@@ -53,14 +50,14 @@ class TestPositionwiseFFN:
     def test_layer_glu_non_linear_proj(self, layer):
         input_tensor = tf.random.normal([32, 20, 128])
         output_tensor = layer(input_tensor)
-        assert output_tensor.shape == (32, 20, 64)
+        assert output_tensor.shape == (32, 20, 128)
 
     def test_layer_selu_non_linear_proj(self, layer_selu):
         input_tensor = tf.random.normal([32, 20, 128])
         output_tensor = layer_selu(input_tensor)
-        assert output_tensor.shape == (32, 20, 64)
+        assert output_tensor.shape == (32, 20, 128)
 
     def test_layer_no_non_linear_proj(self, layer_no_nonlinear):
         input_tensor = tf.random.normal([32, 20, 128])
         output_tensor = layer_no_nonlinear(input_tensor)
-        assert output_tensor.shape == (32, 20, 256)
+        assert output_tensor.shape == (32, 20, 128)

@@ -131,7 +131,7 @@ class DotProductAttention(tf.keras.layers.Layer):
         if self.scaled:
             depth = queries.shape[-1]
 
-            scores = scores / tf.math.sqrt(tf.cast(depth, dtype=tf.float32))
+            scores = scores / tf.math.sqrt(tf.cast(depth, dtype=queries.dtype))
 
         # apply causal mask
         if self.causal_mask:
