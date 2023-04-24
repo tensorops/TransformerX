@@ -166,7 +166,6 @@ class PositionwiseFFN(tf.keras.layers.Layer):
                 kernel_initializer=self.kernel_initializer,
             )
         elif self.non_linear_proj == "selu":
-            print("uner selu sectoin")
             self.selu = tf.keras.layers.Dense(
                 output_hidden_units * 2,
                 activation="selu",
