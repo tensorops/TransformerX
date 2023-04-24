@@ -81,6 +81,134 @@ class TransformerDecoderBlockOld(tf.keras.layers.Layer):
 
 
 class TransformerDecoderBlock(tf.keras.layers.Layer):
+    """Transformer decoder block [1]_.
+
+    The TransformerDecoderBlock is a custom layer in TensorFlow Keras that implements a single block of the Transformer
+    decoder architecture [1]_, which is a key component of the Transformer model for natural language processing tasks 
+    such as machine translation, text summarization, and language generation. The layer includes multi-head attention 
+    mechanism, feedforward networks, and residual connections with optional normalization and other customization options.
+
+    Parameters
+    ----------
+    d_model: int (default=512)
+        Dimensionality of the input and output tensors.
+    num_heads: int (default=8)
+        Number of attention heads.
+    dropout_rate: float (default=0.0)
+        Dropout rate for the attention and feedforward networks.
+    norm_type: str (default="layer")
+        Type of normalization to be applied to the output of the feedforward networks. Can be either "layer", "batch",
+        or "instance".
+    norm_eps: float (default=1e-6)
+        Epsilon value for numerical stability in normalization.
+    attention_mechanism: str (default="scaled_dotproduct")
+        Type of attention mechanism to be used in the self-attention layer. Currently supports "scaled_dotproduct" and
+        other custom attention mechanisms.
+    input_hidden_units_ffn: int (default=32)
+        Number of hidden units in the input layer of the feedforward networks.
+    output_hidden_units_ffn: int (default=64)
+        Number of hidden units in the output layer of the feedforward networks.
+    use_norm: bool (default=True)
+        Whether to apply normalization to the output of the feedforward networks.
+    residual_connections: Optional[Tuple[bool, bool]] (default=None)
+        Tuple indicating whether to apply residual connections before and after the self-attention and feedforward
+        networks. If None, residual connections will be used by default.
+    activation_fn: Optional[Callable] (default=None)
+        Activation function to be used in the feedforward networks. If None, ReLU activation will be used by default.
+    non_linear_proj: Optional (default=None)
+        Non-linear projection function to be applied after the self-attention layer. If None, no non-linear projection
+        will be applied.
+    clip_norm: Optional[float] (default=None)
+        Maximum norm for gradient clipping during training.
+    kernel_initializer: Optional[Callable] (default=None)
+        Initializer for the kernel weights of the self-attention and feedforward networks.
+    bias_initializer: Optional[Callable] (default=None)
+        Initializer for the bias weights of the self-attention and feedforward networks.
+    mixed_precision: bool (default=False)
+        Whether to use mixed precision training, which combines float16 and float32 data types for faster training.
+    learning_rate_schedule: Optional[Callable] (default=None)
+        Learning rate schedule function to be applied during training. If None, no learning rate schedule will be used.
+    bias: bool (default=False)
+        Whether to include bias terms in the computation of the self-attention weights.
+    kernel_regularizer: Optional[tf.keras.regularizers.Regularizer] (default=None)
+        Regularizer for the kernel weights of the AddNorm layer.
+    bias_regularizer: Optional[tf.keras.regularizers.Regularizer] (default=None)
+        Regularizer for the bias weights of the AddNorm layer.
+    contextualized_embeddings: None (default=None)
+        Pre-trained language model embeddings to be incorporated into the feedforward networks for contextualization of
+        input embeddings.
+    casual_mask: bool (default=True)
+        Weather to use a casual mask. Allows information from the past to be used when computing the attention weights.
+    name: str (default=None)
+        The name of the layer.
+    i: int (default=0)
+        Index of the block.
+    **kwargs:
+        Additional keyword arguments for the parent class tf.keras.layers.Layer.
+
+    Methods
+    -------
+    call(X, state, **kwargs) :
+        Performs the forward propagation of the decoder block
+
+    Examples
+    --------
+    >>> # Example 1: Initialize a custom transformer layer with default parameters
+    >>> decoder_block = TransformerDecoderBlock()
+
+    >>> # Example 2: Initialize a custom transformer layer with custom parameters
+    >>> decoder_block = TransformerDecoderBlock(
+    ...     d_model=256,
+    ...     num_heads=4,
+    ...     dropout_rate=0.1,
+    ...     norm_type="batch",
+    ...     norm_eps=1e-5,
+    ...     attention_mechanism="scaled_dotproduct",
+    ...     input_hidden_units_ffn=64,
+    ...     output_hidden_units_ffn=128,
+    ...     use_norm=True,
+    ...     residual_connections=(True, True),
+    ...     activation_fn=tf.nn.relu,
+    ...     non_linear_proj=None,
+    ...     clip_norm=1.0,
+    ...     kernel_initializer=tf.keras.initializers.GlorotUniform(),
+    ...     bias_initializer=tf.keras.initializers.Zeros(),
+    ...     mixed_precision=False,
+    ...     learning_rate_schedule=None,
+    ...     bias=True,
+    ...     kernel_regularizer=tf.keras.regularizers.l2(0.01),
+    ...     bias_regularizer=None,
+    ...     contextualized_embeddings=None,
+    ...     casual_mask=True,
+    ...     name=None,
+    ...     i=0
+    ... )
+
+    References
+    ----------
+    .. [1] Vaswani, A., Shazeer, N., Parmar, N., Uszkoreit, J., Jones, L., Gomez, A. N., Kaiser, L.,
+        & Polosukhin, I. (2017). Attention is all you need. In Advances in neural information
+        processing systems (pp. 5998-6008).
+
+    Notes
+    -----
+    - This implementation follows the original Transformer model proposed by Vaswani et al. [1]_.
+    - The `attention_mechanism` parameter allows the user to specify the type of attention
+      mechanism to use in the multi-head self-attention layer. Possible values are "scaled_dot_product"
+      and "masked". If not specified, "scaled_dot_product" is used by default.
+    - The `use_norm` parameter controls whether to apply layer normalization after the multi-head
+      self-attention and FFN layers. If set to False, no layer normalization is applied.
+    - The `contextualized_embeddings` parameter allows the user to specify pre-trained contextualized
+      embeddings, such as BERT or ELMo embeddings, to be used in the FFN layer. If not specified,
+      standard embeddings are used by default.
+    - The `mixed_precision` parameter enables mixed precision training using TensorFlow's
+      experimental `mixed_float16` policy.
+    - The `learning_rate_schedule` parameter allows the user to specify a custom learning rate
+      schedule for the optimizer. The learning rate schedule should be a callable object that takes
+      the current training step as input and returns the learning rate for that step.
+    - The `casual_mask` parameter is useful for tasks where the output at time step t should only depend
+      on the inputs up to time step t-1, such as language modeling or sequence prediction.
+    """
     def __init__(
         self,
         d_model: int = 512,  # Dimensionality of the input and output tensors
