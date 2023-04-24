@@ -264,9 +264,7 @@ class TransformerEncoderBlock(tf.keras.layers.Layer):
             assert callable(
                 bias_initializer
             ), "bias_initializer should be a callable object"
-        if mixed_precision:
-            policy = tf.keras.mixed_precision.experimental.Policy("mixed_float16")
-            tf.keras.mixed_precision.experimental.set_policy(policy)
+
         if learning_rate_schedule is not None:
             assert callable(
                 learning_rate_schedule
@@ -291,7 +289,7 @@ class TransformerEncoderBlock(tf.keras.layers.Layer):
         )
         self.ffn = PositionwiseFFN(
             input_hidden_units=input_hidden_units_ffn,
-            output_hidden_units=output_hidden_units_ffn,
+            # output_hidden_units=output_hidden_units_ffn,
             activation=activation_fn,
             dropout_rate=dropout_rate,
             kernel_initializer=kernel_initializer,
@@ -318,10 +316,14 @@ class TransformerEncoderBlock(tf.keras.layers.Layer):
         self.mixed_precision = mixed_precision
         self.learning_rate_schedule = learning_rate_schedule
 
-    def call(self, X, attention_mask=None, training=None, **kwargs):
-        assert len(X.shape) == 3, "Input tensor should have rank 3"
+        if self.mixed_precision:
+            policy = mixed_precision.Policy("mixed_float16")
+            mixed_precision.set_global_policy(policy)
+
+    def call(self, queries, keys, values, attention_mask=None, training=None, **kwargs):
+        assert len(queries.shape) == 3, "Input tensor should have rank 3"
         assert (
-            X.shape[-1] == self.d_model
+            queries.shape[-1] == self.d_model
         ), "Last dimension of input tensor should be equal to d_model"
         # if attention_mask is not None:
         # attention_mask = tf.cast(attention_mask, tf.int32)
@@ -329,12 +331,22 @@ class TransformerEncoderBlock(tf.keras.layers.Layer):
         #     len(attention_mask.shape) == 1
         # ), "attention_mask should be a 1D tensor"
         # assert isinstance(attention_mask[0].numpy(), int), 'Elements of attention_mask should be integers'
+        if self.learning_rate_schedule is not None:
+            global_step = kwargs.get("global_step", None)
+            if global_step is None:
+                raise ValueError(
+                    "global_step must be provided if learning_rate_schedule is not None"
+                )
+            self.learning_rate = self.learning_rate_schedule(global_step)
+            self.add_metric(self.learning_rate, name="learning_rate")
 
-        attn_output = self.attention(
-            X, X, X, attention_mask, training=training, **kwargs
+        attn_output, attn_weights = self.attention(
+            queries, keys, values, attention_mask, training=training, **kwargs
         )
         if self.addnorm1:
-            attn_output = self.addnorm1(X, attn_output, training=training, **kwargs)
+            attn_output = self.addnorm1(
+                queries, attn_output, training=training, **kwargs
+            )
         ffn_output = self.ffn(attn_output, training=training, **kwargs)
         if self.addnorm2:
             ffn_output = self.addnorm2(
@@ -344,22 +356,11 @@ class TransformerEncoderBlock(tf.keras.layers.Layer):
             output = ffn_output
         else:
             output = ffn_output if self.residual_connections[1] else attn_output
-            output = X + output if self.residual_connections[0] else output
+            output = queries + output if self.residual_connections[0] else output
         if self.clip_norm is not None:
             output = tf.clip_by_norm(output, self.clip_norm)
-        if self.mixed_precision:
-            output = tf.keras.mixed_precision.experimental.cast(
-                output, dtype=tf.float32
-            )
-        if self.learning_rate_schedule is not None:
-            global_step = kwargs.get("global_step", None)
-            if global_step is None:
-                raise ValueError(
-                    "global_step must be provided if learning_rate_schedule is not None"
-                )
-            learning_rate = self.learning_rate_schedule(global_step)
-            self.add_metric(learning_rate, name="learning_rate")
-        return output
+
+        return output, attn_weights
 
 
 def main():

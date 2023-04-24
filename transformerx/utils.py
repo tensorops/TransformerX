@@ -20,8 +20,6 @@ def sequence_mask(X, attention_mask, value=-1e9):
         )
     else:
         maxlen = X.shape[0]
-        print("range.shape: ", tf.range(start=0, limit=maxlen, dtype=tf.float32).shape)
-        print("attention mask.shape: ", tf.cast(attention_mask, dtype=tf.float32).shape)
         mask = tf.range(start=0, limit=maxlen, dtype=tf.float32) < tf.cast(
             attention_mask, dtype=tf.float32
         )
@@ -39,7 +37,6 @@ def masked_softmax(X, attention_mask, temperature=1.0):
     if attention_mask is None:
         return tf.nn.softmax(X / temperature, axis=-1)
     else:
-        print("attention mask len: ", len(attention_mask.shape))
         shape = X.shape
         if isinstance(attention_mask, tf.SparseTensor):
             attention_mask = tf.sparse.reshape(attention_mask, shape=(-1,))
