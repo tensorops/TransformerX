@@ -161,3 +161,4 @@ class TestTransformerEncoderBlockIntegration:
         optimizer.apply_gradients(zip(gradients, model.trainable_variables))
 
         assert loss is not None
+        assert gradients is not None
