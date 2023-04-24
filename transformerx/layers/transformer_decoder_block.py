@@ -90,7 +90,7 @@ class TransformerDecoderBlock(tf.keras.layers.Layer):
         norm_eps: float = 1e-6,
         attention_mechanism: str = "scaled_dotproduct",
         input_hidden_units_ffn: int = 2048,  # Number of input hidden units in the feedforward network
-        output_hidden_units_ffn: int = 512,  # Number of output hidden units in the feedforward network
+        # output_hidden_units_ffn: int = 512,  # Number of output hidden units in the feedforward network
         use_norm: bool = True,  # Whether to use normalization (layer or batch)
         residual_connections: Optional[
             Tuple[bool, bool]
@@ -210,6 +210,10 @@ class TransformerDecoderBlock(tf.keras.layers.Layer):
         self.mixed_precision = mixed_precision
         self.learning_rate_schedule = learning_rate_schedule
 
+        if self.mixed_precision:
+            policy = mixed_precision.Policy("mixed_float16")
+            mixed_precision.set_global_policy(policy)
+
     # the call method of the transformer decoder block
     def call(self, queries, keys, values, attention_mask=None, **kwargs):
         # Multi-head attention 1 (self-attention)
@@ -239,11 +243,6 @@ class TransformerDecoderBlock(tf.keras.layers.Layer):
 
         if self.clip_norm is not None:
             ffn_output = tf.clip_by_norm(ffn_output, self.clip_norm)
-
-        if self.mixed_precision:
-            ffn_output = tf.keras.mixed_precision.experimental.cast(
-                ffn_output, dtype=tf.float32
-            )
 
         if self.learning_rate_schedule is not None:
             global_step = kwargs.get("global_step", None)

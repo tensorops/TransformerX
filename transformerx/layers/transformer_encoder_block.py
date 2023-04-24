@@ -264,9 +264,7 @@ class TransformerEncoderBlock(tf.keras.layers.Layer):
             assert callable(
                 bias_initializer
             ), "bias_initializer should be a callable object"
-        if mixed_precision:
-            policy = tf.keras.mixed_precision.experimental.Policy("mixed_float16")
-            tf.keras.mixed_precision.experimental.set_policy(policy)
+
         if learning_rate_schedule is not None:
             assert callable(
                 learning_rate_schedule
@@ -318,6 +316,10 @@ class TransformerEncoderBlock(tf.keras.layers.Layer):
         self.mixed_precision = mixed_precision
         self.learning_rate_schedule = learning_rate_schedule
 
+        if self.mixed_precision:
+            policy = mixed_precision.Policy("mixed_float16")
+            mixed_precision.set_global_policy(policy)
+
     def call(self, X, attention_mask=None, training=None, **kwargs):
         assert len(X.shape) == 3, "Input tensor should have rank 3"
         assert (
@@ -347,10 +349,6 @@ class TransformerEncoderBlock(tf.keras.layers.Layer):
             output = X + output if self.residual_connections[0] else output
         if self.clip_norm is not None:
             output = tf.clip_by_norm(output, self.clip_norm)
-        if self.mixed_precision:
-            output = tf.keras.mixed_precision.experimental.cast(
-                output, dtype=tf.float32
-            )
         if self.learning_rate_schedule is not None:
             global_step = kwargs.get("global_step", None)
             if global_step is None:
