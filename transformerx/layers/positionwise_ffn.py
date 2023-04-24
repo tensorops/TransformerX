@@ -136,7 +136,7 @@ class PositionwiseFFN(tf.keras.layers.Layer):
         contextualized_embeddings=None,
         **kwargs
     ):
-        super().__init__(**kwargs)
+        super(PositionwiseFFN, self).__init__(**kwargs)
         self.input_hidden_units = input_hidden_units
         # self.output_hidden_units = output_hidden_units
 
@@ -179,7 +179,7 @@ class PositionwiseFFN(tf.keras.layers.Layer):
                 kernel_initializer=self.kernel_initializer,
             )
 
-    def call(self, x):
+    def call(self, x, **kwargs):
         # x.shape: (batch size, number of time steps or sequence length in tokens, number of hidden units or
         # feature dimension)
         if self.contextualized_embeddings is not None:

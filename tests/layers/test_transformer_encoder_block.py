@@ -70,3 +70,13 @@ class TestTransformerEncoderBlock:
         transformer_encoder_block.mixed_precision = True
         output_tensor, attn_weights = transformer_encoder_block(input_tensor)
         assert output_tensor.dtype == tf.float32
+
+    def test_transformer_encoder_block_with_learning_rate_schedule(
+        self, transformer_encoder_block
+    ):
+        input_tensor = tf.random.uniform((32, 10, 512))
+        transformer_encoder_block.learning_rate_schedule = lambda x: 1e-4 * x
+        output_tensor, attn_weights = transformer_encoder_block(
+            input_tensor, global_step=10
+        )
+        assert transformer_encoder_block.learning_rate == 1e-3

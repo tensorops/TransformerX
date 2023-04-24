@@ -331,6 +331,14 @@ class TransformerEncoderBlock(tf.keras.layers.Layer):
         #     len(attention_mask.shape) == 1
         # ), "attention_mask should be a 1D tensor"
         # assert isinstance(attention_mask[0].numpy(), int), 'Elements of attention_mask should be integers'
+        if self.learning_rate_schedule is not None:
+            global_step = kwargs.get("global_step", None)
+            if global_step is None:
+                raise ValueError(
+                    "global_step must be provided if learning_rate_schedule is not None"
+                )
+            self.learning_rate = self.learning_rate_schedule(global_step)
+            self.add_metric(self.learning_rate, name="learning_rate")
 
         attn_output, attn_weights = self.attention(
             X, X, X, attention_mask, training=training, **kwargs
@@ -349,14 +357,7 @@ class TransformerEncoderBlock(tf.keras.layers.Layer):
             output = X + output if self.residual_connections[0] else output
         if self.clip_norm is not None:
             output = tf.clip_by_norm(output, self.clip_norm)
-        if self.learning_rate_schedule is not None:
-            global_step = kwargs.get("global_step", None)
-            if global_step is None:
-                raise ValueError(
-                    "global_step must be provided if learning_rate_schedule is not None"
-                )
-            learning_rate = self.learning_rate_schedule(global_step)
-            self.add_metric(learning_rate, name="learning_rate")
+
         return output, attn_weights
 
 
