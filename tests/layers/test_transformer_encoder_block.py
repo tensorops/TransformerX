@@ -112,3 +112,18 @@ class TestTransformerEncoderBlock:
         transformer_encoder_block.contextualized_embeddings = tf.keras.layers.Dense(768)
         output_tensor, attn_weights = transformer_encoder_block(input_tensor)
         assert output_tensor.shape == (32, 10, 512)
+
+
+class TestTransformerEncoderBlockIntegration:
+    @pytest.fixture
+    def transformer_encoder_block(self):
+        return TransformerEncoderBlock()
+
+    def test_transformer_encoder_block_with_embedding_layer(
+        self, transformer_encoder_block
+    ):
+        input_data = tf.random.uniform((32, 10), minval=0, maxval=100, dtype=tf.int32)
+        embedding_layer = tf.keras.layers.Embedding(input_dim=100, output_dim=512)
+        input_tensor = embedding_layer(input_data)
+        output_tensor, attn_weights = transformer_encoder_block(input_tensor)
+        assert output_tensor.shape == (32, 10, 512)
