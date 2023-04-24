@@ -291,7 +291,7 @@ class TransformerEncoderBlock(tf.keras.layers.Layer):
         )
         self.ffn = PositionwiseFFN(
             input_hidden_units=input_hidden_units_ffn,
-            output_hidden_units=output_hidden_units_ffn,
+            # output_hidden_units=output_hidden_units_ffn,
             activation=activation_fn,
             dropout_rate=dropout_rate,
             kernel_initializer=kernel_initializer,
@@ -330,7 +330,7 @@ class TransformerEncoderBlock(tf.keras.layers.Layer):
         # ), "attention_mask should be a 1D tensor"
         # assert isinstance(attention_mask[0].numpy(), int), 'Elements of attention_mask should be integers'
 
-        attn_output = self.attention(
+        attn_output, attn_weights = self.attention(
             X, X, X, attention_mask, training=training, **kwargs
         )
         if self.addnorm1:
@@ -359,7 +359,7 @@ class TransformerEncoderBlock(tf.keras.layers.Layer):
                 )
             learning_rate = self.learning_rate_schedule(global_step)
             self.add_metric(learning_rate, name="learning_rate")
-        return output
+        return output, attn_weights
 
 
 def main():
