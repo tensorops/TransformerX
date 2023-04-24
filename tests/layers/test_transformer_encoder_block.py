@@ -136,3 +136,28 @@ class TestTransformerEncoderBlockIntegration:
         dense_layer = tf.keras.layers.Dense(units=256, activation="relu")
         output_tensor = dense_layer(output_tensor)
         assert output_tensor.shape == (32, 10, 256)
+
+    def test_transformer_encoder_block_training(self, transformer_encoder_block):
+        input_data = tf.random.uniform((32, 10), minval=0, maxval=100, dtype=tf.int32)
+        target_data = tf.random.uniform((32, 10), minval=0, maxval=100, dtype=tf.int32)
+
+        input_layer = tf.keras.layers.Input(shape=(10,), dtype=tf.int32)
+        embedding_layer = tf.keras.layers.Embedding(input_dim=100, output_dim=512)
+        input_tensor = embedding_layer(input_layer)
+        output_tensor, attn_weights = transformer_encoder_block(input_tensor)
+        dense_layer = tf.keras.layers.Dense(units=100)
+        output_tensor = dense_layer(output_tensor)
+
+        model = tf.keras.Model(inputs=input_layer, outputs=output_tensor)
+
+        loss_object = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
+        optimizer = tf.keras.optimizers.Adam()
+
+        with tf.GradientTape() as tape:
+            predictions = model(input_data)
+            loss = loss_object(target_data, predictions)
+
+        gradients = tape.gradient(loss, model.trainable_variables)
+        optimizer.apply_gradients(zip(gradients, model.trainable_variables))
+
+        assert loss is not None
