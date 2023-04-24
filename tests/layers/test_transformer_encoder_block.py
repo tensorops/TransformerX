@@ -42,3 +42,11 @@ class TestTransformerEncoderBlock:
         transformer_encoder_block.use_norm = True
         output_tensor, attn_weights = transformer_encoder_block(input_tensor)
         assert output_tensor.shape == (32, 10, 512)
+
+    def test_transformer_encoder_block_without_layer_norm(
+        self, transformer_encoder_block
+    ):
+        input_tensor = tf.random.uniform((32, 10, 512))
+        transformer_encoder_block.use_norm = False
+        output_tensor, attn_weights = transformer_encoder_block(input_tensor)
+        assert output_tensor.shape == (32, 10, 512)
