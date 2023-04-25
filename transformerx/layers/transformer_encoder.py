@@ -169,13 +169,14 @@ class TransformerEncoder(tf.keras.layers.Layer):
         ]
 
     def apply_positional_embedding(self, inputs=None, **kwargs):
+        embedded_inputs = self.embedding(inputs)
         return self.pos_encoding(
-            self.embedding(inputs)
-            * tf.math.sqrt(tf.cast(self.d_model, dtype=tf.float32)),
+            embedded_inputs
+            * tf.math.sqrt(tf.cast(self.d_model, dtype=embedded_inputs.dtype)),
             **kwargs,
         )
 
-    def call(self, queries, keys, values, valid_lens=None, **kwargs):
+    def call(self, queries, keys, values, attention_mask=None, **kwargs):
         """Compute the output representation for the input sequence.
 
         This method computes the output representation for the input sequence by first passing it
@@ -186,7 +187,7 @@ class TransformerEncoder(tf.keras.layers.Layer):
         ----------
         queries : tf.Tensor
             The input sequence tensor of shape (batch_size, seq_length).
-        valid_lens : tf.Tensor
+        attention_mask : tf.Tensor
             The tensor of valid sequence lengths of shape (batch_size,) or (batch_size, seq_length).
         **kwargs : dict
             Additional keyword arguments to be passed to the TransformerEncoderBlock blocks.
@@ -214,7 +215,7 @@ class TransformerEncoder(tf.keras.layers.Layer):
         >>> # Compute the output representation for a batch of input sequences
         >>> input_sequences = tf.random.uniform((batch_size, seq_length))
         >>> valid_lens = tf.random.uniform((batch_size,))
-        >>> output_representation = transformer_encoder(input_sequences, valid_lens)
+        >>> output_representation = transformer_encoder(input_sequences, attention_mask)
         >>>
         >>> # Get the attention weights of the TransformerEncoderBlock blocks
         >>> attention_weights = transformer_encoder.attention_weights
@@ -228,6 +229,8 @@ class TransformerEncoder(tf.keras.layers.Layer):
 
         self.attention_weights = [None] * len(self.blocks)
         for i, blk in enumerate(self.blocks):
-            queries, attn_weights = blk(queries, keys, values, **kwargs)
+            queries, attn_weights = blk(
+                queries, keys, values, attention_mask=attention_mask, **kwargs
+            )
             self.attention_weights[i] = attn_weights
         return queries, self.attention_weights

@@ -319,7 +319,7 @@ class TransformerEncoderBlock(tf.keras.layers.Layer):
             policy = mixed_precision.Policy("mixed_float16")
             mixed_precision.set_global_policy(policy)
 
-    def call(self, queries, keys, values, attention_mask=None, training=None, **kwargs):
+    def call(self, queries, keys, values, attention_mask=None, **kwargs):
         assert len(queries.shape) == 3, "Input tensor should have rank 3"
         assert (
             queries.shape[-1] == self.d_model
@@ -340,17 +340,13 @@ class TransformerEncoderBlock(tf.keras.layers.Layer):
             self.add_metric(self.learning_rate, name="learning_rate")
 
         attn_output, attn_weights = self.attention(
-            queries, keys, values, attention_mask, training=training, **kwargs
+            queries, keys, values, attention_mask, **kwargs
         )
         if self.addnorm1:
-            attn_output = self.addnorm1(
-                queries, attn_output, training=training, **kwargs
-            )
-        ffn_output = self.ffn(attn_output, training=training, **kwargs)
+            attn_output = self.addnorm1(queries, attn_output, **kwargs)
+        ffn_output = self.ffn(attn_output, **kwargs)
         if self.addnorm2:
-            ffn_output = self.addnorm2(
-                attn_output, ffn_output, training=training, **kwargs
-            )
+            ffn_output = self.addnorm2(attn_output, ffn_output, **kwargs)
         if self.residual_connections is None:
             output = ffn_output
         else:

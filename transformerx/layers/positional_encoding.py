@@ -75,6 +75,7 @@ class SinePositionalEncoding(tf.keras.layers.Layer):
         self.P = tf.concat([even_encoding, odd_encoding], axis=-1)[tf.newaxis, :, :]
 
     def call(self, X, **kwargs):
+        self.P = tf.cast(self.P, dtype=X.dtype)
         X = X + self.P[:, : tf.shape(X)[1], :]
         X = self.dropout(X, **kwargs)
         return X
