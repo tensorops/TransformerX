@@ -24,9 +24,6 @@ jobs:
     - name: Close Stale Issues
       uses: actions/stale@v4.1.1
 
-    - name: KiBot GitHub action
-      uses: INTI-CMNB/KiBot@v2_k7
-
 
 #    - name: Install dependencies
 #      run: pip install flake8
