@@ -16,3 +16,9 @@ class TestTransformerEncoder:
         input_data = tf.constant([[1, 2, 3], [4, 5, 6]], dtype=tf.int32)
         embedded_data = encoder.embedding(input_data)
         assert embedded_data.shape == (2, 3, 128)
+
+    def test_positional_encoding_output_shape(self, encoder):
+        input_data = tf.constant([[1, 2, 3], [4, 5, 6]], dtype=tf.int32)
+        embedded_data = encoder.embedding(input_data)
+        pos_encoded_data = encoder.pos_encoding(embedded_data)
+        assert pos_encoded_data.shape == (2, 3, 128)
