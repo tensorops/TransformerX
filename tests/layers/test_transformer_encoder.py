@@ -89,3 +89,9 @@ class TestTransformerEncoderIntegration:
         assert (
             history.history["accuracy"][-1] > 0.5
         ), "Training accuracy should be greater than 0.5"
+
+    def test_evaluation(self, model):
+        X, y = self.create_toy_dataset()
+        history = model.fit(X, y, epochs=5, batch_size=32, validation_split=0.2)
+        loss, accuracy = model.evaluate(X, y)
+        assert accuracy > 0.5, "Evaluation accuracy should be greater than 0.5"
