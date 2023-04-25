@@ -221,6 +221,6 @@ class TransformerEncoder(tf.keras.layers.Layer):
         )
         self.attention_weights = [None] * len(self.blocks)
         for i, blk in enumerate(self.blocks):
-            X = blk(X, valid_lens, **kwargs)
-            self.attention_weights[i] = blk.attention.attention.attention_weights
-        return X
+            X, attn_weights = blk(X, valid_lens, **kwargs)
+            self.attention_weights[i] = attn_weights
+        return X, attn_weights

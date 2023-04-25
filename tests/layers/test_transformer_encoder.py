@@ -22,3 +22,13 @@ class TestTransformerEncoder:
         embedded_data = encoder.embedding(input_data)
         pos_encoded_data = encoder.pos_encoding(embedded_data)
         assert pos_encoded_data.shape == (2, 3, 128)
+
+    def test_encoder_block_output_shape(self, encoder):
+        input_data = tf.constant([[1, 2, 3], [4, 5, 6]], dtype=tf.int32)
+        valid_lens = tf.constant([3, 2], dtype=tf.float32)
+        embedded_data = encoder.embedding(input_data)
+        pos_encoded_data = encoder.pos_encoding(embedded_data)
+        block_output, block_attn_weights = encoder.blocks[0](
+            pos_encoded_data, pos_encoded_data, pos_encoded_data
+        )
+        assert block_output.shape == (2, 3, 128)
