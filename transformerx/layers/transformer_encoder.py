@@ -1,3 +1,5 @@
+from typing import Optional, Callable, Tuple
+
 import tensorflow as tf
 
 from transformerx.layers.positional_encoding import SinePositionalEncoding
@@ -18,8 +20,8 @@ class TransformerEncoder(tf.keras.layers.Layer):
     ----------
     vocab_size : int
         The size of the input vocabulary.
-    depth : int
-        The depth of the input and output representations.
+    d_model : int
+        The d_model of the input and output representations.
     norm_shape : int
         The shape of the normalization layer.
     ffn_num_hiddens : int
@@ -30,7 +32,7 @@ class TransformerEncoder(tf.keras.layers.Layer):
         The number of TransformerEncoderBlock blocks.
     dropout : float
         The dropout rate.
-    bias : bool
+    use_bias : bool
         Whether to use bias in the linear transformations of the TransformerEncoderBlock.
         Default is False.
 
@@ -48,12 +50,12 @@ class TransformerEncoder(tf.keras.layers.Layer):
 
     Examples
     --------
-    >>> # Create a TransformerEncoder instance with a vocabulary size of 1000, a depth of 128,
+    >>> # Create a TransformerEncoder instance with a vocabulary size of 1000, a d_model of 128,
     >>> # a normalization shape of 4, 64 hidden units in the feed-forward network, 8 attention heads,
     >>> # 2 TransformerEncoderBlock blocks, and a dropout rate of 0.1
     >>> transformer_encoder = TransformerEncoder(
     ...     vocab_size=1000,
-    ...     depth=128,
+    ...     d_model=128,
     ...     norm_shape=4,
     ...     ffn_num_hiddens=64,
     ...     num_heads=8,
@@ -72,28 +74,96 @@ class TransformerEncoder(tf.keras.layers.Layer):
 
     def __init__(
         self,
-        vocab_size,
-        depth,
-        norm_shape,
-        ffn_num_hiddens,
-        num_heads,
-        n_blocks,
-        dropout,
-        bias=False,
+        vocab_size: int,
+        max_len: int,
+        d_model: int = 512,
+        num_heads: int = 8,
+        n_blocks: int = 6,
+        maximum_position_encoding: int = 10000,
+        attention_dropout: float = 0.0,
+        use_bert_config: bool = False,
+        norm_type: str = "layer",
+        norm_eps: float = 1e-6,
+        use_norm: bool = True,
+        rescale_embedding: bool = False,
+        dropout_rate: float = 0.1,
+        attention_mechanism: str = "scaled_dotproduct",
+        input_hidden_units_ffn: int = 64,
+        residual_connections: Optional[Tuple[bool, bool]] = (True, True),
+        activation_fn: Optional[Callable] = tf.nn.relu,
+        non_linear_proj=None,
+        clip_norm: Optional[float] = 1.0,
+        kernel_initializer: Optional[Callable] = tf.keras.initializers.GlorotUniform(),
+        bias_initializer: Optional[Callable] = tf.keras.initializers.Zeros(),
+        kernel_regularizer: Optional[
+            tf.keras.regularizers.Regularizer
+        ] = tf.keras.regularizers.l2(0.01),
+        bias_regularizer: Optional[tf.keras.regularizers.Regularizer] = None,
+        mixed_precision: bool = False,
+        learning_rate_schedule: Optional[Callable] = None,
+        use_bias: bool = True,
+        contextualized_embeddings=None,
+        **kwargs,
     ):
         super().__init__()
-        self.depth = depth
+        self.vocab_size = vocab_size
+        self.max_len = max_len
+        self.d_model = d_model
+        self.num_heads = num_heads
         self.n_blocks = n_blocks
-        self.embedding = tf.keras.layers.Embedding(vocab_size, depth)
-        self.pos_encoding = SinePositionalEncoding(depth, dropout)
+        self.maximum_position_encoding = maximum_position_encoding
+        self.attention_dropout = attention_dropout
+        self.use_bert_config = use_bert_config
+        self.norm_type = norm_type
+        self.norm_eps = norm_eps
+        self.use_norm = use_norm
+        self.rescale_embedding = rescale_embedding
+        self.dropout_rate = dropout_rate
+        self.attention_mechanism = attention_mechanism
+        self.input_hidden_units_ffn = input_hidden_units_ffn
+        self.residual_connections = residual_connections
+        self.activation_fn = activation_fn
+        self.non_linear_proj = non_linear_proj
+        self.clip_norm = clip_norm
+        self.kernel_initializer = kernel_initializer
+        self.bias_initializer = bias_initializer
+        self.kernel_regularizer = kernel_regularizer
+        self.bias_regularizer = bias_regularizer
+        self.mixed_precision = mixed_precision
+        self.learning_rate_schedule = learning_rate_schedule
+        self.use_bias = use_bias
+        self.contextualized_embeddings = contextualized_embeddings
+
+        self.pos_encoding = SinePositionalEncoding(
+            d_model=d_model,
+            dropout_rate=dropout_rate,
+            maximum_position_encoding=maximum_position_encoding,
+            **kwargs,
+        )
+        self.embedding = tf.keras.layers.Embedding(vocab_size, d_model)
         self.blocks = [
             TransformerEncoderBlock(
-                depth,
-                norm_shape,
-                ffn_num_hiddens,
-                num_heads,
-                dropout,
-                bias,
+                d_model=d_model,
+                num_heads=num_heads,
+                dropout_rate=dropout_rate,
+                norm_type=norm_type,
+                norm_eps=norm_eps,
+                use_norm=use_norm,
+                attention_mechanism=attention_mechanism,
+                input_hidden_units_ffn=input_hidden_units_ffn,
+                residual_connections=residual_connections,
+                activation_fn=activation_fn,
+                non_linear_proj=non_linear_proj,
+                clip_norm=clip_norm,
+                kernel_initializer=kernel_initializer,
+                bias_initializer=bias_initializer,
+                kernel_regularizer=kernel_regularizer,
+                bias_regularizer=bias_regularizer,
+                mixed_precision=mixed_precision,
+                learning_rate_schedule=learning_rate_schedule,
+                use_bias=use_bias,
+                contextualized_embeddings=contextualized_embeddings,
+                **kwargs,
             )
             for _ in range(self.n_blocks)
         ]
@@ -117,16 +187,16 @@ class TransformerEncoder(tf.keras.layers.Layer):
         Returns
         -------
         output_representation : tf.Tensor
-            The output representation tensor of shape (batch_size, seq_length, depth).
+            The output representation tensor of shape (batch_size, seq_length, d_model).
 
         Examples
         --------
-        >>> # Create a TransformerEncoder instance with a vocabulary size of 1000, a depth of 128,
+        >>> # Create a TransformerEncoder instance with a vocabulary size of 1000, a d_model of 128,
         >>> # a normalization shape of 4, 64 hidden units in the feed-forward network, 8 attention heads,
         >>> # 2 TransformerEncoderBlock blocks, and a dropout rate of 0.1
         >>> transformer_encoder = TransformerEncoder(
         ...     vocab_size=1000,
-        ...     depth=128,
+        ...     d_model=128,
         ...     norm_shape=4,
         ...     ffn_num_hiddens=64,
         ...     num_heads=8,
@@ -146,7 +216,7 @@ class TransformerEncoder(tf.keras.layers.Layer):
         # values are multiplied by the square root of the embedding dimension
         # to rescale before they are summed up
         X = self.pos_encoding(
-            self.embedding(X) * tf.math.sqrt(tf.cast(self.depth, dtype=tf.float32)),
+            self.embedding(X) * tf.math.sqrt(tf.cast(self.d_model, dtype=tf.float32)),
             **kwargs,
         )
         self.attention_weights = [None] * len(self.blocks)
