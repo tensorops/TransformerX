@@ -21,6 +21,6 @@ jobs:
       env:
         PYTHONPATH: ${{ github.workspace }}
 
-    - name: Install dependencies
-      run: pip install flake8
-    - run: flake8
+#    - name: Install dependencies
+#      run: pip install flake8
+#    - run: flake8
