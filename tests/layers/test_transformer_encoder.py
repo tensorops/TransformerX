@@ -58,3 +58,34 @@ class TestTransformerEncoder:
         _ = encoder(input_data, input_data, input_data)
         for attention_weights in encoder.attention_weights:
             assert not np.allclose(attention_weights.numpy(), np.zeros((2, 4, 3, 3)))
+
+
+class TestTransformerEncoderIntegration:
+    @staticmethod
+    def create_toy_dataset(num_samples=100, seq_length=10, vocab_size=50):
+        X = np.random.randint(0, vocab_size, size=(num_samples, seq_length))
+        y = np.random.randint(0, 2, size=(num_samples, 1))
+        return X, y
+
+    @pytest.fixture(scope="class")
+    def model(self):
+        seq_length = 10
+        vocab_size = 50
+        inputs = tf.keras.layers.Input(shape=(seq_length,))
+        valid_lens = tf.keras.layers.Input(shape=())
+        encoder = TransformerEncoder(vocab_size=vocab_size, max_len=seq_length)
+        outputs, attn_weights = encoder(inputs, inputs, inputs)
+        pooled_output = tf.keras.layers.GlobalAveragePooling1D()(outputs)
+        predictions = tf.keras.layers.Dense(1, activation="sigmoid")(pooled_output)
+        model = tf.keras.Model(inputs=[inputs], outputs=predictions)
+        model.compile(
+            optimizer="adam", loss="binary_crossentropy", metrics=["accuracy"]
+        )
+        return model
+
+    def test_training(self, model):
+        X, y = self.create_toy_dataset()
+        history = model.fit(X, y, epochs=5, batch_size=32, validation_split=0.2)
+        assert (
+            history.history["accuracy"][-1] > 0.5
+        ), "Training accuracy should be greater than 0.5"
