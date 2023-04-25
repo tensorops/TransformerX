@@ -95,3 +95,10 @@ class TestTransformerEncoderIntegration:
         history = model.fit(X, y, epochs=5, batch_size=32, validation_split=0.2)
         loss, accuracy = model.evaluate(X, y)
         assert accuracy > 0.5, "Evaluation accuracy should be greater than 0.5"
+
+    def test_prediction(self, model):
+        X, _ = self.create_toy_dataset(num_samples=1)
+        prediction = model.predict(X)
+        assert (
+            0 <= prediction <= 1
+        ), "Prediction should be a probability value between 0 and 1"
