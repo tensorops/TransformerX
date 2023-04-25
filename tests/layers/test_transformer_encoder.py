@@ -51,3 +51,10 @@ class TestTransformerEncoder:
         _ = encoder(input_data, input_data, input_data)
         for attention_weights in encoder.attention_weights:
             assert attention_weights.shape == (2, 4, 3, 3)
+
+    def test_encoder_attention_weights_values(self, encoder):
+        input_data = tf.constant([[1, 2, 3], [4, 5, 6]], dtype=tf.int32)
+        valid_lens = tf.constant([3, 2], dtype=tf.float32)
+        _ = encoder(input_data, input_data, input_data)
+        for attention_weights in encoder.attention_weights:
+            assert not np.allclose(attention_weights.numpy(), np.zeros((2, 4, 3, 3)))
