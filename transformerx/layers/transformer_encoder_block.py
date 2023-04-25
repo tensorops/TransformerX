@@ -98,7 +98,7 @@ class TransformerEncoderBlock(tf.keras.layers.Layer):
         Whether to use mixed precision training, which combines float16 and float32 data types for faster training.
     learning_rate_schedule: Optional[Callable] (default=None)
         Learning rate schedule function to be applied during training. If None, no learning rate schedule will be used.
-    bias: bool (default=False)
+    use_bias: bool (default=False)
         Whether to include bias terms in the computation of the self-attention weights.
     kernel_regularizer: Optional[tf.keras.regularizers.Regularizer] (default=None)
         Regularizer for the kernel weights of the AddNorm layer.
@@ -153,7 +153,7 @@ class TransformerEncoderBlock(tf.keras.layers.Layer):
     ...     bias_initializer=tf.keras.initializers.Zeros(),
     ...     mixed_precision=False,
     ...     learning_rate_schedule=None,
-    ...     bias=True,
+    ...     use_bias=True,
     ...     kernel_regularizer=tf.keras.regularizers.l2(0.01),
     ...     bias_regularizer=None,
     ...     contextualized_embeddings=None
@@ -197,8 +197,7 @@ class TransformerEncoderBlock(tf.keras.layers.Layer):
         norm_type: str = "layer",  # Type of normalization (layer or batch) (feedforward networks)
         norm_eps: float = 1e-6,
         attention_mechanism: str = "scaled_dotproduct",
-        input_hidden_units_ffn: int = 32,  # Number of input hidden units in the feedforward network
-        output_hidden_units_ffn: int = 64,  # Number of output hidden units in the feedforward network
+        input_hidden_units_ffn: int = 2048,  # Number of input hidden units in the feedforward network
         use_norm: bool = True,  # Whether to use normalization (layer or batch)
         residual_connections: Optional[
             Tuple[bool, bool]
@@ -212,17 +211,17 @@ class TransformerEncoderBlock(tf.keras.layers.Layer):
             Callable
         ] = None,  # Initializer for the kernel weights
         bias_initializer: Optional[Callable] = None,  # Initializer for the bias weights
-        mixed_precision: bool = False,  # Whether to use mixed precision training
-        learning_rate_schedule: Optional[
-            Callable
-        ] = None,  # Learning rate schedule function
-        bias: bool = False,  # Whether to include bias terms in the attention computation
         kernel_regularizer: Optional[
             tf.keras.regularizers.Regularizer
         ] = None,  # kernel regularizer for AddNorm
         bias_regularizer: Optional[
             tf.keras.regularizers.Regularizer
         ] = None,  # bias regularizer for AddNorm
+        mixed_precision: bool = False,  # Whether to use mixed precision training
+        learning_rate_schedule: Optional[
+            Callable
+        ] = None,  # Learning rate schedule function
+        use_bias: bool = False,  # Whether to include bias terms in the attention computation
         contextualized_embeddings=None,
         # incorporate pre-trained language models such as BERT or GPT-2 into the model (feedforward networks)
         **kwargs,
@@ -245,7 +244,7 @@ class TransformerEncoderBlock(tf.keras.layers.Layer):
             "batch",
             "instance",
         ], "Invalid norm_type: {}".format(norm_type)
-        assert isinstance(bias, bool), "Invalid bias: {}".format(bias)
+        assert isinstance(use_bias, bool), "Invalid bias: {}".format(use_bias)
         if residual_connections is not None:
             assert (
                 len(residual_connections) == 2
@@ -272,7 +271,7 @@ class TransformerEncoderBlock(tf.keras.layers.Layer):
 
         self.d_model = d_model
         self.attention = MultiHeadAttention(
-            d_model, num_heads, dropout_rate, bias, attention_mechanism, **kwargs
+            d_model, num_heads, dropout_rate, use_bias, attention_mechanism, **kwargs
         )
         self.addnorm1 = (
             AddNorm(
@@ -320,7 +319,7 @@ class TransformerEncoderBlock(tf.keras.layers.Layer):
             policy = mixed_precision.Policy("mixed_float16")
             mixed_precision.set_global_policy(policy)
 
-    def call(self, queries, keys, values, attention_mask=None, training=None, **kwargs):
+    def call(self, queries, keys, values, attention_mask=None, **kwargs):
         assert len(queries.shape) == 3, "Input tensor should have rank 3"
         assert (
             queries.shape[-1] == self.d_model
@@ -341,17 +340,13 @@ class TransformerEncoderBlock(tf.keras.layers.Layer):
             self.add_metric(self.learning_rate, name="learning_rate")
 
         attn_output, attn_weights = self.attention(
-            queries, keys, values, attention_mask, training=training, **kwargs
+            queries, keys, values, attention_mask, **kwargs
         )
         if self.addnorm1:
-            attn_output = self.addnorm1(
-                queries, attn_output, training=training, **kwargs
-            )
-        ffn_output = self.ffn(attn_output, training=training, **kwargs)
+            attn_output = self.addnorm1(queries, attn_output, **kwargs)
+        ffn_output = self.ffn(attn_output, **kwargs)
         if self.addnorm2:
-            ffn_output = self.addnorm2(
-                attn_output, ffn_output, training=training, **kwargs
-            )
+            ffn_output = self.addnorm2(attn_output, ffn_output, **kwargs)
         if self.residual_connections is None:
             output = ffn_output
         else:
@@ -384,10 +379,9 @@ def main():
         dropout_rate=0.1,
         norm_type="batch",
         norm_eps=1e-5,
+        use_norm=True,
         attention_mechanism="scaled_dotproduct",
         input_hidden_units_ffn=64,
-        output_hidden_units_ffn=128,
-        use_norm=True,
         residual_connections=(True, True),
         activation_fn=tf.nn.relu,
         non_linear_proj=None,
@@ -396,7 +390,7 @@ def main():
         bias_initializer=tf.keras.initializers.Zeros(),
         mixed_precision=False,
         learning_rate_schedule=None,
-        bias=True,
+        use_bias=True,
         kernel_regularizer=tf.keras.regularizers.l2(0.01),
         bias_regularizer=None,
         contextualized_embeddings=None,

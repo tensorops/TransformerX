@@ -11,19 +11,19 @@ class TestAbsolutePositionalEncoding:
     def layer(self):
         depth = 16
         max_len = 20
-        return SinePositionalEncoding(depth=depth, max_len=max_len)
+        return SinePositionalEncoding(d_model=depth, maximum_position_encoding=max_len)
 
     def test_output_shape(self):
         depth = 64
         max_len = 100
-        layer = SinePositionalEncoding(depth, max_len=max_len)
+        layer = SinePositionalEncoding(depth, maximum_position_encoding=max_len)
         input_shape = (5, max_len, depth)
         input_tensor = tf.ones(input_shape)
         output_tensor = layer(input_tensor)
         assert output_tensor.shape == input_shape
 
     def test_call_batch_size_1(self, layer):
-        input_shape = (1, 10, layer.depth)
+        input_shape = (1, 10, layer.d_model)
         X = tf.ones(input_shape)
         output = layer(X)
         assert output.shape == input_shape
@@ -33,7 +33,7 @@ class TestAbsolutePositionalEncoding:
         )
 
     def test_call_batch_size_3(self, layer):
-        input_shape = (3, 15, layer.depth)
+        input_shape = (3, 15, layer.d_model)
         X = tf.ones(input_shape)
         output = layer(X)
         assert output.shape == input_shape
@@ -47,7 +47,7 @@ class TestAbsolutePositionalEncoding:
         max_len = 100
         dropout_rate = 0.5
         layer = SinePositionalEncoding(
-            depth, dropout_rate=dropout_rate, max_len=max_len
+            depth, dropout_rate=dropout_rate, maximum_position_encoding=max_len
         )
         input_shape = (5, max_len, depth)
         input_tensor = tf.ones(input_shape)

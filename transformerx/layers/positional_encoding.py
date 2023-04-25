@@ -27,11 +27,11 @@ class SinePositionalEncoding(tf.keras.layers.Layer):
 
     Parameters
     ----------
-    depth :
+    d_model :
         Embedding Size; Length of the positional encoding's hidden units, the same as the length of Embedding.
     dropout_rate :
         Float between 0 and 1. Fraction of the input units to drop.
-    max_len :
+    maximum_position_encoding :
         Maximum length of the steps to calculate sinusoid
 
     Returns
@@ -59,20 +59,23 @@ class SinePositionalEncoding(tf.keras.layers.Layer):
     (2017). Attention Is All You Need. arXiv. https://doi.org/10.48550/arXiv.1706.03762
     """
 
-    def __init__(self, depth, dropout_rate=0, max_len=1000, **kwargs):
+    def __init__(
+        self, d_model, dropout_rate=0, maximum_position_encoding=10000, **kwargs
+    ):
         super(SinePositionalEncoding, self).__init__(**kwargs)
-        self.depth = depth
+        self.d_model = d_model
         self.dropout = tf.keras.layers.Dropout(dropout_rate)
         # Create a long enough P
-        positions = tf.range(max_len, dtype=tf.float32)
-        even_indices = tf.range(0, self.depth, 2, dtype=tf.float32)
-        odd_indices = tf.range(1, self.depth, 2, dtype=tf.float32)
-        denominator = tf.pow(10000.0, tf.math.floor(even_indices / 2) / self.depth)
+        positions = tf.range(maximum_position_encoding, dtype=tf.float32)
+        even_indices = tf.range(0, self.d_model, 2, dtype=tf.float32)
+        odd_indices = tf.range(1, self.d_model, 2, dtype=tf.float32)
+        denominator = tf.pow(10000.0, tf.math.floor(even_indices / 2) / self.d_model)
         even_encoding = tf.sin(positions[:, tf.newaxis] / denominator)
         odd_encoding = tf.cos(positions[:, tf.newaxis] / denominator)
         self.P = tf.concat([even_encoding, odd_encoding], axis=-1)[tf.newaxis, :, :]
 
     def call(self, X, **kwargs):
+        self.P = tf.cast(self.P, dtype=X.dtype)
         X = X + self.P[:, : tf.shape(X)[1], :]
         X = self.dropout(X, **kwargs)
         return X
