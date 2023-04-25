@@ -32,3 +32,9 @@ class TestTransformerEncoder:
             pos_encoded_data, pos_encoded_data, pos_encoded_data
         )
         assert block_output.shape == (2, 3, 128)
+
+    def test_encoder_output_shape(self, encoder):
+        input_data = tf.constant([[1, 2, 3], [4, 5, 6]], dtype=tf.int32)
+        valid_lens = tf.constant([3, 2], dtype=tf.float32)
+        output, attn_weights = encoder(input_data, input_data, input_data)
+        assert output.shape == (2, 3, 128)

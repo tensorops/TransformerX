@@ -168,7 +168,14 @@ class TransformerEncoder(tf.keras.layers.Layer):
             for _ in range(self.n_blocks)
         ]
 
-    def call(self, X, valid_lens, **kwargs):
+    def apply_positional_embedding(self, inputs=None, **kwargs):
+        return self.pos_encoding(
+            self.embedding(inputs)
+            * tf.math.sqrt(tf.cast(self.d_model, dtype=tf.float32)),
+            **kwargs,
+        )
+
+    def call(self, queries, keys, values, valid_lens=None, **kwargs):
         """Compute the output representation for the input sequence.
 
         This method computes the output representation for the input sequence by first passing it
@@ -177,7 +184,7 @@ class TransformerEncoder(tf.keras.layers.Layer):
 
         Parameters
         ----------
-        X : tf.Tensor
+        queries : tf.Tensor
             The input sequence tensor of shape (batch_size, seq_length).
         valid_lens : tf.Tensor
             The tensor of valid sequence lengths of shape (batch_size,) or (batch_size, seq_length).
@@ -215,12 +222,12 @@ class TransformerEncoder(tf.keras.layers.Layer):
         # Since positional encoding values are between -1 and 1, the embedding
         # values are multiplied by the square root of the embedding dimension
         # to rescale before they are summed up
-        X = self.pos_encoding(
-            self.embedding(X) * tf.math.sqrt(tf.cast(self.d_model, dtype=tf.float32)),
-            **kwargs,
-        )
+        queries = self.apply_positional_embedding(queries, **kwargs)
+        keys = self.apply_positional_embedding(keys, **kwargs)
+        values = self.apply_positional_embedding(values, **kwargs)
+
         self.attention_weights = [None] * len(self.blocks)
         for i, blk in enumerate(self.blocks):
-            X, attn_weights = blk(X, valid_lens, **kwargs)
+            queries, attn_weights = blk(queries, keys, values, **kwargs)
             self.attention_weights[i] = attn_weights
-        return X, attn_weights
+        return queries, self.attention_weights
