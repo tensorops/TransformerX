@@ -41,3 +41,13 @@ class TestTransformerDecoder:
         inputs = tf.constant([[1, 2, 3], [4, 5, 6]], dtype=tf.int32)
         embedded_inputs = decoder.apply_positional_embedding(inputs)
         assert embedded_inputs.shape == (2, 3, 512)
+
+    def test_call(self, decoder):
+        queries = tf.constant([[1, 2, 3], [4, 5, 6]], dtype=tf.int32)
+        keys = tf.constant([[7, 8, 9], [10, 11, 12]], dtype=tf.int32)
+        values = tf.constant([[13, 14, 15], [16, 17, 18]], dtype=tf.int32)
+        output, attn_weights = decoder(queries, keys, values)
+        assert output.shape == (2, 3, 512)
+        assert len(attn_weights) == 6
+        for attn_weights in attn_weights:
+            assert attn_weights.shape == (2, 8, 3, 3)

@@ -276,12 +276,12 @@ class TransformerDecoder(tf.keras.layers.Layer):
 
         self.attention_weights = [None] * len(self.blocks)
         for i, blk in enumerate(self.blocks):
-            queries, attn_weights = blk(
+            blk_outputs, attn_weights, attn_weights2 = blk(
                 queries,
                 keys,
                 values,
                 attention_mask=attention_mask,
                 **kwargs,
             )
-            self.attention_weights[i] = attn_weights
-        return queries, self.attention_weights
+            self.attention_weights[i] = attn_weights2
+        return blk_outputs, self.attention_weights
