@@ -8,6 +8,10 @@ class TestTransformerDecoder:
     def decoder(self):
         return TransformerDecoder(vocab_size=1000)
 
+    def test_transformer_decoder_creation(self, decoder):
+        assert isinstance(decoder, TransformerDecoder)
+        assert decoder is not None
+
     def test_initialization(self, decoder):
         assert decoder.vocab_size == 1000
         assert decoder.d_model == 512
