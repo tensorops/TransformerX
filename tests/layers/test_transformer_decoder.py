@@ -36,3 +36,8 @@ class TestTransformerDecoder:
         assert decoder.learning_rate_schedule == None
         assert decoder.use_bias == True
         assert decoder.contextualized_embeddings == None
+
+    def test_apply_positional_embedding(self, decoder):
+        inputs = tf.constant([[1, 2, 3], [4, 5, 6]], dtype=tf.int32)
+        embedded_inputs = decoder.apply_positional_embedding(inputs)
+        assert embedded_inputs.shape == (2, 3, 512)
