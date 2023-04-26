@@ -222,11 +222,12 @@ class TransformerEncoderBlock(tf.keras.layers.Layer):
             Callable
         ] = None,  # Learning rate schedule function
         use_bias: bool = False,  # Whether to include bias terms in the attention computation
-        contextualized_embeddings=None,
-        # incorporate pre-trained language models such as BERT or GPT-2 into the model (feedforward networks)
+        contextualized_embeddings: bool = None,  # incorporate pre-trained language models such as BERT or GPT-2 into the model (feedforward networks)
+        name: str = "transformer_encoder_block",
+        dtype: Optional[tf.dtypes.DType] = None,
         **kwargs,
     ):
-        super().__init__()
+        super(TransformerEncoderBlock, self).__init__(name=name, dtype=dtype, **kwargs)
         assert isinstance(d_model, int) and d_model > 0, "Invalid d_model: {}".format(
             d_model
         )

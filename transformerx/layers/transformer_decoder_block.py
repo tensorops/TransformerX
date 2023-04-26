@@ -84,8 +84,8 @@ class TransformerDecoderBlock(tf.keras.layers.Layer):
     """Transformer decoder block [1]_.
 
     The TransformerDecoderBlock is a custom layer in TensorFlow Keras that implements a single block of the Transformer
-    decoder architecture [1]_, which is a key component of the Transformer model for natural language processing tasks 
-    such as machine translation, text summarization, and language generation. The layer includes multi-head attention 
+    decoder architecture [1]_, which is a key component of the Transformer model for natural language processing tasks
+    such as machine translation, text summarization, and language generation. The layer includes multi-head attention
     mechanism, feedforward networks, and residual connections with optional normalization and other customization options.
 
     Parameters
@@ -209,6 +209,7 @@ class TransformerDecoderBlock(tf.keras.layers.Layer):
     - The `casual_mask` parameter is useful for tasks where the output at time step t should only depend
       on the inputs up to time step t-1, such as language modeling or sequence prediction.
     """
+
     def __init__(
         self,
         d_model: int = 512,  # Dimensionality of the input and output tensors
@@ -232,17 +233,17 @@ class TransformerDecoderBlock(tf.keras.layers.Layer):
             Callable
         ] = None,  # Initializer for the kernel weights
         bias_initializer: Optional[Callable] = None,  # Initializer for the bias weights
-        mixed_precision: bool = False,  # Whether to use mixed precision training
-        learning_rate_schedule: Optional[
-            Callable
-        ] = None,  # Learning rate schedule function
-        bias: bool = False,  # Whether to include bias terms in the attention computation
         kernel_regularizer: Optional[
             tf.keras.regularizers.Regularizer
         ] = None,  # kernel regularizer for AddNorm
         bias_regularizer: Optional[
             tf.keras.regularizers.Regularizer
         ] = None,  # bias regularizer for AddNorm
+        mixed_precision: bool = False,  # Whether to use mixed precision training
+        learning_rate_schedule: Optional[
+            Callable
+        ] = None,  # Learning rate schedule function
+        bias: bool = False,  # Whether to include bias terms in the attention computation
         contextualized_embeddings=None,  # incorporate pre-trained language models such as BERT or GPT-2 into the
         # model (feedforward networks)
         causal_mask: bool = True,  # Whether to use a causal mask

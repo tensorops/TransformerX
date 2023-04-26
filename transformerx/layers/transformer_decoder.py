@@ -1,10 +1,12 @@
+from typing import Optional, Callable, Tuple
+
 import tensorflow as tf
 
 from transformerx.layers.positional_encoding import SinePositionalEncoding
 from transformerx.layers.transformer_decoder_block import TransformerDecoderBlock
 
 
-class TransformerDecoder(tf.keras.layers.Layer):
+class TransformerDecoderOld(tf.keras.layers.Layer):
     """Transformer decoder that encompasses one or more TransformerDecoderBlock blocks.
 
     Transformer decoder that encompasses one or more TransformerDecoderBlock blocks.
@@ -160,3 +162,126 @@ class TransformerDecoder(tf.keras.layers.Layer):
     @property
     def attention_weights(self):
         return self._attention_weights
+
+
+class TransformerDecoder(tf.keras.layers.Layer):
+    def __init__(
+        self,
+        vocab_size: int,
+        d_model: int = 512,
+        num_heads: int = 8,
+        n_blocks: int = 6,
+        maxlen_position_encoding: int = 10000,
+        attention_dropout: float = 0.0,
+        norm_type: str = "layer",
+        norm_eps: float = 1e-6,
+        use_norm: bool = True,
+        rescale_embedding: bool = False,
+        dropout_rate: float = 0.1,
+        attention_mechanism: str = "scaled_dotproduct",
+        input_hidden_units_ffn: int = 64,
+        residual_connections: Optional[Tuple[bool, bool]] = (True, True),
+        activation_fn: Optional[Callable] = tf.nn.relu,
+        non_linear_proj=None,
+        clip_norm: Optional[float] = 1.0,
+        kernel_initializer: Optional[Callable] = tf.keras.initializers.GlorotUniform(),
+        bias_initializer: Optional[Callable] = tf.keras.initializers.Zeros(),
+        kernel_regularizer: Optional[
+            tf.keras.regularizers.Regularizer
+        ] = tf.keras.regularizers.l2(0.01),
+        bias_regularizer: Optional[tf.keras.regularizers.Regularizer] = None,
+        mixed_precision: bool = False,
+        learning_rate_schedule: Optional[Callable] = None,
+        use_bias: bool = True,
+        contextualized_embeddings=None,
+        name: str = "TransformerDecoder",
+        dtype: Optional[tf.dtypes.DType] = None,
+        **kwargs,
+    ):
+        super(TransformerDecoder, self).__init__(name=name, dtype=dtype, **kwargs)
+        self.vocab_size = vocab_size
+        self.d_model = d_model
+        self.num_heads = num_heads
+        self.n_blocks = n_blocks
+        self.maxlen_position_encoding = maxlen_position_encoding
+        self.attention_dropout = attention_dropout
+        self.norm_type = norm_type
+        self.norm_eps = norm_eps
+        self.use_norm = use_norm
+        self.rescale_embedding = rescale_embedding
+        self.dropout_rate = dropout_rate
+        self.attention_mechanism = attention_mechanism
+        self.input_hidden_units_ffn = input_hidden_units_ffn
+        self.residual_connections = residual_connections
+        self.activation_fn = activation_fn
+        self.non_linear_proj = non_linear_proj
+        self.clip_norm = clip_norm
+        self.kernel_initializer = kernel_initializer
+        self.bias_initializer = bias_initializer
+        self.kernel_regularizer = kernel_regularizer
+        self.bias_regularizer = bias_regularizer
+        self.mixed_precision = mixed_precision
+        self.learning_rate_schedule = learning_rate_schedule
+        self.use_bias = use_bias
+        self.contextualized_embeddings = contextualized_embeddings
+
+        self.pos_encoding = SinePositionalEncoding(
+            d_model=d_model,
+            dropout_rate=dropout_rate,
+            maximum_position_encoding=maxlen_position_encoding,
+            **kwargs,
+        )
+        self.embedding = tf.keras.layers.Embedding(vocab_size, d_model)
+        self.blocks = [
+            TransformerDecoderBlock(
+                d_model=d_model,
+                num_heads=num_heads,
+                dropout_rate=dropout_rate,
+                norm_type=norm_type,
+                norm_eps=norm_eps,
+                use_norm=use_norm,
+                attention_mechanism=attention_mechanism,
+                input_hidden_units_ffn=input_hidden_units_ffn,
+                residual_connections=residual_connections,
+                activation_fn=activation_fn,
+                non_linear_proj=non_linear_proj,
+                clip_norm=clip_norm,
+                kernel_initializer=kernel_initializer,
+                bias_initializer=bias_initializer,
+                kernel_regularizer=kernel_regularizer,
+                bias_regularizer=bias_regularizer,
+                mixed_precision=mixed_precision,
+                learning_rate_schedule=learning_rate_schedule,
+                use_bias=use_bias,
+                contextualized_embeddings=contextualized_embeddings,
+                dtype=dtype,
+                i=i,
+                **kwargs,
+            )
+            for i in range(self.n_blocks)
+        ]
+
+    def apply_positional_embedding(self, inputs=None, **kwargs):
+        embedded_inputs = self.embedding(inputs)
+        return self.pos_encoding(
+            embedded_inputs
+            * tf.math.sqrt(tf.cast(self.d_model, dtype=embedded_inputs.dtype)),
+            **kwargs,
+        )
+
+    def call(self, queries, keys, values, attention_mask=None, **kwargs):
+        queries = self.apply_positional_embedding(queries, **kwargs)
+        keys = self.apply_positional_embedding(keys, **kwargs)
+        values = self.apply_positional_embedding(values, **kwargs)
+
+        self.attention_weights = [None] * len(self.blocks)
+        for i, blk in enumerate(self.blocks):
+            queries, attn_weights = blk(
+                queries,
+                keys,
+                values,
+                attention_mask=attention_mask,
+                **kwargs,
+            )
+            self.attention_weights[i] = attn_weights
+        return queries, self.attention_weights

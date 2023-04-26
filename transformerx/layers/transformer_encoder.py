@@ -75,13 +75,11 @@ class TransformerEncoder(tf.keras.layers.Layer):
     def __init__(
         self,
         vocab_size: int,
-        max_len: int,
         d_model: int = 512,
         num_heads: int = 8,
         n_blocks: int = 6,
-        maximum_position_encoding: int = 10000,
+        maxlen_position_encoding: int = 10000,
         attention_dropout: float = 0.0,
-        use_bert_config: bool = False,
         norm_type: str = "layer",
         norm_eps: float = 1e-6,
         use_norm: bool = True,
@@ -103,17 +101,17 @@ class TransformerEncoder(tf.keras.layers.Layer):
         learning_rate_schedule: Optional[Callable] = None,
         use_bias: bool = True,
         contextualized_embeddings=None,
+        name: str = "TransformerEncoder",
+        dtype: Optional[tf.dtypes.DType] = None,
         **kwargs,
     ):
-        super().__init__()
+        super(TransformerEncoder, self).__init__(name=name, dtype=dtype, **kwargs)
         self.vocab_size = vocab_size
-        self.max_len = max_len
         self.d_model = d_model
         self.num_heads = num_heads
         self.n_blocks = n_blocks
-        self.maximum_position_encoding = maximum_position_encoding
+        self.maxlen_position_encoding = maxlen_position_encoding
         self.attention_dropout = attention_dropout
-        self.use_bert_config = use_bert_config
         self.norm_type = norm_type
         self.norm_eps = norm_eps
         self.use_norm = use_norm
@@ -137,7 +135,7 @@ class TransformerEncoder(tf.keras.layers.Layer):
         self.pos_encoding = SinePositionalEncoding(
             d_model=d_model,
             dropout_rate=dropout_rate,
-            maximum_position_encoding=maximum_position_encoding,
+            maximum_position_encoding=maxlen_position_encoding,
             **kwargs,
         )
         self.embedding = tf.keras.layers.Embedding(vocab_size, d_model)
@@ -163,6 +161,7 @@ class TransformerEncoder(tf.keras.layers.Layer):
                 learning_rate_schedule=learning_rate_schedule,
                 use_bias=use_bias,
                 contextualized_embeddings=contextualized_embeddings,
+                dtype=dtype,
                 **kwargs,
             )
             for _ in range(self.n_blocks)
