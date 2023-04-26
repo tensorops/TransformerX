@@ -83,7 +83,7 @@ class MultiHeadAttention(tf.keras.layers.Layer):
         Number of the heads in the multi-head attention
     dropout_rate : float
         The dropout rate to use for regularization. Float between 0 and 1.
-    bias : bool, optional
+    use_bias : bool, optional
         Whether to use bias terms in the linear transformations i.e. W_q, W_k, W_v, and W_o, by default False.
 
     Returns
@@ -152,7 +152,7 @@ class MultiHeadAttention(tf.keras.layers.Layer):
         d_model: int = 512,
         num_heads: int = 8,
         dropout_rate: float = 0,
-        bias: bool = False,
+        use_bias: bool = False,
         attention: str = "scaled_dotproduct",
         causal_mask: bool = False,
         **kwargs,
@@ -161,7 +161,7 @@ class MultiHeadAttention(tf.keras.layers.Layer):
         self.d_model = d_model
         self.num_heads = num_heads
         self.dropout_rate = dropout_rate
-        self.bias = bias
+        self.use_bias = use_bias
         self.causal_mask = causal_mask
         if attention == "scaled_dotproduct" or attention == None:
             self.attention = DotProductAttention(
@@ -171,10 +171,10 @@ class MultiHeadAttention(tf.keras.layers.Layer):
             self.attention = DotProductAttention(
                 self.dropout_rate, scaled=False, causal_mask=self.causal_mask
             )
-        self.W_q = tf.keras.layers.Dense(self.d_model, use_bias=self.bias)
-        self.W_k = tf.keras.layers.Dense(self.d_model, use_bias=self.bias)
-        self.W_v = tf.keras.layers.Dense(self.d_model, use_bias=self.bias)
-        self.W_o = tf.keras.layers.Dense(self.d_model, use_bias=self.bias)
+        self.W_q = tf.keras.layers.Dense(self.d_model, use_bias=self.use_bias)
+        self.W_k = tf.keras.layers.Dense(self.d_model, use_bias=self.use_bias)
+        self.W_v = tf.keras.layers.Dense(self.d_model, use_bias=self.use_bias)
+        self.W_o = tf.keras.layers.Dense(self.d_model, use_bias=self.use_bias)
 
     def split_heads(self, X: tf.Tensor) -> tf.Tensor:
         """Transpose tensors for parallel computation of attention heads.

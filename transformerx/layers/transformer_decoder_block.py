@@ -128,7 +128,7 @@ class TransformerDecoderBlock(tf.keras.layers.Layer):
         Whether to use mixed precision training, which combines float16 and float32 data types for faster training.
     learning_rate_schedule: Optional[Callable] (default=None)
         Learning rate schedule function to be applied during training. If None, no learning rate schedule will be used.
-    bias: bool (default=False)
+    use_bias: bool (default=False)
         Whether to include bias terms in the computation of the self-attention weights.
     kernel_regularizer: Optional[tf.keras.regularizers.Regularizer] (default=None)
         Regularizer for the kernel weights of the AddNorm layer.
@@ -175,7 +175,7 @@ class TransformerDecoderBlock(tf.keras.layers.Layer):
     ...     bias_initializer=tf.keras.initializers.Zeros(),
     ...     mixed_precision=False,
     ...     learning_rate_schedule=None,
-    ...     bias=True,
+    ...     use_bias=True,
     ...     kernel_regularizer=tf.keras.regularizers.l2(0.01),
     ...     bias_regularizer=None,
     ...     contextualized_embeddings=None,
@@ -243,7 +243,7 @@ class TransformerDecoderBlock(tf.keras.layers.Layer):
         learning_rate_schedule: Optional[
             Callable
         ] = None,  # Learning rate schedule function
-        bias: bool = False,  # Whether to include bias terms in the attention computation
+        use_bias: bool = False,  # Whether to include bias terms in the attention computation
         contextualized_embeddings=None,  # incorporate pre-trained language models such as BERT or GPT-2 into the
         # model (feedforward networks)
         causal_mask: bool = True,  # Whether to use a causal mask
@@ -257,7 +257,7 @@ class TransformerDecoderBlock(tf.keras.layers.Layer):
         self.i = i
         self.dropout_rate = dropout_rate
         self.norm_type = norm_type
-        self.bias = bias
+        self.use_bias = use_bias
         self.attention_mechanism = attention_mechanism
 
         # Multi-head attention 1
@@ -265,7 +265,7 @@ class TransformerDecoderBlock(tf.keras.layers.Layer):
             d_model=self.d_model,
             num_heads=self.num_heads,
             dropout_rate=self.dropout_rate,
-            bias=self.bias,
+            use_bias=self.use_bias,
             attention=self.attention_mechanism,
             causal_mask=causal_mask,
             **kwargs,
@@ -289,7 +289,7 @@ class TransformerDecoderBlock(tf.keras.layers.Layer):
             d_model=self.d_model,
             num_heads=self.num_heads,
             dropout_rate=self.dropout_rate,
-            bias=self.bias,
+            use_bias=self.use_bias,
             attention=self.attention_mechanism,
             causal_mask=causal_mask,
             **kwargs,
