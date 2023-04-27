@@ -1,3 +1,4 @@
+import numpy as np
 import pytest
 import tensorflow as tf
 from transformerx.layers import TransformerDecoder
@@ -7,6 +8,16 @@ class TestTransformerDecoder:
     @pytest.fixture
     def decoder(self):
         return TransformerDecoder(vocab_size=1000)
+
+    @pytest.fixture
+    def inputs(self):
+        queries = tf.zeros(
+            (2, 3)
+        )  # this is the target sequence and will go through the embedding layer before the
+        # decoder -> converted to shape (2, 3, 512)
+        keys = tf.zeros((2, 3, 512))
+        values = tf.zeros((2, 3, 512))
+        return queries, keys, values
 
     def test_transformer_decoder_creation(self, decoder):
         assert isinstance(decoder, TransformerDecoder)
@@ -46,6 +57,12 @@ class TestTransformerDecoder:
         embedded_inputs = decoder.apply_positional_embedding(inputs)
         assert embedded_inputs.shape == (2, 3, 512)
 
+    def test_positional_encoding_output_shape(self, decoder):
+        input_data = tf.constant([[1, 2, 3], [4, 5, 6]], dtype=tf.int32)
+        embedded_data = decoder.embedding(input_data)
+        pos_encoded_data = decoder.pos_encoding(embedded_data)
+        assert pos_encoded_data.shape == (2, 3, 512)
+
     def test_call(self, decoder):
         queries = tf.constant([[1, 2, 3], [4, 5, 6]], dtype=tf.int32)
         keys = tf.random.uniform((2, 3, 512))
@@ -56,13 +73,8 @@ class TestTransformerDecoder:
         for attn_weights in attn_weights:
             assert attn_weights.shape == (2, 8, 3, 3)
 
-    def test_transformer_decoder_shape(self, decoder):
-        queries = tf.zeros(
-            (2, 3)
-        )  # this is the target sequence and will go through the embedding layer before the
-        # decoder -> converted to shape (2, 3, 512)
-        keys = tf.zeros((2, 3, 512))
-        values = tf.zeros((2, 3, 512))
+    def test_decoder_output_shape(self, decoder, inputs):
+        queries, keys, values = inputs
         output, attn_weights = decoder(queries, keys, values)
         assert output.shape == (2, 3, 512)
         assert len(attn_weights) == decoder.n_blocks
