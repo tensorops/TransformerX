@@ -48,10 +48,21 @@ class TestTransformerDecoder:
 
     def test_call(self, decoder):
         queries = tf.constant([[1, 2, 3], [4, 5, 6]], dtype=tf.int32)
-        keys = tf.constant([[7, 8, 9], [10, 11, 12]], dtype=tf.int32)
-        values = tf.constant([[13, 14, 15], [16, 17, 18]], dtype=tf.int32)
+        keys = tf.random.uniform((2, 3, 512))
+        values = tf.random.uniform((2, 3, 512))
         output, attn_weights = decoder(queries, keys, values)
         assert output.shape == (2, 3, 512)
         assert len(attn_weights) == 6
         for attn_weights in attn_weights:
             assert attn_weights.shape == (2, 8, 3, 3)
+
+    def test_transformer_decoder_shape(self, decoder):
+        queries = tf.zeros(
+            (2, 3)
+        )  # this is the target sequence and will go through the embedding layer before the
+        # decoder -> converted to shape (2, 3, 512)
+        keys = tf.zeros((2, 3, 512))
+        values = tf.zeros((2, 3, 512))
+        output, attn_weights = decoder(queries, keys, values)
+        assert output.shape == (2, 3, 512)
+        assert len(attn_weights) == decoder.n_blocks
