@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 import tensorflow as tf
-from transformerx.layers import TransformerDecoder
+from transformerx.layers import TransformerDecoder, TransformerEncoder
 
 
 class TestTransformerDecoder:
@@ -104,3 +104,34 @@ class TestTransformerDecoder:
         ouputs, attn_weights = decoder(queries, keys, values)
         for attention_weights in attn_weights:
             assert not np.allclose(attention_weights.numpy(), np.zeros((2, 8, 3, 3)))
+
+
+class TransformerDecoderIntegration:
+    @staticmethod
+    def toy_dataset(self, num_samples=100, seq_len=10, vocab_size=1000):
+        x = tf.data.Dataset.from_tensor_slices(
+            tf.random.uniform((num_samples, seq_len), maxval=vocab_size, dtype=tf.int32)
+        )
+        y = tf.data.Dataset.from_tensor_slices(
+            tf.random.uniform((num_samples, 1), maxval=2, dtype=tf.int32)
+        )
+        return x, y
+
+    @pytest.fixture(scope="class")
+    def model(self):
+        vocab_size = 1000
+        seq_len = 10
+        num_samples = 100
+        decoder = TransformerDecoder(vocab_size=vocab_size)
+        encoder = TransformerEncoder(vocab_size=vocab_size)
+        x, y = self.toy_dataset(
+            self, num_samples=num_samples, seq_len=seq_len, vocab_size=vocab_size
+        )
+        x = tf.keras.layers.Dense(vocab_size, activation="softmax", name="embedding")(x)
+        enc_output, attn_weights = encoder(x, x, x)
+        dec_output, attn_weights_dec = decoder(x, enc_output, enc_output)
+        output = tf.keras.layers.Dense(1, activation="sigmoid", name="output")(
+            dec_output
+        )
+        model = tf.keras.Model(inputs=x, outputs=output)
+        return model
