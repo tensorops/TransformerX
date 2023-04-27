@@ -78,3 +78,9 @@ class TestTransformerDecoder:
         output, attn_weights = decoder(queries, keys, values)
         assert output.shape == (2, 3, 512)
         assert len(attn_weights) == decoder.n_blocks
+
+    def test_decoder_block_output_shape(self, decoder, inputs):
+        queries, keys, values = inputs
+        queries = tf.keras.layers.Embedding(1000, 512)(queries)
+        output, attn_weights, attn_weights2 = decoder.blocks[0](queries, keys, values)
+        assert output.shape == (2, 3, 512)
