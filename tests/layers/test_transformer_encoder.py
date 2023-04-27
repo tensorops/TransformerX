@@ -9,7 +9,11 @@ class TestTransformerEncoder:
     @pytest.fixture(scope="class")
     def encoder(self):
         return TransformerEncoder(
-            vocab_size=1000, max_len=50, d_model=128, num_heads=4, n_blocks=2
+            vocab_size=1000,
+            maxlen_position_encoding=50,
+            d_model=128,
+            num_heads=4,
+            n_blocks=2,
         )
 
     def test_embedding_output_shape(self, encoder):

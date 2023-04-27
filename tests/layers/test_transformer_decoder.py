@@ -90,3 +90,10 @@ class TestTransformerDecoder:
         valid_lens = tf.constant([3, 2], dtype=tf.float32)
         output, attn_weights = decoder(queries, keys, values)
         assert not np.allclose(output.numpy(), np.zeros((2, 3, 512)))
+
+    def test_decoder_attention_weights_shape(self, decoder, inputs):
+        queries, keys, values = inputs
+        valid_lens = tf.constant([3, 2], dtype=tf.float32)
+        ouputs, attn_weights = decoder(queries, keys, values)
+        for attention_weights in attn_weights:
+            assert attention_weights.shape == (2, 8, 3, 3)
