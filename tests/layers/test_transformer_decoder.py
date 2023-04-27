@@ -84,3 +84,9 @@ class TestTransformerDecoder:
         queries = tf.keras.layers.Embedding(1000, 512)(queries)
         output, attn_weights, attn_weights2 = decoder.blocks[0](queries, keys, values)
         assert output.shape == (2, 3, 512)
+
+    def test_decoder_output_values(self, decoder, inputs):
+        queries, keys, values = inputs
+        valid_lens = tf.constant([3, 2], dtype=tf.float32)
+        output, attn_weights = decoder(queries, keys, values)
+        assert not np.allclose(output.numpy(), np.zeros((2, 3, 512)))
