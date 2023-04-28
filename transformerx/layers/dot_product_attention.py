@@ -147,7 +147,6 @@ class DotProductAttention(tf.keras.layers.Layer):
                 tf.expand_dims(causal_mask, -1), tf.shape(scores)
             )  # broadcast across batch dimension
             # scores +=
-            print(scores.shape, causal_mask.shape)
             scores = scores + causal_mask
 
         # to be uncommented later

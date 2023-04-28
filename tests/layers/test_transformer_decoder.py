@@ -108,18 +108,27 @@ class TestTransformerDecoder:
 
 class TestTransformerDecoderIntegration:
     @staticmethod
-    def toy_dataset(num_samples=100, seq_len=10, vocab_size=1000):
-        x = tf.random.uniform((num_samples, seq_len), maxval=vocab_size)
-        y = tf.random.uniform((num_samples, 1), 0, 2)
+    def toy_dataset(num_samples=128, num_classes=2, seq_len=10, vocab_size=1000):
+        # x = tf.random.uniform((batch_size, seq_len), maxval=vocab_size)
+        # y = tf.random.uniform((batch_size, 1), 0, 2)
+        x = tf.random.uniform(
+            (num_samples, seq_len, num_classes)
+        )  # shape (None, 10, 1000)
+        y = tf.random.uniform((num_samples, 1), 0, num_classes)  # shape (None, 1)
         return x, y
 
     @pytest.fixture(scope="class")
     def model(self):
         vocab_size = 1000
         seq_len = 10
-        num_samples = 100
-        decoder = TransformerDecoder(vocab_size=vocab_size)
-        encoder = TransformerEncoder(vocab_size=vocab_size)
+        num_classes = 2
+        num_samples = 128
+        num_head = 4
+        encoder = TransformerEncoder(vocab_size=vocab_size, num_heads=num_head)
+        decoder = TransformerDecoder(vocab_size=vocab_size, num_heads=num_head)
+        assert isinstance(encoder, TransformerEncoder)
+        assert isinstance(decoder, TransformerDecoder)
+        print("cheked enc dec: ", encoder, decoder)
         inputs = tf.keras.layers.Input(shape=(seq_len,))
         tgt_inputs = tf.keras.layers.Input(shape=(seq_len,))
         enc_output, attn_weights = encoder(inputs, inputs, inputs)
@@ -137,6 +146,6 @@ class TestTransformerDecoderIntegration:
 
     def test_model_creation(self, model):
         x, y = self.toy_dataset()
-        model.fit(x, y, epochs=5, batch_size=32, validation_split=0.2)
+        history = model.fit(x, y, epochs=5, batch_size=32, validation_split=0.2)
         assert isinstance(model, tf.keras.Model)
         assert model is not None

@@ -133,50 +133,51 @@ class TransformerEncoder(tf.keras.layers.Layer):
         self.contextualized_embeddings = contextualized_embeddings
 
         self.pos_encoding = SinePositionalEncoding(
-            d_model=d_model,
-            dropout_rate=dropout_rate,
-            maximum_position_encoding=maxlen_position_encoding,
+            d_model=self.d_model,
+            dropout_rate=self.dropout_rate,
+            maximum_position_encoding=self.maxlen_position_encoding,
             **kwargs,
         )
-        self.embedding = tf.keras.layers.Embedding(vocab_size, d_model)
+        self.embedding = tf.keras.layers.Embedding(self.vocab_size, self.d_model)
         self.blocks = [
             TransformerEncoderBlock(
-                d_model=d_model,
-                num_heads=num_heads,
-                dropout_rate=dropout_rate,
-                norm_type=norm_type,
-                norm_eps=norm_eps,
-                use_norm=use_norm,
-                attention_mechanism=attention_mechanism,
-                input_hidden_units_ffn=input_hidden_units_ffn,
-                residual_connections=residual_connections,
-                activation_fn=activation_fn,
-                non_linear_proj=non_linear_proj,
-                clip_norm=clip_norm,
-                kernel_initializer=kernel_initializer,
-                bias_initializer=bias_initializer,
-                kernel_regularizer=kernel_regularizer,
-                bias_regularizer=bias_regularizer,
-                mixed_precision=mixed_precision,
-                learning_rate_schedule=learning_rate_schedule,
-                use_bias=use_bias,
-                contextualized_embeddings=contextualized_embeddings,
-                dtype=dtype,
+                d_model=self.d_model,
+                num_heads=self.num_heads,
+                dropout_rate=self.dropout_rate,
+                norm_type=self.norm_type,
+                norm_eps=self.norm_eps,
+                use_norm=self.use_norm,
+                attention_mechanism=self.attention_mechanism,
+                input_hidden_units_ffn=self.input_hidden_units_ffn,
+                residual_connections=self.residual_connections,
+                activation_fn=self.activation_fn,
+                non_linear_proj=self.non_linear_proj,
+                clip_norm=self.clip_norm,
+                kernel_initializer=self.kernel_initializer,
+                bias_initializer=self.bias_initializer,
+                kernel_regularizer=self.kernel_regularizer,
+                bias_regularizer=self.bias_regularizer,
+                mixed_precision=self.mixed_precision,
+                learning_rate_schedule=self.learning_rate_schedule,
+                use_bias=self.use_bias,
+                contextualized_embeddings=self.contextualized_embeddings,
+                dtype=self.dtype,
                 **kwargs,
             )
             for _ in range(self.n_blocks)
         ]
 
     def apply_positional_embedding(self, inputs=None, **kwargs):
+        # if tf.shape(inputs)
         embedded_inputs = self.embedding(inputs)
-
+        print(embedded_inputs.shape, inputs.shape)
         return self.pos_encoding(
             embedded_inputs
             * tf.math.sqrt(tf.cast(self.d_model, dtype=embedded_inputs.dtype)),
-            **kwargs,
+            # **kwargs,
         )
 
-    def call(self, queries, keys, values, attention_mask=None, **kwargs):
+    def call(self, queries, attention_mask=None, **kwargs):
         """Compute the output representation for the input sequence.
 
         This method computes the output representation for the input sequence by first passing it
@@ -224,13 +225,33 @@ class TransformerEncoder(tf.keras.layers.Layer):
         # values are multiplied by the square root of the embedding dimension
         # to rescale before they are summed up
         queries = self.apply_positional_embedding(queries, **kwargs)
-        keys = self.apply_positional_embedding(keys, **kwargs)
-        values = self.apply_positional_embedding(values, **kwargs)
         output = queries
         self.attention_weights = [None] * len(self.blocks)
         for i, blk in enumerate(self.blocks):
-            queries, attn_weights = blk(
-                queries, queries, queries, attention_mask=attention_mask, **kwargs
-            )
+            output, attn_weights = blk(output, attention_mask=attention_mask, **kwargs)
             self.attention_weights[i] = attn_weights
-        return queries, self.attention_weights
+        return output, self.attention_weights
+
+
+def main():
+    # define the model
+    inputs = tf.keras.layers.Input(shape=[10])
+    x, _ = TransformerEncoder(vocab_size=64, d_model=512, num_heads=8, n_blocks=6)(
+        inputs
+    )
+    x = tf.keras.layers.GlobalAveragePooling1D()(x)
+    outputs = tf.keras.layers.Dense(1, activation="sigmoid")(x)
+    model = tf.keras.models.Model(inputs=inputs, outputs=outputs)
+
+    # compile the model
+    optimizer = tf.keras.optimizers.Adam(lr=0.001)
+    model.compile(loss="binary_crossentropy", optimizer=optimizer, metrics=["accuracy"])
+
+    # train the model
+    x_train = tf.random.uniform(shape=(1000, 10), maxval=64, dtype=tf.int32)
+    y_train = tf.random.uniform(shape=(1000, 1), maxval=2, dtype=tf.int32)
+    model.fit(x_train, y_train, epochs=10, batch_size=32)
+
+
+if __name__ == "__main__":
+    main()

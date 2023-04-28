@@ -11,7 +11,7 @@ class TestTransformerEncoderBlock:
 
     def test_transformer_encoder_block_output_shape(self, transformer_encoder_block):
         x = tf.random.uniform((32, 10, 512))
-        output_tensor, attn_weights = transformer_encoder_block(x, x, x)
+        output_tensor, attn_weights = transformer_encoder_block(x)
         assert output_tensor.shape == (32, 10, 512)
 
     def test_transformer_encoder_block_with_attention_mask(
@@ -20,7 +20,7 @@ class TestTransformerEncoderBlock:
         x = tf.random.uniform((32, 10, 512))
         attention_mask = tf.ones((32, 10))
         output_tensor, attn_weights = transformer_encoder_block(
-            x, x, x, attention_mask=attention_mask
+            x, attention_mask=attention_mask
         )
         assert output_tensor.shape == (32, 10, 512)
 
@@ -29,19 +29,19 @@ class TestTransformerEncoderBlock:
     ):
         x = tf.random.uniform((32, 10, 512))
         transformer_encoder_block.residual_connections = (True, True)
-        output_tensor, attn_weights = transformer_encoder_block(x, x, x)
+        output_tensor, attn_weights = transformer_encoder_block(x)
         assert output_tensor.shape == (32, 10, 512)
 
     def test_transformer_encoder_block_with_clip_norm(self, transformer_encoder_block):
         x = tf.random.uniform((32, 10, 512))
         transformer_encoder_block.clip_norm = 1.0
-        output_tensor, attn_weights = transformer_encoder_block(x, x, x)
+        output_tensor, attn_weights = transformer_encoder_block(x)
         assert tf.math.reduce_max(tf.norm(output_tensor, axis=-1)) <= 1.0
 
     def test_transformer_encoder_block_with_layer_norm(self, transformer_encoder_block):
         x = tf.random.uniform((32, 10, 512))
         transformer_encoder_block.use_norm = True
-        output_tensor, attn_weights = transformer_encoder_block(x, x, x)
+        output_tensor, attn_weights = transformer_encoder_block(x)
         assert output_tensor.shape == (32, 10, 512)
 
     def test_transformer_encoder_block_without_layer_norm(
@@ -49,19 +49,19 @@ class TestTransformerEncoderBlock:
     ):
         x = tf.random.uniform((32, 10, 512))
         transformer_encoder_block.use_norm = False
-        output_tensor, attn_weights = transformer_encoder_block(x, x, x)
+        output_tensor, attn_weights = transformer_encoder_block(x)
         assert output_tensor.shape == (32, 10, 512)
 
     def test_transformer_encoder_block_with_bias(self, transformer_encoder_block):
         x = tf.random.uniform((32, 10, 512))
         transformer_encoder_block.use_bias = True
-        output_tensor, attn_weights = transformer_encoder_block(x, x, x)
+        output_tensor, attn_weights = transformer_encoder_block(x)
         assert output_tensor.shape == (32, 10, 512)
 
     def test_transformer_encoder_block_without_bias(self, transformer_encoder_block):
         x = tf.random.uniform((32, 10, 512))
         transformer_encoder_block.use_bias = False
-        output_tensor, attn_weights = transformer_encoder_block(x, x, x)
+        output_tensor, attn_weights = transformer_encoder_block(x)
         assert output_tensor.shape == (32, 10, 512)
 
     def test_transformer_encoder_block_with_mixed_precision(
@@ -70,7 +70,7 @@ class TestTransformerEncoderBlock:
         x = tf.random.uniform((32, 10, 512))
         tf.keras.mixed_precision.set_global_policy("float32")
         transformer_encoder_block.mixed_precision = True
-        output_tensor, attn_weights = transformer_encoder_block(x, x, x)
+        output_tensor, attn_weights = transformer_encoder_block(x)
         assert output_tensor.dtype == tf.float32
 
     def test_transformer_encoder_block_with_learning_rate_schedule(
@@ -78,7 +78,7 @@ class TestTransformerEncoderBlock:
     ):
         x = tf.random.uniform((32, 10, 512))
         transformer_encoder_block.learning_rate_schedule = lambda x: 1e-4 * x
-        output_tensor, attn_weights = transformer_encoder_block(x, x, x, global_step=10)
+        output_tensor, attn_weights = transformer_encoder_block(x, global_step=10)
         assert transformer_encoder_block.learning_rate == 1e-3
 
     def test_transformer_encoder_block_with_kernel_regularizer(
@@ -86,7 +86,7 @@ class TestTransformerEncoderBlock:
     ):
         x = tf.random.uniform((32, 10, 512))
         transformer_encoder_block.kernel_regularizer = tf.keras.regularizers.l2(1e-4)
-        output_tensor, attn_weights = transformer_encoder_block(x, x, x)
+        output_tensor, attn_weights = transformer_encoder_block(x)
         assert output_tensor.shape == (32, 10, 512)
 
     def test_transformer_encoder_block_with_bias_regularizer(
@@ -94,7 +94,7 @@ class TestTransformerEncoderBlock:
     ):
         x = tf.random.uniform((32, 10, 512))
         transformer_encoder_block.bias_regularizer = tf.keras.regularizers.l2(1e-4)
-        output_tensor, attn_weights = transformer_encoder_block(x, x, x)
+        output_tensor, attn_weights = transformer_encoder_block(x)
         assert output_tensor.shape == (32, 10, 512)
 
     def test_transformer_encoder_block_with_non_linear_proj(
@@ -102,7 +102,7 @@ class TestTransformerEncoderBlock:
     ):
         x = tf.random.uniform((32, 10, 512))
         transformer_encoder_block.non_linear_proj = tf.keras.layers.Dense(256)
-        output_tensor, attn_weights = transformer_encoder_block(x, x, x)
+        output_tensor, attn_weights = transformer_encoder_block(x)
         assert output_tensor.shape == (32, 10, 512)
 
     def test_transformer_encoder_block_with_contextualized_embeddings(
@@ -110,7 +110,7 @@ class TestTransformerEncoderBlock:
     ):
         x = tf.random.uniform((32, 10, 512))
         transformer_encoder_block.contextualized_embeddings = tf.keras.layers.Dense(768)
-        output_tensor, attn_weights = transformer_encoder_block(x, x, x)
+        output_tensor, attn_weights = transformer_encoder_block(x)
         assert output_tensor.shape == (32, 10, 512)
 
 
@@ -125,14 +125,14 @@ class TestTransformerEncoderBlockIntegration:
         input_data = tf.random.uniform((32, 10), minval=0, maxval=100, dtype=tf.int32)
         embedding_layer = tf.keras.layers.Embedding(input_dim=100, output_dim=512)
         x = embedding_layer(input_data)
-        output_tensor, attn_weights = transformer_encoder_block(x, x, x)
+        output_tensor, attn_weights = transformer_encoder_block(x)
         assert output_tensor.shape == (32, 10, 512)
 
     def test_transformer_encoder_block_with_dense_layer(
         self, transformer_encoder_block
     ):
         x = tf.random.uniform((32, 10, 512))
-        output_tensor, attn_weights = transformer_encoder_block(x, x, x)
+        output_tensor, attn_weights = transformer_encoder_block(x)
         dense_layer = tf.keras.layers.Dense(units=256, activation="relu")
         output_tensor = dense_layer(output_tensor)
         assert output_tensor.shape == (32, 10, 256)
@@ -144,7 +144,7 @@ class TestTransformerEncoderBlockIntegration:
         input_layer = tf.keras.layers.Input(shape=(10,), dtype=tf.int32)
         embedding_layer = tf.keras.layers.Embedding(input_dim=100, output_dim=512)
         x = embedding_layer(input_layer)
-        output_tensor, attn_weights = transformer_encoder_block(x, x, x)
+        output_tensor, attn_weights = transformer_encoder_block(x)
         dense_layer = tf.keras.layers.Dense(units=100)
         output_tensor = dense_layer(output_tensor)
 

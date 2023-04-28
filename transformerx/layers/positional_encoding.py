@@ -63,7 +63,6 @@ class SinePositionalEncoding(tf.keras.layers.Layer):
         self, d_model, dropout_rate=0, maximum_position_encoding=10000, **kwargs
     ):
         super().__init__(**kwargs)
-        print(kwargs)
         self.d_model = d_model
         self.dropout = tf.keras.layers.Dropout(dropout_rate)
         # Create a long enough P
@@ -76,9 +75,11 @@ class SinePositionalEncoding(tf.keras.layers.Layer):
         self.P = tf.concat([even_encoding, odd_encoding], axis=-1)[tf.newaxis, :, :]
 
     def call(self, x, **kwargs):
+        assert len(tf.shape(x)) == 3, f"Input must be a 3D tensor. Got {tf.shape(x)}"
         if self.P.dtype != x.dtype:
             self.P = tf.cast(self.P, dtype=x.dtype)
         print("X in the call: ", x)
+        print("P in the call: ", self.P.shape)
         # self.P = tf.cast(self.P, dtype=X.dtype)
         x = x + self.P[:, : tf.shape(x)[1], :]
         x = self.dropout(x, **kwargs)
@@ -145,3 +146,50 @@ class RelativePositionEmbedding(tf.keras.layers.Layer):
     #
     #     # Return the scaled context vectors
     #     return context_vectors * self.scale
+
+
+def main():
+    # Define the input shape
+    input_shape = (10, 64)
+
+    # Define the inputs
+    inputs = tf.keras.layers.Input(shape=input_shape)
+
+    # Add the SinePositionalEncoding layer
+    encoded = SinePositionalEncoding(d_model=64)(inputs)
+
+    print(tf.shape(inputs))
+    print(tf.shape(encoded))
+    # Add a convolutional layer
+    conv1 = tf.keras.layers.Conv1D(filters=32, kernel_size=3, activation="relu")(
+        encoded
+    )
+    print(tf.shape(conv1))
+    # Add a pooling layer
+    pool1 = tf.keras.layers.MaxPooling1D(pool_size=2)(conv1)
+
+    # Flatten the output
+    flatten = tf.keras.layers.Flatten()(pool1)
+
+    # Add a dense layer
+    dense = tf.keras.layers.Dense(units=16, activation="relu")(flatten)
+
+    # Add the output layer
+    outputs = tf.keras.layers.Dense(units=1, activation="sigmoid")(dense)
+
+    # Create the model
+    model = tf.keras.models.Model(inputs=inputs, outputs=outputs)
+
+    # Compile the model
+    model.compile(
+        optimizer=tf.keras.optimizers.Adam(),
+        loss=tf.keras.losses.BinaryCrossentropy(),
+        metrics=[tf.keras.metrics.BinaryAccuracy()],
+    )
+
+    # Print the model summary
+    model.summary()
+
+
+if __name__ == "__main__":
+    main()

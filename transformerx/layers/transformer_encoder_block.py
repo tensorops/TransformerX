@@ -320,8 +320,10 @@ class TransformerEncoderBlock(tf.keras.layers.Layer):
             policy = mixed_precision.Policy("mixed_float16")
             mixed_precision.set_global_policy(policy)
 
-    def call(self, queries, keys, values, attention_mask=None, **kwargs):
-        assert len(queries.shape) == 3, "Input tensor should have rank 3"
+    def call(self, queries, attention_mask=None, **kwargs):
+        assert (
+            len(queries.shape) == 3
+        ), f"Input tensor should have rank 3, got {len(queries.shape)}, {queries.shape}"
         assert (
             queries.shape[-1] == self.d_model
         ), "Last dimension of input tensor should be equal to d_model"
@@ -341,7 +343,7 @@ class TransformerEncoderBlock(tf.keras.layers.Layer):
             self.add_metric(self.learning_rate, name="learning_rate")
 
         attn_output, attn_weights = self.attention(
-            queries, keys, values, attention_mask, **kwargs
+            queries, queries, queries, attention_mask, **kwargs
         )
         if self.addnorm1:
             attn_output = self.addnorm1(queries, attn_output, **kwargs)
