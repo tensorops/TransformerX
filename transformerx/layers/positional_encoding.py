@@ -62,7 +62,8 @@ class SinePositionalEncoding(tf.keras.layers.Layer):
     def __init__(
         self, d_model, dropout_rate=0, maximum_position_encoding=10000, **kwargs
     ):
-        super(SinePositionalEncoding, self).__init__(**kwargs)
+        super().__init__(**kwargs)
+        print(kwargs)
         self.d_model = d_model
         self.dropout = tf.keras.layers.Dropout(dropout_rate)
         # Create a long enough P
@@ -74,11 +75,14 @@ class SinePositionalEncoding(tf.keras.layers.Layer):
         odd_encoding = tf.cos(positions[:, tf.newaxis] / denominator)
         self.P = tf.concat([even_encoding, odd_encoding], axis=-1)[tf.newaxis, :, :]
 
-    def call(self, X, **kwargs):
-        self.P = tf.cast(self.P, dtype=X.dtype)
-        X = X + self.P[:, : tf.shape(X)[1], :]
-        X = self.dropout(X, **kwargs)
-        return X
+    def call(self, x, **kwargs):
+        if self.P.dtype != x.dtype:
+            self.P = tf.cast(self.P, dtype=x.dtype)
+        print("X in the call: ", x)
+        # self.P = tf.cast(self.P, dtype=X.dtype)
+        x = x + self.P[:, : tf.shape(x)[1], :]
+        x = self.dropout(x, **kwargs)
+        return x
 
 
 class RelativePositionEmbedding(tf.keras.layers.Layer):

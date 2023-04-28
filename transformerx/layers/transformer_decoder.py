@@ -273,15 +273,17 @@ class TransformerDecoder(tf.keras.layers.Layer):
         queries = self.apply_positional_embedding(queries, **kwargs)
         # keys = self.apply_positional_embedding(keys, **kwargs)
         # values = self.apply_positional_embedding(values, **kwargs)
-
-        self.attention_weights = [None] * len(self.blocks)
+        blk_outputs = queries
+        # self.attention_weights = [None] * len(self.blocks)
+        self.attention_weights = []
         for i, blk in enumerate(self.blocks):
             blk_outputs, attn_weights, attn_weights2 = blk(
-                queries,
+                blk_outputs,
                 keys,
                 values,
                 attention_mask=attention_mask,
                 **kwargs,
             )
-            self.attention_weights[i] = attn_weights2
+            # self.attention_weights[i] = attn_weights2
+            self.attention_weights.append(attn_weights2)
         return blk_outputs, self.attention_weights

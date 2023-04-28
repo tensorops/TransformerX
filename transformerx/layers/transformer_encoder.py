@@ -169,6 +169,7 @@ class TransformerEncoder(tf.keras.layers.Layer):
 
     def apply_positional_embedding(self, inputs=None, **kwargs):
         embedded_inputs = self.embedding(inputs)
+
         return self.pos_encoding(
             embedded_inputs
             * tf.math.sqrt(tf.cast(self.d_model, dtype=embedded_inputs.dtype)),
@@ -225,11 +226,11 @@ class TransformerEncoder(tf.keras.layers.Layer):
         queries = self.apply_positional_embedding(queries, **kwargs)
         keys = self.apply_positional_embedding(keys, **kwargs)
         values = self.apply_positional_embedding(values, **kwargs)
-
+        output = queries
         self.attention_weights = [None] * len(self.blocks)
         for i, blk in enumerate(self.blocks):
             queries, attn_weights = blk(
-                queries, keys, values, attention_mask=attention_mask, **kwargs
+                queries, queries, queries, attention_mask=attention_mask, **kwargs
             )
             self.attention_weights[i] = attn_weights
         return queries, self.attention_weights

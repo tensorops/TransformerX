@@ -66,18 +66,20 @@ class TestTransformerEncoder:
 
 class TestTransformerEncoderIntegration:
     @staticmethod
-    def create_toy_dataset(num_samples=100, seq_length=10, vocab_size=50):
-        X = np.random.randint(0, vocab_size, size=(num_samples, seq_length))
+    def create_toy_dataset(num_samples=1000, seq_length=10, vocab_size=50):
+        x = np.random.randint(0, vocab_size, size=(num_samples, seq_length))
         y = np.random.randint(0, 2, size=(num_samples, 1))
-        return X, y
+        return x, y
 
-    @pytest.fixture(scope="class")
+    @pytest.fixture
     def model(self):
         seq_length = 10
         vocab_size = 50
         inputs = tf.keras.layers.Input(shape=(seq_length,))
         valid_lens = tf.keras.layers.Input(shape=())
-        encoder = TransformerEncoder(vocab_size=vocab_size, max_len=seq_length)
+        encoder = TransformerEncoder(
+            vocab_size=vocab_size, maxlen_position_encoding=seq_length
+        )
         outputs, attn_weights = encoder(inputs, inputs, inputs)
         pooled_output = tf.keras.layers.GlobalAveragePooling1D()(outputs)
         predictions = tf.keras.layers.Dense(1, activation="sigmoid")(pooled_output)
@@ -88,21 +90,18 @@ class TestTransformerEncoderIntegration:
         return model
 
     def test_training(self, model):
-        X, y = self.create_toy_dataset()
-        history = model.fit(X, y, epochs=5, batch_size=32, validation_split=0.2)
+        x, y = self.create_toy_dataset()
+        history = model.fit(x, y, epochs=5, batch_size=32, validation_split=0.2)
+        tf.keras.mixed_precision.set_global_policy("mixed_float16")
         assert (
             history.history["accuracy"][-1] > 0.5
         ), "Training accuracy should be greater than 0.5"
+        loss, accuracy = model.evaluate(x, y)
 
-    def test_evaluation(self, model):
-        X, y = self.create_toy_dataset()
-        history = model.fit(X, y, epochs=5, batch_size=32, validation_split=0.2)
-        loss, accuracy = model.evaluate(X, y)
         assert accuracy > 0.5, "Evaluation accuracy should be greater than 0.5"
 
-    def test_prediction(self, model):
-        X, _ = self.create_toy_dataset(num_samples=1)
-        prediction = model.predict(X)
+        prediction = model.predict(x)
+        print("prediction: ", prediction)
         assert (
-            0 <= prediction <= 1
+            0 <= prediction[0][0] <= 1
         ), "Prediction should be a probability value between 0 and 1"

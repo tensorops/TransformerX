@@ -106,15 +106,11 @@ class TestTransformerDecoder:
             assert not np.allclose(attention_weights.numpy(), np.zeros((2, 8, 3, 3)))
 
 
-class TransformerDecoderIntegration:
+class TestTransformerDecoderIntegration:
     @staticmethod
-    def toy_dataset(self, num_samples=100, seq_len=10, vocab_size=1000):
-        x = tf.data.Dataset.from_tensor_slices(
-            tf.random.uniform((num_samples, seq_len), maxval=vocab_size, dtype=tf.int32)
-        )
-        y = tf.data.Dataset.from_tensor_slices(
-            tf.random.uniform((num_samples, 1), maxval=2, dtype=tf.int32)
-        )
+    def toy_dataset(num_samples=100, seq_len=10, vocab_size=1000):
+        x = tf.random.uniform((num_samples, seq_len), maxval=vocab_size)
+        y = tf.random.uniform((num_samples, 1), 0, 2)
         return x, y
 
     @pytest.fixture(scope="class")
@@ -124,14 +120,23 @@ class TransformerDecoderIntegration:
         num_samples = 100
         decoder = TransformerDecoder(vocab_size=vocab_size)
         encoder = TransformerEncoder(vocab_size=vocab_size)
-        x, y = self.toy_dataset(
-            self, num_samples=num_samples, seq_len=seq_len, vocab_size=vocab_size
-        )
-        x = tf.keras.layers.Dense(vocab_size, activation="softmax", name="embedding")(x)
-        enc_output, attn_weights = encoder(x, x, x)
-        dec_output, attn_weights_dec = decoder(x, enc_output, enc_output)
-        output = tf.keras.layers.Dense(1, activation="sigmoid", name="output")(
+        inputs = tf.keras.layers.Input(shape=(seq_len,))
+        tgt_inputs = tf.keras.layers.Input(shape=(seq_len,))
+        enc_output, attn_weights = encoder(inputs, inputs, inputs)
+        print("enc_ouput: ", enc_output.shape)
+        dec_output, attn_weights_dec = decoder(inputs, enc_output, enc_output)
+        predictions = tf.keras.layers.Dense(vocab_size, activation="softmax")(
             dec_output
         )
-        model = tf.keras.Model(inputs=x, outputs=output)
+
+        model = tf.keras.Model(inputs=[inputs], outputs=predictions)
+        model.compile(
+            optimizer="adam", loss="binary_crossentropy", metrics=["accuracy"]
+        )
         return model
+
+    def test_model_creation(self, model):
+        x, y = self.toy_dataset()
+        model.fit(x, y, epochs=5, batch_size=32, validation_split=0.2)
+        assert isinstance(model, tf.keras.Model)
+        assert model is not None
