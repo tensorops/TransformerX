@@ -1,6 +1,7 @@
 import pytest
 import tensorflow as tf
 import numpy as np
+from keras import regularizers
 
 from transformerx.layers import TransformerEncoder
 
@@ -63,12 +64,19 @@ class TestTransformerEncoder:
 
 
 class TestTransformerEncoderIntegration:
+    seq_length = 10
+    vocab_size = 32
+
     @staticmethod
     def create_toy_dataset(
         num_samples=1000, seq_length=10, vocab_size=64, num_classes=2
     ):
-        x = np.random.randint(0, vocab_size, size=(num_samples, seq_length))
+        # x = np.random.randint(0, vocab_size, size=(num_samples, seq_length))
+        x = np.random.normal(
+            vocab_size / 2, vocab_size / 2 - 1, size=(num_samples, seq_length)
+        )
         y = np.random.randint(0, 2, size=(num_samples, 1))
+        y = np.random.normal(1, 1, size=(num_samples, seq_length))
 
         x_train = tf.random.uniform(
             shape=(num_samples, seq_length), maxval=vocab_size, dtype=tf.int32
@@ -80,26 +88,48 @@ class TestTransformerEncoderIntegration:
 
     @pytest.fixture
     def model(self):
-        seq_length = 10
-        vocab_size = 64
-        inputs = tf.keras.layers.Input(shape=[seq_length])
+        kernel_regularizer = regularizers.L1L2(l1=1e-5, l2=1e-4)
+        inputs = tf.keras.layers.Input(shape=[self.seq_length])
         valid_lens = tf.keras.layers.Input(shape=())
         encoder = TransformerEncoder(
-            vocab_size=vocab_size, maxlen_position_encoding=seq_length
+            vocab_size=self.vocab_size,
+            maxlen_position_encoding=self.seq_length,
+            d_model=64,
+            num_heads=1,
+            n_blocks=1,
         )
-        outputs, attn_weights = encoder(inputs)
+        learning_rate_schedule = lambda x: 1e-4 * x
+        outputs, attn_weights = encoder(
+            inputs,
+            learning_rate_schedule=learning_rate_schedule,
+            kernel_regularizer=kernel_regularizer,
+        )
+        # outputs = tf.keras.layers.Dense(10, activation="relu")(inputs)
+        outputs = tf.keras.layers.Conv1D(
+            filters=16,
+            kernel_size=2,
+            padding="same",
+            activation="relu",
+            kernel_regularizer=kernel_regularizer,
+        )(outputs)
         pooled_output = tf.keras.layers.GlobalAveragePooling1D()(outputs)
-        predictions = tf.keras.layers.Dense(1, activation="sigmoid")(pooled_output)
+        predictions = tf.keras.layers.Dense(
+            1, activation="sigmoid", kernel_regularizer=kernel_regularizer
+        )(pooled_output)
         model = tf.keras.Model(inputs=[inputs], outputs=predictions)
+        optimizer = tf.keras.optimizers.Adam(1e-4)
         model.compile(
             optimizer="adam", loss="binary_crossentropy", metrics=["accuracy"]
         )
+        print(model.summary())
         return model
 
     def test_training(self, model):
-        x_train, y_train = self.create_toy_dataset()
+        x_train, y_train = self.create_toy_dataset(
+            vocab_size=self.vocab_size, seq_length=self.seq_length, num_samples=100
+        )
         history = model.fit(
-            x_train, y_train, epochs=5, batch_size=32, validation_split=0.2
+            x_train, y_train, epochs=50, batch_size=64, validation_split=0.2
         )
         tf.keras.mixed_precision.set_global_policy("mixed_float16")
         assert (

@@ -1,3 +1,4 @@
+import os
 from typing import Optional, Callable, Tuple
 
 import tensorflow as tf
@@ -170,7 +171,6 @@ class TransformerEncoder(tf.keras.layers.Layer):
     def apply_positional_embedding(self, inputs=None, **kwargs):
         # if tf.shape(inputs)
         embedded_inputs = self.embedding(inputs)
-        print(embedded_inputs.shape, inputs.shape)
         return self.pos_encoding(
             embedded_inputs
             * tf.math.sqrt(tf.cast(self.d_model, dtype=embedded_inputs.dtype)),
@@ -224,13 +224,14 @@ class TransformerEncoder(tf.keras.layers.Layer):
         # Since positional encoding values are between -1 and 1, the embedding
         # values are multiplied by the square root of the embedding dimension
         # to rescale before they are summed up
-        queries = self.apply_positional_embedding(queries, **kwargs)
-        output = queries
+        embeddings = self.apply_positional_embedding(queries, **kwargs)
         self.attention_weights = [None] * len(self.blocks)
         for i, blk in enumerate(self.blocks):
-            output, attn_weights = blk(output, attention_mask=attention_mask, **kwargs)
+            embeddings, attn_weights = blk(
+                embeddings, attention_mask=attention_mask, **kwargs
+            )
             self.attention_weights[i] = attn_weights
-        return output, self.attention_weights
+        return embeddings, self.attention_weights
 
 
 def main():

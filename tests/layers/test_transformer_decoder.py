@@ -107,45 +107,68 @@ class TestTransformerDecoder:
 
 
 class TestTransformerDecoderIntegration:
+    seq_length = 10
+    vocab_size = 32
+
     @staticmethod
-    def toy_dataset(num_samples=128, num_classes=2, seq_len=10, vocab_size=1000):
-        # x = tf.random.uniform((batch_size, seq_len), maxval=vocab_size)
-        # y = tf.random.uniform((batch_size, 1), 0, 2)
-        x = tf.random.uniform(
-            (num_samples, seq_len, num_classes)
-        )  # shape (None, 10, 1000)
-        y = tf.random.uniform((num_samples, 1), 0, num_classes)  # shape (None, 1)
-        return x, y
+    def create_toy_dataset(
+        num_samples=1000, seq_length=10, vocab_size=64, num_classes=2
+    ):
+        # x = np.random.randint(0, vocab_size, size=(num_samples, seq_length))
+        x = np.random.normal(
+            vocab_size / 2, vocab_size / 2 - 1, size=(num_samples, seq_length)
+        )
+        y = np.random.randint(0, 2, size=(num_samples, 1))
+        y = np.random.normal(1, 1, size=(num_samples, seq_length))
+
+        x_train = tf.random.uniform(
+            shape=(num_samples, seq_length), maxval=vocab_size, dtype=tf.int32
+        )
+        y_train = tf.random.uniform(
+            shape=(num_samples, 1), maxval=num_classes, dtype=tf.int32
+        )
+        return x_train, y_train
 
     @pytest.fixture(scope="class")
     def model(self):
-        vocab_size = 1000
-        seq_len = 10
         num_classes = 2
         num_samples = 128
-        num_head = 4
-        encoder = TransformerEncoder(vocab_size=vocab_size, num_heads=num_head)
-        decoder = TransformerDecoder(vocab_size=vocab_size, num_heads=num_head)
+        num_head = 1
+        encoder = TransformerEncoder(
+            vocab_size=self.vocab_size,
+            maxlen_position_encoding=self.seq_length,
+            num_heads=num_head,
+            d_model=64,
+            n_blocks=1,
+        )
+        decoder = TransformerDecoder(
+            vocab_size=self.vocab_size,
+            num_heads=num_head,
+            maxlen_position_encoding=self.seq_length,
+            d_model=64,
+            n_blocks=1,
+        )
         assert isinstance(encoder, TransformerEncoder)
         assert isinstance(decoder, TransformerDecoder)
         print("cheked enc dec: ", encoder, decoder)
-        inputs = tf.keras.layers.Input(shape=(seq_len,))
-        tgt_inputs = tf.keras.layers.Input(shape=(seq_len,))
-        enc_output, attn_weights = encoder(inputs, inputs, inputs)
+        inputs = tf.keras.layers.Input(shape=[self.seq_length])
+        tgt_inputs = tf.keras.layers.Input(shape=(self.seq_length,))
+        enc_output, attn_weights = encoder(inputs)
         print("enc_ouput: ", enc_output.shape)
         dec_output, attn_weights_dec = decoder(inputs, enc_output, enc_output)
-        predictions = tf.keras.layers.Dense(vocab_size, activation="softmax")(
-            dec_output
-        )
+        predictions = tf.keras.layers.Dense(1, activation="softmax")(dec_output)
 
         model = tf.keras.Model(inputs=[inputs], outputs=predictions)
         model.compile(
             optimizer="adam", loss="binary_crossentropy", metrics=["accuracy"]
         )
+        print(model.summary())
         return model
 
     def test_model_creation(self, model):
-        x, y = self.toy_dataset()
-        history = model.fit(x, y, epochs=5, batch_size=32, validation_split=0.2)
+        x, y = self.create_toy_dataset(
+            num_samples=100, vocab_size=self.vocab_size, seq_length=self.seq_length
+        )
+        history = model.fit(x, y, epochs=50, batch_size=32, validation_split=0.2)
         assert isinstance(model, tf.keras.Model)
         assert model is not None

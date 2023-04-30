@@ -78,8 +78,6 @@ class SinePositionalEncoding(tf.keras.layers.Layer):
         assert len(tf.shape(x)) == 3, f"Input must be a 3D tensor. Got {tf.shape(x)}"
         if self.P.dtype != x.dtype:
             self.P = tf.cast(self.P, dtype=x.dtype)
-        print("X in the call: ", x)
-        print("P in the call: ", self.P.shape)
         # self.P = tf.cast(self.P, dtype=X.dtype)
         x = x + self.P[:, : tf.shape(x)[1], :]
         x = self.dropout(x, **kwargs)

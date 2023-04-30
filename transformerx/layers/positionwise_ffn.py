@@ -199,7 +199,6 @@ class PositionwiseFFN(tf.keras.layers.Layer):
                 return x * gate
 
 
-os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 if __name__ == "__main__":
     tf.random.set_seed(1)
     # ffn = PositionWiseFFN(6, 4)
