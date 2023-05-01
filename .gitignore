@@ -9,7 +9,7 @@ __pycache__/
 
 # Distribution / packaging
 .Python
-build/
+#build/
 develop-eggs/
 dist/
 downloads/
@@ -138,5 +138,5 @@ tase.toml
 /certs/
 /docs/source/
 /docs/build/doctrees/
-*.bat
+*.bats
 Makefile
