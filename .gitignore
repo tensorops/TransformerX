@@ -140,3 +140,4 @@ tase.toml
 /docs/build/doctrees/
 *.bats
 Makefile
+source/
