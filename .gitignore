@@ -136,3 +136,5 @@ tase.toml
 .idea
 /.idea/
 /certs/
+/docs/source/
+/docs/build/doctrees/
