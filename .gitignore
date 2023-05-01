@@ -141,4 +141,4 @@ tase.toml
 *.bats
 Makefile
 source/
-/docs/source/
+/docs/source/*
