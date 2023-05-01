@@ -25,11 +25,14 @@ class DotProductAttention(tf.keras.layers.Layer):
     Notes
     -----
     Dot-product attention formulation is as following:
-    .. math:: Attention(Q, K, V) = softmax(Q K^T) V
+
+    .. math::
+        Attention(Q, K, V) = softmax(Q K^T) V
 
     And scaled dot-product attention [1]_ is formulated as:
 
-    ..math:: Attention(Q, K, V) = softmax(\frac{QK^T}{\sqrt{d_k}})V
+    .. math::
+        Attention(Q, K, V) = softmax(\\frac{QK^T}{\\sqrt{d_k}}) V
 
 
     Examples
@@ -43,7 +46,6 @@ class DotProductAttention(tf.keras.layers.Layer):
     [[[0.5418388  0.23626359]
       [0.4220487  0.394948  ]
       [0.6125364  0.12296485]]
-
      [[0.17872103 0.5700011 ]
       [0.28264287 0.02290592]
       [0.24536102 0.39220297]]], shape=(2, 3, 2), dtype=float32)  #random
@@ -56,7 +58,6 @@ class DotProductAttention(tf.keras.layers.Layer):
     [[[0.45955482 0.63378114]
       [0.48054144 0.62751293]
       [0.43684354 0.64026886]]
-
      [[0.82063836 0.2958246 ]
       [0.8300792  0.30486548]
       [0.83300924 0.30762452]]], shape=(2, 3, 2), dtype=float32)
@@ -70,7 +71,6 @@ class DotProductAttention(tf.keras.layers.Layer):
     [[[0.5195807  0.6383675 ]
       [0.49765232 0.6440835 ]
       [0.5132934  0.64001364]]
-
      [[0.6074392  0.80120546]
       [0.6098373  0.80074203]
       [0.5967663  0.7891044 ]]], shape=(2, 3, 2), dtype=float32)
@@ -78,7 +78,7 @@ class DotProductAttention(tf.keras.layers.Layer):
     References
     ----------
     .. [1] A. Vaswani, N. Shazeer, N. Parmar, J. Uszkoreit, L. Jones, A. N. Gomez, L. Kaiser, I. Polosukhin, Attention
-    is all you need, in: NIPS, pp. 5998–6008.
+        is all you need, in: NIPS, pp. 5998–6008.
     """
 
     def __init__(
