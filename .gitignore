@@ -138,3 +138,5 @@ tase.toml
 /certs/
 /docs/source/
 /docs/build/doctrees/
+*.bat
+Makefile
