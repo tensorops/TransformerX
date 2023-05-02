@@ -53,29 +53,30 @@ class DotProductAttention(tf.keras.layers.Layer):
 
     >>> dot_product = DotProductAttention(0.2)
     >>> queries, keys, values = x, x, x
-    >>> output = dot_product(queries, keys, values)
+    >>> output, attn_weights = dot_product(queries, keys, values)
     >>> print(output)
     tf.Tensor(
-    [[[0.45955482 0.63378114]
-      [0.48054144 0.62751293]
-      [0.43684354 0.64026886]]
-     [[0.82063836 0.2958246 ]
-      [0.8300792  0.30486548]
-      [0.83300924 0.30762452]]], shape=(2, 3, 2), dtype=float32)
+    [[[0.34450796 0.6787753 ]
+      [0.36907017 0.65472305]
+      [0.35440704 0.66882825]]
+    <BLANKLINE>
+     [[0.77042043 0.5446019 ]
+      [0.7632908  0.5484005 ]
+      [0.7627964  0.5486638 ]]], shape=(2, 3, 2), dtype=float32)
 
     The next example shows the dot-product (multiplicative) self-attention of tensor `x`.
 
     >>> dot_product = DotProductAttention(dropout_rate=0.1, scaled=False)
     >>> output, attn_weights = dot_product(queries, keys, values)
     >>> print(output)
-    tf.Tensor: shape=(2, 3, 2), dtype=float32, numpy=
-    array([[[0.34450796, 0.6787753 ],
-    [0.36907017, 0.65472305],
-    [0.35440704, 0.66882825]],
+    tf.Tensor(
+    [[[0.33704066 0.6868143 ]
+      [0.37176722 0.6526886 ]
+      [0.35094902 0.6727435 ]]
     <BLANKLINE>
-    [[0.77042043, 0.5446019 ],
-    [0.7632908 , 0.5484005 ],
-    [0.7627964 , 0.5486638 ]]], dtype=float32)
+     [[0.7759446  0.54165894]
+      [0.7657266  0.54710305]
+      [0.7650213  0.5474789 ]]], shape=(2, 3, 2), dtype=float32)
 
     References
     ----------
@@ -148,7 +149,6 @@ class DotProductAttention(tf.keras.layers.Layer):
             causal_mask = tf.broadcast_to(
                 tf.expand_dims(causal_mask, -1), tf.shape(scores)
             )  # broadcast across batch dimension
-            # scores +=
             scores = scores + causal_mask
 
         # to be uncommented later
@@ -162,7 +162,6 @@ class DotProductAttention(tf.keras.layers.Layer):
         # self.attention_weights = tf.nn.softmax(scores, axis=-1, mask=attention_mask)
         # scores = tf.matmul(self.dropout(self.attention_weights, **kwargs), values)
         attention_output = tf.matmul(self.dropout(self.attention_weights), values)
-        print(attention_output.shape, self.attention_weights.shape)
         return attention_output, self.attention_weights
 
     def get_attention_weights(self):
