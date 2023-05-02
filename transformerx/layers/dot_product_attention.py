@@ -1,4 +1,3 @@
-import numpy as np
 import tensorflow as tf
 
 from transformerx.layers.masks.global_attention_mask import GlobalAttentionMask

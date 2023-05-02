@@ -8,8 +8,8 @@ def sequence_mask(X, attention_mask, value=-1e9):
         raise TypeError("X must be a Tensor")
     if not isinstance(attention_mask, tf.Tensor):
         raise TypeError("attention_mask must be a Tensor")
-    if len(X.shape) not in (2, 3):
-        raise ValueError("X must be a 2D or 3D tensor")
+    if len(X.shape) not in (2, 3, 4):
+        raise ValueError("X must be a 2D, 3D, or 4D tensor")
     if len(attention_mask.shape) not in (1, 2):
         raise ValueError("attention_mask must be a 1D or 2D tensor")
 
@@ -18,8 +18,10 @@ def sequence_mask(X, attention_mask, value=-1e9):
         mask = tf.range(start=0, limit=maxlen, dtype=tf.float32)[None, :] < tf.cast(
             attention_mask, dtype=tf.float32
         )
+        print("mask.shape: ", mask.shape, attention_mask.shape, X.shape)
     else:
         maxlen = X.shape[0]
+        print("attention_mask.shape: ", attention_mask.shape, X.shape)
         mask = tf.range(start=0, limit=maxlen, dtype=tf.float32) < tf.cast(
             attention_mask, dtype=tf.float32
         )
