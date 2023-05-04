@@ -18,9 +18,11 @@ class AttentionMask(BaseMask):
         super().__init__(**kwargs)
 
     def build_mask(self, input_shape):
-        seq_len = input_shape[1]
-        print(tf.linalg.band_part(tf.ones((seq_len, seq_len)), -1, 0))
-        mask = 1 - tf.linalg.band_part(tf.ones((seq_len, seq_len)), -1, 0) * -1e9
+        q_seq_len = input_shape[1]
+        k_seq_len = input_shape[2]
+        print("input_shape: ", input_shape[1])
+        print(tf.linalg.band_part(tf.ones((q_seq_len, k_seq_len)), -1, 0))
+        mask = 1 - tf.linalg.band_part(tf.ones((q_seq_len, k_seq_len)), -1, 0) * -1e9
         mask = tf.expand_dims(mask, axis=0)
         # mask = tf.expand_dims(mask, axis=2)
         # mask = tf.tile(mask, [input_shape[0], 1, 1])
@@ -33,7 +35,8 @@ if __name__ == "__main__":
     from transformerx.layers import DotProductAttention
 
     input_tensor = tf.random.uniform((2, 3, 6))
-    attn_o, attn_w = DotProductAttention()(input_tensor, input_tensor, input_tensor)
+    q_input_tensor = tf.random.uniform((2, 6, 6))
+    attn_o, attn_w = DotProductAttention()(q_input_tensor, input_tensor, input_tensor)
     print("attn_o.shape: ", attn_o.shape)
     print("attn_w.shape:", attn_w.shape)
     print("attn_w:", attn_w)
