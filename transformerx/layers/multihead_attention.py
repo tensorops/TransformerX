@@ -298,7 +298,7 @@ class MultiHeadAttention(tf.keras.layers.Layer):
         >>> values = tf.random.normal([batch_size, no_of_key_value_pairs, depth])
         >>> valid_lens = tf.random.uniform([batch_size], minval=0, maxval=no_of_queries, dtype=tf.int32)
 
-        >>> multihead_attn = MultiHeadAttention(d_model=depth, num_heads=num_heads, dropout=dropout)
+        >>> multihead_attn = MultiHeadAttention(d_model=depth, num_heads=num_heads, dropout_rate=dropout)
         >>> output, attention_weights = multihead_attn(queries, keys, values, valid_lens)
 
         Here is an example of how to use the call method with a window mask:
@@ -311,7 +311,7 @@ class MultiHeadAttention(tf.keras.layers.Layer):
         >>> valid_lens = tf.random.uniform([batch_size], minval=0, maxval=no_of_queries, dtype=tf.int32)
         >>> window_mask = tf.random.uniform([batch_size, no_of_queries, no_of_key_value_pairs], 0, 2, dtype=tf.int32)
 
-        >>> multihead_attn = MultiHeadAttention(d_model=depth, num_heads=num_heads, dropout=dropout)
+        >>> multihead_attn = MultiHeadAttention(d_model=depth, num_heads=num_heads, dropout_rate=dropout)
         >>> output, attention_weights = multihead_attn(queries, keys, values, valid_lens, window_mask)
         """
 
@@ -333,6 +333,7 @@ class MultiHeadAttention(tf.keras.layers.Layer):
 
         # Shape of output: (batch_size * num_heads, no. of queries,
         # depth / num_heads)
+        print("multihead q: ", queries.shape)
         attention_output, attention_weights = self.attention(
             queries, keys, values, attention_mask, **kwargs
         )
