@@ -14,7 +14,8 @@ class BaseMask(tf.keras.layers.Layer):
         else:
             m_inputs = inputs
         mask = self.build_mask(tf.shape(m_inputs))
-        return tf.multiply(inputs, mask)
+        print("mask: ", mask)
+        return tf.add(inputs, mask * -1e9)
 
 
 class LookAheadMask(BaseMask):
@@ -40,7 +41,7 @@ if __name__ == "__main__":
     # print("mask attn_w:", attn_w)
     mask = LookAheadMask()
     output_tensor = mask(attn_w)
-    # print("masked ouptut shape: ", output_tensor.shape, output_tensor)
+    print("masked ouptut shape: ", output_tensor.shape, output_tensor)
     # print(tf.nn.softmax(output_tensor, axis=-1))
     print(tf.nn.softmax(output_tensor, axis=-1))
 
