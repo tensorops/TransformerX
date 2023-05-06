@@ -60,3 +60,24 @@ if __name__ == "__main__":
     # print("mask output_tensor.shape: ", output_tensor.shape)
     # print("mask output_tensor.shape: ", attn_w)
     # print(tf.nn.softmax(output_tensor, axis=-1))
+
+
+class PaddingMaskNew(tf.keras.layers.Layer):
+    def __init__(self, multi_head=True, **kwargs):
+        super(PaddingMask, self).__init__(**kwargs)
+        self.multi_head = multi_head
+
+    def build(self, input_shape):
+        pass
+
+    def call(self, inputs):
+        seq = tf.cast(tf.math.equal(inputs, 0), tf.float32)
+        seq = tf.expand_dims(seq, axis=1)
+        if self.multi_head:
+            seq = tf.expand_dims(seq, axis=1)
+        return seq
+
+    def get_config(self):
+        config = super(PaddingMask, self).get_config()
+        config.update({"multi_head": self.multi_head})
+        return config
