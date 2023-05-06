@@ -24,7 +24,8 @@ release = "v1.0.0-rc"
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
 extensions = [
-    "sphinx_rtd_theme",
+    # "sphinx_rtd_theme",
+    "furo",
     "sphinx.ext.autodoc",
     "sphinx.ext.autosummary",
     "sphinx.ext.napoleon",
@@ -49,7 +50,8 @@ language = "english"
 exclude_patterns = []
 
 
-html_theme = "sphinx_rtd_theme"
+# html_theme = "sphinx_rtd_theme"
+html_theme = "furo"
 html_title = "TransformerX Documentation"
 html_show_sourcelink = False
 html_baseurl = "https://github.com/tensorops/transformerx"

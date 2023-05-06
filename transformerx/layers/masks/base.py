@@ -30,6 +30,15 @@ class LookAheadMask(BaseMask):
         return mask
 
 
+class PaddingMask(BaseMask):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    def build_mask(self, input_shape):
+        mask = tf.cast(tf.math.equal(input_shape, 0), tf.float32)
+        return mask
+
+
 if __name__ == "__main__":
     from transformerx.layers import DotProductAttention, MultiHeadAttention
 
