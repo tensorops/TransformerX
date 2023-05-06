@@ -63,15 +63,16 @@ if __name__ == "__main__":
 
 
 class PaddingMaskNew(tf.keras.layers.Layer):
-    def __init__(self, multi_head=True, **kwargs):
+    def __init__(self, multi_head=True, padding_value=0, **kwargs):
         super(PaddingMask, self).__init__(**kwargs)
         self.multi_head = multi_head
+        self.padding_value = padding_value
 
     def build(self, input_shape):
         pass
 
     def call(self, inputs):
-        seq = tf.cast(tf.math.equal(inputs, 0), tf.float32)
+        seq = tf.cast(tf.math.equal(inputs, self.padding_value), tf.float32)
         seq = tf.expand_dims(seq, axis=1)
         if self.multi_head:
             seq = tf.expand_dims(seq, axis=1)
@@ -80,4 +81,34 @@ class PaddingMaskNew(tf.keras.layers.Layer):
     def get_config(self):
         config = super(PaddingMask, self).get_config()
         config.update({"multi_head": self.multi_head})
+        return config
+
+
+class SequencePadding(tf.keras.layers.Layer):
+    def __init__(self, padding_value=0, max_sequence_length=None, **kwargs):
+        super(SequencePadding, self).__init__(**kwargs)
+        self.padding_value = padding_value
+        self.max_sequence_length = max_sequence_length
+
+    def call(self, inputs):
+        if self.max_sequence_length is None:
+            max_sequence_length = tf.reduce_max(tf.shape(inputs)[1])
+        else:
+            max_sequence_length = self.max_sequence_length
+
+        padded_inputs = tf.pad(
+            inputs,
+            paddings=[[0, 0], [0, max_sequence_length - tf.shape(inputs)[1]]],
+            constant_values=self.padding_value,
+        )
+        return padded_inputs
+
+    def get_config(self):
+        config = super(SequencePadding, self).get_config()
+        config.update(
+            {
+                "padding_value": self.padding_value,
+                "max_sequence_length": self.max_sequence_length,
+            }
+        )
         return config
