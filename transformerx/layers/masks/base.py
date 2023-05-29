@@ -30,16 +30,24 @@ class LookAheadMask(BaseMask):
             k_seq_len = input_shape[3]
             q_seq_len = input_shape[2]
 
-        mask = 1 - tf.linalg.band_part(tf.ones((q_seq_len, k_seq_len)), -1, 0)
+        # mask = 1 - tf.linalg.band_part(tf.ones((q_seq_len, k_seq_len)), -1, 0)
+        mask = (
+            1
+            - tf.linalg.LinearOperatorLowerTriangular(
+                tf.ones((q_seq_len, k_seq_len)), -1, 0
+            ).to_dense()
+        )
         return mask
 
 
 class PaddingMask(BaseMask):
-    def __init__(self, **kwargs):
+    def __init__(self, padding_value=0, multi_head=True, **kwargs):
         super().__init__(**kwargs)
+        self.padding_value = padding_value
+        self.multi_head = multi_head
 
     def build_mask(self, inputs):
-        mask = tf.cast(tf.math.equal(inputs, 0), tf.float32)
+        mask = tf.cast(tf.math.equal(inputs, self.padding_value), tf.float32)
         return mask
 
 
@@ -79,7 +87,10 @@ if __name__ == "__main__":
 
     multihead_attn = MultiHeadAttention(d_model=32, num_heads=4, dropout_rate=0.1)
     output, attn_w = multihead_attn(q_input_tensor, input_tensor, input_tensor)
-    output_tensor = la_mask(attn_w)
+
+    sample_input = tf.random.uniform((1, 1, 4, 2))
+    # output_tensor = la_mask(attn_w)
+    output_tensor = la_mask(sample_input)
     print(output_tensor.shape, output_tensor)
 
     data = [[1, 2, 3], [4, 5], [6, 7, 8, 9]]
@@ -107,8 +118,8 @@ if __name__ == "__main__":
     padding_mask_layer = PaddingMask()
 
     # Generate the padding mask
-    padding_mask = padding_mask_layer(input_tensor)
-    print(padding_mask.shape, padding_mask)
+    # padding_mask = padding_mask_layer(input_tensor)
+    # print(padding_mask.shape, padding_mask)
 
     lad_mask = la_mask(input_tensor)
-    print(lad_mask.shape, lad_mask)
+    # print(lad_mask.shape, lad_mask)

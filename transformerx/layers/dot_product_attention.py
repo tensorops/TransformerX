@@ -2,6 +2,7 @@ import tensorflow as tf
 
 from transformerx.layers.masks.global_attention_mask import GlobalAttentionMask
 from transformerx.utils import masked_softmax
+from transformerx.layers.masks import LookAheadMask
 
 
 class DotProductAttention(tf.keras.layers.Layer):
@@ -137,18 +138,22 @@ class DotProductAttention(tf.keras.layers.Layer):
 
         # apply causal mask
         if self.causal_mask:
+            # Obsolete version of masking. To be removed in the upcomming updates
             # seq_len = tf.shape(queries)[2]
             # heads = tf.shape(queries)[1]
-            batch_size, num_heads, seq_len, _ = tf.unstack(tf.shape(queries))
-            causal_mask = tf.ones((num_heads, seq_len)) * -1e9
-            causal_mask = tf.linalg.LinearOperatorLowerTriangular(
-                causal_mask
-            ).to_dense()
-            causal_mask = tf.expand_dims(causal_mask, axis=0)  # add batch dimension
-            causal_mask = tf.broadcast_to(
-                tf.expand_dims(causal_mask, -1), tf.shape(scores)
-            )  # broadcast across batch dimension
-            scores = scores + causal_mask
+            # batch_size, num_heads, seq_len, _ = tf.unstack(tf.shape(queries))
+            # causal_mask = tf.ones((num_heads, seq_len)) * -1e9
+            # causal_mask = tf.linalg.LinearOperatorLowerTriangular(
+            #     causal_mask
+            # ).to_dense()
+            # causal_mask = tf.expand_dims(causal_mask, axis=0)  # add batch dimension
+            # causal_mask = tf.broadcast_to(
+            #     tf.expand_dims(causal_mask, -1), tf.shape(scores)
+            # )  # broadcast across batch dimension
+
+            # New version of masking
+            look_ahead_mask = LookAheadMask()
+            scores = look_ahead_mask(scores)
 
         # to be uncommented later
         # apply global mask
