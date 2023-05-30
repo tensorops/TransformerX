@@ -4,9 +4,6 @@ import tensorflow as tf
 
 from transformerx.layers import AddNorm
 
-physical_devices = tf.config.list_physical_devices("GPU")
-tf.config.experimental.set_memory_growth(physical_devices[0], True)
-
 
 class TestAddNorm:
     def test_init(self):
