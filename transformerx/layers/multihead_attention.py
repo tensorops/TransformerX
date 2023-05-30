@@ -1,4 +1,3 @@
-import numpy as np
 import tensorflow as tf
 from einops import rearrange
 
@@ -89,7 +88,9 @@ class MultiHeadAttention(tf.keras.layers.Layer):
     Returns
     -------
     output:
-        Concatenated tensors
+        Concatenated tensors. Same shape as the queries.
+    attention_weights:
+            Optional tensor of attention weights.
 
     Methods
     -------
@@ -102,38 +103,50 @@ class MultiHeadAttention(tf.keras.layers.Layer):
 
     Examples
     --------
-    >>> x = tf.constant(np.random.random([2, 3, 2]), dtype=tf.float32)
-    >>> multihead = MultiHeadAttention(d_model=8)
-    >>> print(multihead)
-    <__main__.MultiHeadAttention object at 0x7ff83c16bb80>
+    >>> import tensorflow as tf
+    >>> import random
+    >>> tf.random.set_seed(1)
+    >>> random.seed(42)
 
-    >>> output = multihead(x, x, x)
+
+    >>> x = tf.constant(tf.random.uniform([2, 3, 2]), dtype=tf.float32)
+    >>> multihead = MultiHeadAttention(d_model=8, dropout_rate=0)
+    >>> print(type(multihead))
+    <class 'multihead_attention.MultiHeadAttention'>
+
+    >>> output, attn_weights = multihead(x, x, x)
     >>> print(output)
     tf.Tensor(
-    [[[ 0.2051548   0.32050014  0.2915167  -0.04056092  0.12072253
-        0.06477361  0.18725544  0.02056682]
-      [ 0.19823116  0.2983173   0.27711272 -0.04071879  0.11172265
-        0.06080601  0.18654731  0.00577436]
-      [ 0.19831955  0.30106473  0.27666807 -0.03963682  0.11234044
-        0.0615251   0.18657821  0.00680977]]
-     [[ 0.14630345  0.21267754  0.26289055 -0.10759152  0.03963668
-        0.04118761  0.11257525  0.05869889]
-      [ 0.14556082  0.21070784  0.26139364 -0.10755821  0.03894955
-        0.04060047  0.11260018  0.05745776]
-      [ 0.14547291  0.21081978  0.26109838 -0.10745162  0.03889
-        0.04069766  0.11251941  0.05741404]]], shape=(2, 3, 8), dtype=float32)
+    [[[ 0.27276292 -0.2744614  -0.06085328 -0.03441356 -0.1577001
+        0.33375    -0.7894692  -0.33158925]
+      [ 0.2792416  -0.27180034 -0.06341933 -0.02869054 -0.15612581
+        0.33674437 -0.7850623  -0.3237151 ]
+      [ 0.274466   -0.27393326 -0.06170867 -0.03307929 -0.15757665
+        0.33440444 -0.78846383 -0.3293347 ]]
+    <BLANKLINE>
+     [[ 0.44330204 -0.14170787 -0.1372787   0.3109271  -0.30478996
+        0.47728932 -0.8789958  -0.3304574 ]
+      [ 0.44153026 -0.14282975 -0.13679348  0.30881953 -0.30498797
+        0.476456   -0.8804113  -0.33254212]
+      [ 0.44139963 -0.14291355 -0.13675913  0.30866385 -0.3050046
+        0.4763937  -0.88051784 -0.3326969 ]]], shape=(2, 3, 8), dtype=float32)
 
-    >>> attention = MultiHeadAttention(d_model=16, num_heads=4, dropout=0.1)
-    >>> queries = tf.random.normal((3, 10, 16))
+
+
+
+
+    >>> tf.random.set_seed(1)
+    >>> attention = MultiHeadAttention(d_model=16, num_heads=4, dropout_rate=0.1)
+    >>> queries = tf.random.normal((3, 20, 16))
     >>> keys = tf.random.normal((3, 20, 16))
     >>> values = tf.random.normal((3, 20, 16))
-    >>> valid_lens = tf.constant([10, 15, 20])
-    >>> output, _ = attention(queries, keys, values, valid_lens)
-    >>> output.shape
-    (3, 10, 16)
+    >>> valid_lens = tf.constant([3, 20])
+    >>> output, _ = attention(queries, keys, values)
+    >>> print(output.shape)
+    (3, 20, 16)
 
-    >>> window_mask = tf.ones((3, 10, 20))
-    >>> output, _ = attention(queries, keys, values, valid_lens, window_mask=window_mask)
+    >>> window_mask = tf.ones((3, 10))
+    >>> output, _ = attention(queries, keys, values, attention_mask=window_mask)
     >>> output.shape
     (3, 10, 16)
 
@@ -285,7 +298,7 @@ class MultiHeadAttention(tf.keras.layers.Layer):
         >>> values = tf.random.normal([batch_size, no_of_key_value_pairs, depth])
         >>> valid_lens = tf.random.uniform([batch_size], minval=0, maxval=no_of_queries, dtype=tf.int32)
 
-        >>> multihead_attn = MultiHeadAttention(d_model=depth, num_heads=num_heads, dropout=dropout)
+        >>> multihead_attn = MultiHeadAttention(d_model=depth, num_heads=num_heads, dropout_rate=dropout)
         >>> output, attention_weights = multihead_attn(queries, keys, values, valid_lens)
 
         Here is an example of how to use the call method with a window mask:
@@ -298,7 +311,7 @@ class MultiHeadAttention(tf.keras.layers.Layer):
         >>> valid_lens = tf.random.uniform([batch_size], minval=0, maxval=no_of_queries, dtype=tf.int32)
         >>> window_mask = tf.random.uniform([batch_size, no_of_queries, no_of_key_value_pairs], 0, 2, dtype=tf.int32)
 
-        >>> multihead_attn = MultiHeadAttention(d_model=depth, num_heads=num_heads, dropout=dropout)
+        >>> multihead_attn = MultiHeadAttention(d_model=depth, num_heads=num_heads, dropout_rate=dropout)
         >>> output, attention_weights = multihead_attn(queries, keys, values, valid_lens, window_mask)
         """
 
@@ -320,6 +333,7 @@ class MultiHeadAttention(tf.keras.layers.Layer):
 
         # Shape of output: (batch_size * num_heads, no. of queries,
         # depth / num_heads)
+        print("multihead q: ", queries.shape)
         attention_output, attention_weights = self.attention(
             queries, keys, values, attention_mask, **kwargs
         )

@@ -1,8 +1,8 @@
-import numpy as np
 import tensorflow as tf
 
 from transformerx.layers.masks.global_attention_mask import GlobalAttentionMask
 from transformerx.utils import masked_softmax
+from transformerx.layers.masks import LookAheadMask
 
 
 class DotProductAttention(tf.keras.layers.Layer):
@@ -25,60 +25,63 @@ class DotProductAttention(tf.keras.layers.Layer):
     Notes
     -----
     Dot-product attention formulation is as following:
-    .. math:: Attention(Q, K, V) = softmax(Q K^T) V
+
+    .. math::
+        Attention(Q, K, V) = softmax(Q K^T) V
 
     And scaled dot-product attention [1]_ is formulated as:
 
-    ..math:: Attention(Q, K, V) = softmax(\frac{QK^T}{\sqrt{d_k}})V
+    .. math::
+        Attention(Q, K, V) = softmax(\\frac{QK^T}{\\sqrt{d_k}}) V
 
 
     Examples
     --------
     Scaled dot-product (scaled multiplicative) self-attention of tensor `x` (we feed `x` to queries, keys, and
     values).
-
-    >>> x = tf.cast(np.random.random([2, 3, 2]), dtype=tf.float32)
+    >>> tf.random.set_seed(1)
+    >>> x = tf.cast(tf.random.uniform([2, 3, 2]), dtype=tf.float32)
     >>> print(x)
     tf.Tensor(
-    [[[0.5418388  0.23626359]
-      [0.4220487  0.394948  ]
-      [0.6125364  0.12296485]]
-
-     [[0.17872103 0.5700011 ]
-      [0.28264287 0.02290592]
-      [0.24536102 0.39220297]]], shape=(2, 3, 2), dtype=float32)  #random
+    [[[0.16513085 0.9014813 ]
+      [0.6309742  0.4345461 ]
+      [0.29193902 0.64250207]]
+    <BLANKLINE>
+     [[0.9757855  0.43509948]
+      [0.6601019  0.60489583]
+      [0.6366315  0.6144488 ]]], shape=(2, 3, 2), dtype=float32)
 
     >>> dot_product = DotProductAttention(0.2)
     >>> queries, keys, values = x, x, x
-    >>> output = dot_product(queries, keys, values)
+    >>> output, attn_weights = dot_product(queries, keys, values)
     >>> print(output)
     tf.Tensor(
-    [[[0.45955482 0.63378114]
-      [0.48054144 0.62751293]
-      [0.43684354 0.64026886]]
-
-     [[0.82063836 0.2958246 ]
-      [0.8300792  0.30486548]
-      [0.83300924 0.30762452]]], shape=(2, 3, 2), dtype=float32)
+    [[[0.34450796 0.6787753 ]
+      [0.36907017 0.65472305]
+      [0.35440704 0.66882825]]
+    <BLANKLINE>
+     [[0.77042043 0.5446019 ]
+      [0.7632908  0.5484005 ]
+      [0.7627964  0.5486638 ]]], shape=(2, 3, 2), dtype=float32)
 
     The next example shows the dot-product (multiplicative) self-attention of tensor `x`.
 
     >>> dot_product = DotProductAttention(dropout_rate=0.1, scaled=False)
-    >>> output = dot_product(queries, keys, values)
+    >>> output, attn_weights = dot_product(queries, keys, values)
     >>> print(output)
     tf.Tensor(
-    [[[0.5195807  0.6383675 ]
-      [0.49765232 0.6440835 ]
-      [0.5132934  0.64001364]]
-
-     [[0.6074392  0.80120546]
-      [0.6098373  0.80074203]
-      [0.5967663  0.7891044 ]]], shape=(2, 3, 2), dtype=float32)
+    [[[0.33704066 0.6868143 ]
+      [0.37176722 0.6526886 ]
+      [0.35094902 0.6727435 ]]
+    <BLANKLINE>
+     [[0.7759446  0.54165894]
+      [0.7657266  0.54710305]
+      [0.7650213  0.5474789 ]]], shape=(2, 3, 2), dtype=float32)
 
     References
     ----------
     .. [1] A. Vaswani, N. Shazeer, N. Parmar, J. Uszkoreit, L. Jones, A. N. Gomez, L. Kaiser, I. Polosukhin, Attention
-    is all you need, in: NIPS, pp. 5998–6008.
+        is all you need, in: NIPS, pp. 5998–6008.
     """
 
     def __init__(
@@ -135,19 +138,22 @@ class DotProductAttention(tf.keras.layers.Layer):
 
         # apply causal mask
         if self.causal_mask:
+            # Obsolete version of masking. To be removed in the upcomming updates
             # seq_len = tf.shape(queries)[2]
             # heads = tf.shape(queries)[1]
-            batch_size, num_heads, seq_len, _ = tf.unstack(tf.shape(queries))
-            causal_mask = tf.ones((num_heads, seq_len)) * -1e9
-            causal_mask = tf.linalg.LinearOperatorLowerTriangular(
-                causal_mask
-            ).to_dense()
-            causal_mask = tf.expand_dims(causal_mask, axis=0)  # add batch dimension
-            causal_mask = tf.broadcast_to(
-                tf.expand_dims(causal_mask, -1), tf.shape(scores)
-            )  # broadcast across batch dimension
-            # scores +=
-            scores = scores + causal_mask
+            # batch_size, num_heads, seq_len, _ = tf.unstack(tf.shape(queries))
+            # causal_mask = tf.ones((num_heads, seq_len)) * -1e9
+            # causal_mask = tf.linalg.LinearOperatorLowerTriangular(
+            #     causal_mask
+            # ).to_dense()
+            # causal_mask = tf.expand_dims(causal_mask, axis=0)  # add batch dimension
+            # causal_mask = tf.broadcast_to(
+            #     tf.expand_dims(causal_mask, -1), tf.shape(scores)
+            # )  # broadcast across batch dimension
+
+            # New version of masking
+            look_ahead_mask = LookAheadMask()
+            scores = look_ahead_mask(scores)
 
         # to be uncommented later
         # apply global mask
@@ -160,7 +166,6 @@ class DotProductAttention(tf.keras.layers.Layer):
         # self.attention_weights = tf.nn.softmax(scores, axis=-1, mask=attention_mask)
         # scores = tf.matmul(self.dropout(self.attention_weights, **kwargs), values)
         attention_output = tf.matmul(self.dropout(self.attention_weights), values)
-
         return attention_output, self.attention_weights
 
     def get_attention_weights(self):

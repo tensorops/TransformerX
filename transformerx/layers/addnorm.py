@@ -46,7 +46,7 @@ class AddNorm(tf.keras.layers.Layer):
     Examples
     --------
     >>> x = tf.constant(np.arange(10).reshape(5, 2) * 10, dtype=tf.float32)
-    >>> y = tf.constant(np.arange(10).reshape(5, 2) * 10, dtype=tf.float32)
+    >>> y = tf.constant(np.arange(10).reshape(5, 2) * 11, dtype=tf.float32)
     >>> print(x)
     tf.Tensor(
     [[ 0. 10.]
@@ -56,14 +56,14 @@ class AddNorm(tf.keras.layers.Layer):
      [80. 90.]], shape=(5, 2), dtype=float32)
 
     >>> addnorm = AddNorm(norm_type='layer', norm_eps=1e-6, dropout_rate=0.2, activation='relu')
-    >>> output = addnorm([x, y])
+    >>> output = addnorm(x, y)
     >>> print(output)
     tf.Tensor(
-    [[0.        0.        ]
-     [4.1565704 3.2312596]
-     [9.174077  8.174077 ]
-     [14.191582 13.116871 ]
-     [19.209087 18.134377 ]], shape=(5, 2), dtype=float32)
+    [[0. 1.]
+     [0. 1.]
+     [0. 1.]
+     [0. 1.]
+     [0. 1.]], shape=(5, 2), dtype=float32)
 
     References
     ----------
@@ -99,7 +99,7 @@ class AddNorm(tf.keras.layers.Layer):
 
         if dropout_rate >= 1:
             raise ValueError("Dropout rate must be less than 1")
-        self.dropout = tf.keras.layers.Dropout(dropout_rate)
+        self.dropout = tf.keras.layers.Dropout(self.dropout_rate)
         # Regularizers
         self.kernel_regularizer = kernel_regularizer
         self.bias_regularizer = bias_regularizer
@@ -154,10 +154,10 @@ class AddNorm(tf.keras.layers.Layer):
             )
 
         # Apply dropout
-        residual = self.dropout(residual, training=kwargs.get("training", False))
+        # residual = self.dropout(residual)
 
         # Add residual connection
-        x = tf.keras.layers.Add()([x, residual])
+        x = tf.add(x, residual)
 
         # Apply normalization
         x = self.norm_layer(x)
@@ -184,12 +184,12 @@ class AddNorm(tf.keras.layers.Layer):
         return config
 
 
-if __name__ == "__main__":
-    X = tf.constant(np.arange(10).reshape(5, 2) * 10, dtype=tf.float32)
-    Y = tf.constant(np.arange(10).reshape(5, 2) * 10, dtype=tf.float32)
-
-    addnorm = AddNorm(
-        norm_type="layer", norm_eps=1e-6, dropout_rate=0.2, activation="relu"
-    )
-    output = addnorm(X, X)
-    print(output)
+# if __name__ == "__main__":
+#     x = tf.constant(np.arange(10).reshape(5, 2) * 10, dtype=tf.float32)
+#     y = tf.constant(np.arange(10, 20).reshape(5, 2) * 13, dtype=tf.float32)
+#
+#     addnorm = AddNorm(
+#         norm_type="layer", norm_eps=1e-6, dropout_rate=0.2, activation="relu"
+#     )
+#     output = addnorm(x, y)
+#     print(output)

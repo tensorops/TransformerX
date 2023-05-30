@@ -1,3 +1,5 @@
+import os
+
 import pytest
 import tensorflow as tf
 import numpy as np
@@ -129,9 +131,9 @@ class TestTransformerEncoderIntegration:
             vocab_size=self.vocab_size, seq_length=self.seq_length, num_samples=100
         )
         history = model.fit(
-            x_train, y_train, epochs=50, batch_size=64, validation_split=0.2
+            x_train, y_train, epochs=50, batch_size=16, validation_split=0.2
         )
-        tf.keras.mixed_precision.set_global_policy("mixed_float16")
+        # tf.keras.mixed_precision.set_global_policy("mixed_float16")
         assert (
             history.history["accuracy"][-1] > 0.5
         ), "Training accuracy should be greater than 0.5"

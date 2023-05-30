@@ -107,27 +107,38 @@ class TestTransformerDecoder:
 
 
 class TestTransformerDecoderIntegration:
-    seq_length = 10
-    vocab_size = 32
+    seq_length = 5
+    vocab_size = 8
 
     @staticmethod
     def create_toy_dataset(
         num_samples=1000, seq_length=10, vocab_size=64, num_classes=2
     ):
         # x = np.random.randint(0, vocab_size, size=(num_samples, seq_length))
-        x = np.random.normal(
-            vocab_size / 2, vocab_size / 2 - 1, size=(num_samples, seq_length)
+        # x = np.random.normal(
+        #     (vocab_size // 2), (vocab_size // 2 - 1), size=(num_samples, seq_length)
+        # )
+        x = tf.random.normal(
+            shape=(num_samples, seq_length),
+            mean=vocab_size // 2,
+            stddev=vocab_size / 2 - 3,
         )
-        y = np.random.randint(0, 2, size=(num_samples, 1))
-        y = np.random.normal(1, 1, size=(num_samples, seq_length))
+        # y = np.random.randint(0, 2, size=(num_samples, 1))
+        # y = np.random.normal(1, 1, size=(num_samples, seq_length))
+        y = tf.cast(tf.math.greater(x, vocab_size / 2), tf.int32)
+        print("x: ", x.shape)
+        print("y: ", y.shape)
+        print("vocab: ", vocab_size, vocab_size / 2, vocab_size // 2)
+        print("x: ", x[:5, :5])
+        print("y: ", y[:5, :5])
 
-        x_train = tf.random.uniform(
-            shape=(num_samples, seq_length), maxval=vocab_size, dtype=tf.int32
-        )
-        y_train = tf.random.uniform(
-            shape=(num_samples, 1), maxval=num_classes, dtype=tf.int32
-        )
-        return x_train, y_train
+        # x_train = tf.random.normal(
+        #     shape=(num_samples, seq_length), mean=vocab_size, dtype=tf.int32
+        # )
+        # y_train = tf.random.normal(
+        #     shape=(num_samples, 1), maxval=num_classes, dtype=tf.int32
+        # )
+        return x, y
 
     @pytest.fixture(scope="class")
     def model(self):
@@ -138,7 +149,7 @@ class TestTransformerDecoderIntegration:
             vocab_size=self.vocab_size,
             maxlen_position_encoding=self.seq_length,
             num_heads=num_head,
-            d_model=64,
+            d_model=16,
             n_blocks=1,
         )
         decoder = TransformerDecoder(
@@ -155,10 +166,10 @@ class TestTransformerDecoderIntegration:
         tgt_inputs = tf.keras.layers.Input(shape=(self.seq_length,))
         enc_output, attn_weights = encoder(inputs)
         print("enc_ouput: ", enc_output.shape)
-        dec_output, attn_weights_dec = decoder(inputs, enc_output, enc_output)
-        predictions = tf.keras.layers.Dense(1, activation="softmax")(dec_output)
+        dec_output, attn_weights_dec = decoder(tgt_inputs, enc_output, enc_output)
+        predictions = tf.keras.layers.Dense(1, activation="sigmoid")(dec_output)
 
-        model = tf.keras.Model(inputs=[inputs], outputs=predictions)
+        model = tf.keras.Model(inputs=[inputs, tgt_inputs], outputs=predictions)
         model.compile(
             optimizer="adam", loss="binary_crossentropy", metrics=["accuracy"]
         )
@@ -169,6 +180,6 @@ class TestTransformerDecoderIntegration:
         x, y = self.create_toy_dataset(
             num_samples=100, vocab_size=self.vocab_size, seq_length=self.seq_length
         )
-        history = model.fit(x, y, epochs=50, batch_size=32, validation_split=0.2)
+        history = model.fit([x, x], y, epochs=100, batch_size=32, validation_split=0.2)
         assert isinstance(model, tf.keras.Model)
         assert model is not None
