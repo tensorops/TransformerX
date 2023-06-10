@@ -5,36 +5,33 @@ class BaseMask(tf.keras.layers.Layer):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-    def build_mask(self, inputs):
+    def build_mask(self, q_len, k_len):
         raise NotImplementedError("Subclasses must implement build_mask method")
 
     def call(self, inputs, *args, **kwargs):
-        if tf.shape(inputs).shape == 4:
-            pass
-        elif tf.shape(inputs).shape == 3:
+        inputs_shape = tf.shape(inputs)
+        inputs_dim = inputs_shape.shape
+        if inputs_dim == 4:
+            q_len = inputs_shape[2]
+            k_len = inputs_shape[3]
+        elif inputs_dim == 3:
+            q_len = inputs_shape[2]
             inputs = tf.expand_dims(inputs, axis=1)
+            k_len = q_len
         else:
-            raise f"Invalid input shape. Expected 3D or 4D tensors, but received {len(inputs.shape)}D."
-        mask = self.build_mask(inputs)
+            raise f"Invalid input shape. Expected 3D or 4D tensors, but received {tf.shape(inputs).shape}D."
+        mask = self.build_mask(q_len, k_len)
+
+        print("mask and inputs shape: ", mask.shape, inputs.shape)
         return tf.add(inputs, mask * -1e9)
 
 
 class LookAheadMask(BaseMask):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-
-    def build_mask(self, inputs):
-        input_shape = tf.shape(inputs)
-        if input_shape.shape == 4:
-            print("input shape: ", input_shape)
-            k_seq_len = input_shape[3]
-            q_seq_len = input_shape[2]
-
-        # mask = 1 - tf.linalg.band_part(tf.ones((q_seq_len, k_seq_len)), -1, 0)
+    def build_mask(self, q_len, k_len):
         mask = (
             1
             - tf.linalg.LinearOperatorLowerTriangular(
-                tf.ones((q_seq_len, k_seq_len)), -1, 0
+                tf.ones((q_len, k_len)), -1, 0
             ).to_dense()
         )
         return mask
@@ -106,13 +103,13 @@ if __name__ == "__main__":
     # padded_data = sequence_padding_layer(data)
 
     # Test input
-    input_tensor = tf.constant(
-        [
-            [[1, 2, 0], [4, 5, 6], [7, 8, 9], [0, 0, 0]],
-            [[1, 2, 3], [4, 5, 0], [0, 0, 0], [0, 0, 0]],
-        ],
-        dtype=tf.float32,
-    )
+    # input_tensor = tf.constant(
+    #     [
+    #         [[1, 2, 0], [4, 5, 6], [7, 8, 9], [0, 0, 0]],
+    #         [[1, 2, 3], [4, 5, 0], [0, 0, 0], [0, 0, 0]],
+    #     ],
+    #     dtype=tf.float32,
+    # )
 
     # Create a PaddingMask layer
     padding_mask_layer = PaddingMask()
