@@ -7,6 +7,7 @@ class BaseMask(tf.keras.layers.Layer):
         self.multihead = multihead
         self.mask_value = -1e9
         self.input_dtype = None
+        self.use_sparse_tensor_mask = False
 
     def build_mask(self, q_len, k_len, **kwargs):
         raise NotImplementedError("Subclasses must implement build_mask method")
@@ -90,10 +91,23 @@ class PaddingMask(BaseMask):
             )
         else:
             raise ValueError("Either 'valid_lens' or 'padding_mask' must be provided.")
+
+        if self.use_sparse_tensor_mask:
+            if isinstance(mask, tf.SparseTensor):
+                return mask
+            # Create a sparse mask tensor
+            mask_indices = tf.where(tf.not_equal(mask, self.padding_value))
+            mask_values = tf.ones(tf.shape(mask_indices)[0], dtype=self.input_dtype)
+            mask_shape = tf.convert_to_tensor([q_len, k_len], dtype=self.input_dtype)
+            mask = tf.sparse.SparseTensor(mask_indices, mask_values, mask_shape)
+
+            return mask
+
         if self.multihead:
             mask = tf.expand_dims(tf.expand_dims(1 - mask, axis=1), axis=1)
         else:
             mask = tf.expand_dims(1 - mask, axis=1)
+
         return mask
 
 
