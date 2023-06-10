@@ -6,12 +6,15 @@ class BaseMask(tf.keras.layers.Layer):
         super().__init__(**kwargs)
         self.multihead = multihead
         self.mask_value = -1e9
+        self.input_dtype = None
 
     def build_mask(self, q_len, k_len, **kwargs):
         raise NotImplementedError("Subclasses must implement build_mask method")
 
     def call(self, inputs=None, query_len=None, key_len=None, *args, **kwargs):
         if inputs is not None:
+            self.input_dtype = inputs.dtype
+
             inputs_shape = tf.shape(inputs)
             inputs_dim = inputs_shape.shape
             if inputs_dim == 4:
@@ -67,52 +70,31 @@ class PaddingMask(BaseMask):
         super().__init__(**kwargs)
         self.padding_value = padding_value
 
-    def build_mask(self, q_len, k_len, valid_lens=None, padding_mask=None, inputs=None):
+    def build_mask(
+        self,
+        q_len,
+        k_len,
+        valid_lens=None,
+        padding_mask=None,
+        inputs=None,
+        *args,
+        **kwargs,
+    ):
         if padding_mask is not None:
-            mask = tf.cast(padding_mask, dtype=tf.bool)
+            mask = tf.cast(padding_mask, dtype=self.input_dtype)
         elif valid_lens is not None:
-            mask = tf.sequence_mask(valid_lens, k_len, dtype=tf.bool)
+            mask = tf.sequence_mask(valid_lens, k_len, dtype=self.input_dtype)
         elif inputs is not None:
             mask = tf.cast(
                 tf.math.equal(inputs, self.padding_value), dtype=inputs.dtype
             )
         else:
             raise ValueError("Either 'valid_lens' or 'padding_mask' must be provided.")
-        if self.multi_head:
+        if self.multihead:
             mask = tf.expand_dims(tf.expand_dims(1 - mask, axis=1), axis=1)
         else:
             mask = tf.expand_dims(1 - mask, axis=1)
         return mask
-
-
-class PaddingMask1(BaseMask):
-    def __init__(self, padding_value=0, multi_head=True, **kwargs):
-        super().__init__(**kwargs)
-        self.padding_value = padding_value
-        self.multi_head = multi_head
-
-    def build_mask(self, inputs):
-        mask = tf.cast(tf.math.equal(inputs, self.padding_value), tf.float32)
-        return mask
-
-
-class PaddingMaskNew(tf.keras.layers.Layer):
-    def __init__(self, multi_head=True, padding_value=0, **kwargs):
-        super(PaddingMask, self).__init__(**kwargs)
-        self.multi_head = multi_head
-        self.padding_value = padding_value
-
-    def call(self, inputs):
-        seq = tf.cast(tf.math.equal(inputs, self.padding_value), tf.float32)
-        seq = tf.expand_dims(seq, axis=1)
-        if self.multi_head:
-            seq = tf.expand_dims(seq, axis=1)
-        return seq
-
-    def get_config(self):
-        config = super(PaddingMask, self).get_config()
-        config.update({"multi_head": self.multi_head})
-        return config
 
 
 if __name__ == "__main__":
@@ -125,15 +107,16 @@ if __name__ == "__main__":
     print("attn_w.shape: ", attn_w.shape)
     la_mask = LookAheadMask()
     output_tensor = la_mask(attn_w)
-    print(output_tensor.shape, output_tensor)
+    print("output tensor and its shape: ", output_tensor.shape, output_tensor)
 
     multihead_attn = MultiHeadAttention(d_model=32, num_heads=4, dropout_rate=0.1)
     output, attn_w = multihead_attn(q_input_tensor, input_tensor, input_tensor)
 
     sample_input = tf.random.uniform((1, 1, 4, 2))
-    # output_tensor = la_mask(attn_w)
+    output_tensor = la_mask(attn_w[0])
+    print("output_tensor.shape la_mask: ", output_tensor.shape, output_tensor)
     output_tensor = la_mask(sample_input)
-    print(output_tensor.shape, output_tensor)
+    print("output_tensor.shape la_mask2: ", output_tensor.shape, output_tensor)
 
     data = [[1, 2, 3], [4, 5], [6, 7, 8, 9]]
     # Create a 2D tensor
@@ -156,9 +139,22 @@ if __name__ == "__main__":
     #     dtype=tf.float32,
     # )
 
-    # Create a PaddingMask layer
-    padding_mask_layer = PaddingMask()
+    inputs = tf.random.normal(
+        (2, 3, 4)
+    )  # 3D input tensor (batch_size=2, query_len=3, key_dim=4)
+    valid_lens = tf.constant(
+        [2, 3], dtype=tf.int32
+    )  # Valid lengths for each sequence in the batch
 
+    # Create a PaddingMask layer
+    padding_mask_layer = PaddingMask(multihead=False)
+
+    masked_inputs = padding_mask_layer(inputs, query_len=3, valid_lens=valid_lens)
+
+    print("Inputs:")
+    print(inputs)
+    print("\nValid Lens Masked Inputs:")
+    print(masked_inputs)
     # Generate the padding mask
     # padding_mask = padding_mask_layer(input_tensor)
     # print(padding_mask.shape, padding_mask)
