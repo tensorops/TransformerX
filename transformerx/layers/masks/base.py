@@ -67,11 +67,15 @@ class PaddingMask(BaseMask):
         super().__init__(**kwargs)
         self.padding_value = padding_value
 
-    def build_mask(self, q_len, k_len, valid_lens=None, padding_mask=None):
+    def build_mask(self, q_len, k_len, valid_lens=None, padding_mask=None, inputs=None):
         if padding_mask is not None:
             mask = tf.cast(padding_mask, dtype=tf.bool)
         elif valid_lens is not None:
             mask = tf.sequence_mask(valid_lens, k_len, dtype=tf.bool)
+        elif inputs is not None:
+            mask = tf.cast(
+                tf.math.equal(inputs, self.padding_value), dtype=inputs.dtype
+            )
         else:
             raise ValueError("Either 'valid_lens' or 'padding_mask' must be provided.")
         if self.multi_head:
