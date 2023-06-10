@@ -23,6 +23,13 @@ class TestDotProductAttention:
         assert output_scaled.shape == (2, 3, 2)
         assert output_unscaled.shape == (2, 3, 2)
 
+        q_in = tf.cast(np.random.random([2, 8, 10, 20]), dtype=tf.float32)
+        k_in = tf.cast(np.random.random([2, 8, 15, 20]), dtype=tf.float32)
+        v_in = tf.cast(np.random.random([2, 8, 15, 20]), dtype=tf.float32)
+        queries, keys, values = q_in, k_in, v_in
+        output_scaled, _ = self.dot_product_scaled(queries, keys, values)
+        assert output_scaled.shape == (2, 8, 10, 20)
+
     # Test that the `call` method computes the correct dot-product attention
     def test_dot_product_attention(self):
         dot_product = DotProductAttention()

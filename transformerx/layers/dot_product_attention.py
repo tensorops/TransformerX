@@ -117,9 +117,9 @@ class DotProductAttention(tf.keras.layers.Layer):
     def build(self, input_shape):
         super().build(input_shape)
 
-    # Shape of queries: (batch_size, no. of queries, d)
-    # Shape of keys: (batch_size, no. of key-value pairs, d)
-    # Shape of values: (batch_size, no. of key-value pairs, value dimension)
+    # Shape of queries: (batch_size, num_heads, seq_len, head_size) or (batch_size, q_seq_len, d_model)
+    # Shape of keys: (batch_size, num_heads, seq_len, head_size) or (batch_size, k_seq_len, d_model)
+    # Shape of values: (batch_size, num_heads, seq_len, head_size) or (batch_size, v_seq_len, d_model)
     # Shape of attention_mask: (batch_size,) or (batch_size, no. of queries)
     def call(
         self,
@@ -132,9 +132,9 @@ class DotProductAttention(tf.keras.layers.Layer):
     ) -> tf.Tensor:
         scores = tf.matmul(queries, keys, transpose_b=True)
         if self.scaled:
-            depth = queries.shape[-1]
+            d_model = queries.shape[-1]
 
-            scores = scores / tf.math.sqrt(tf.cast(depth, dtype=queries.dtype))
+            scores = scores / tf.math.sqrt(tf.cast(d_model, dtype=queries.dtype))
 
         # apply causal mask
         if self.causal_mask:

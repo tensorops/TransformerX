@@ -5,7 +5,7 @@ class BaseMask(tf.keras.layers.Layer):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-    def build_mask(self, q_len, k_len):
+    def build_mask(self, q_len, k_len, **kwargs):
         raise NotImplementedError("Subclasses must implement build_mask method")
 
     def call(self, inputs, *args, **kwargs):
@@ -20,10 +20,10 @@ class BaseMask(tf.keras.layers.Layer):
             k_len = q_len
         else:
             raise f"Invalid input shape. Expected 3D or 4D tensors, but received {tf.shape(inputs).shape}D."
-        mask = self.build_mask(q_len, k_len)
+        mask = self.build_mask(q_len, k_len, **kwargs)
 
         print("mask and inputs shape: ", mask.shape, inputs.shape)
-        return tf.add(inputs, mask * -1e9)
+        return tf.add(inputs, mask * tf.constant(-1e9, dtype=inputs.dtype))
 
 
 class LookAheadMask(BaseMask):
@@ -43,6 +43,24 @@ class PaddingMask(BaseMask):
         self.padding_value = padding_value
         self.multi_head = multi_head
 
+    def build_mask(self, q_len, k_len, valid_lens=None, padding_mask=None):
+        if padding_mask is not None:
+            mask = tf.cast(padding_mask, dtype=tf.bool)
+        elif valid_lens is not None:
+            mask = tf.sequence_mask(valid_lens, k_len, dtype=tf.bool)
+        else:
+            raise ValueError("Either 'valid_lens' or 'padding_mask' must be provided.")
+
+        mask = tf.expand_dims(tf.expand_dims(1 - mask, axis=1), axis=1)
+        return mask
+
+
+class PaddingMask(BaseMask):
+    def __init__(self, padding_value=0, multi_head=True, **kwargs):
+        super().__init__(**kwargs)
+        self.padding_value = padding_value
+        self.multi_head = multi_head
+
     def build_mask(self, inputs):
         mask = tf.cast(tf.math.equal(inputs, self.padding_value), tf.float32)
         return mask
@@ -53,9 +71,6 @@ class PaddingMaskNew(tf.keras.layers.Layer):
         super(PaddingMask, self).__init__(**kwargs)
         self.multi_head = multi_head
         self.padding_value = padding_value
-
-    def build(self, input_shape):
-        pass
 
     def call(self, inputs):
         seq = tf.cast(tf.math.equal(inputs, self.padding_value), tf.float32)
