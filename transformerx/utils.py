@@ -58,6 +58,7 @@ def use_device(device):
     if device == "cpu":
         os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
     else:
+        #todo: update this for single and multiple gpus
         pass
 
 

@@ -1,2 +1,3 @@
-from .base import LookAheadMask
-from .base import BaseMask
+from .core import LookAheadMask
+from .core import PaddingMask
+from .core import BaseMask

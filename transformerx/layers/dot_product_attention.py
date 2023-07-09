@@ -2,7 +2,7 @@ import tensorflow as tf
 
 from transformerx.layers.masks.global_attention_mask import GlobalAttentionMask
 from transformerx.utils import masked_softmax
-from transformerx.layers.masks import LookAheadMask
+from transformerx.layers.masks import LookAheadMask, PaddingMask
 
 
 class DotProductAttention(tf.keras.layers.Layer):
@@ -151,9 +151,17 @@ class DotProductAttention(tf.keras.layers.Layer):
             #     tf.expand_dims(causal_mask, -1), tf.shape(scores)
             # )  # broadcast across batch dimension
 
+            # todo: get different masks as a single or list of Callable or str objects and then invoke them in a loop
+
             # New version of masking
             look_ahead_mask = LookAheadMask()
+            print("raw scores: ", scores)
             scores = look_ahead_mask(scores)
+            print("causal masked scores: ", scores)
+
+            # todo: now add the newly implemented padding mask here
+            # padding_mask = PaddingMask()
+            # scores = padding_mask(scores)
 
         # to be uncommented later
         # apply global mask
@@ -162,6 +170,7 @@ class DotProductAttention(tf.keras.layers.Layer):
         # attention_probs = tf.nn.softmax(masked_attention_scores, axis=-1)
         # uncomment until here
 
+        # todo: remove this masked_softmax and use a simple softmax instead after integrating the new masking system
         self.attention_weights = masked_softmax(scores, attention_mask)
         # self.attention_weights = tf.nn.softmax(scores, axis=-1, mask=attention_mask)
         # scores = tf.matmul(self.dropout(self.attention_weights, **kwargs), values)
@@ -170,3 +179,36 @@ class DotProductAttention(tf.keras.layers.Layer):
 
     def get_attention_weights(self):
         return self.attention_weights
+
+
+def main():
+    dot_product = DotProductAttention()
+
+    # Generate example inputs
+    queries = tf.constant([[[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]]], dtype=tf.float32)
+    keys = tf.constant([[[7.0, 8.0], [9.0, 10.0], [11.0, 12.0]]], dtype=tf.float32)
+    values = tf.constant([[[13.0, 14.0], [15.0, 16.0], [17.0, 18.0]]], dtype=tf.float32)
+
+    # Execute the DotProductAttention layer
+    output, attn_weights = dot_product(queries, keys, values)
+
+    # Create an instance of GlobalAttentionMask
+    global_mask = GlobalAttentionMask()
+
+    # Generate the mask based on the keys shape
+    mask = global_mask.get_mask(keys.shape)
+
+    # Verify the mask shape and values
+    expected_mask_shape = tf.TensorShape([1, 3, 3])
+    expected_mask_values = tf.constant(
+        [[[1.0, 0.0, 0.0], [1.0, 1.0, 0.0], [1.0, 1.0, 1.0]]], dtype=tf.float32
+    )
+
+    assert mask.shape == expected_mask_shape
+    assert tf.reduce_all(tf.equal(mask, expected_mask_values))
+
+    print("Global attention mask test passed successfully!")
+
+
+if __name__ == "__main__":
+    main()

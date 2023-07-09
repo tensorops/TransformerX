@@ -2,14 +2,14 @@ import tensorflow as tf
 
 
 class BaseMask(tf.keras.layers.Layer):
-    def __init__(self, multihead=True, **kwargs):
+    def __init__(self, multihead=True, mask_value=-1e9, **kwargs):
         super().__init__(**kwargs)
         self.multihead = multihead
-        self.mask_value = -1e9
+        self.mask_value = mask_value
         self.input_dtype = None
         self.use_sparse_tensor_mask = False
 
-    def build_mask(self, q_len, k_len, **kwargs):
+    def build_mask(self, q_len, k_len, inputs=None, **kwargs):
         raise NotImplementedError("Subclasses must implement build_mask method")
 
     def call(self, inputs=None, query_len=None, key_len=None, *args, **kwargs):
@@ -27,24 +27,29 @@ class BaseMask(tf.keras.layers.Layer):
                 if self.multihead:
                     inputs = tf.expand_dims(inputs, axis=1)
             else:
-                raise f"Invalid input shape. Expected 3D or 4D tensors, but received {tf.shape(inputs).shape}D."
+                input_shape = tf.shape(inputs).shape
+                raise ValueError(
+                    f"Invalid input shape. Expected 3D or 4D tensors, but received {input_shape} D tensors."
+                )
         elif query_len is not None:
             q_len = query_len
             if key_len is None:
                 k_len = q_len
-        if key_len is not None:
+        elif key_len is not None:
             k_len = key_len
             if query_len is None:
                 q_len = k_len
+        else:
+            raise ValueError("Either inputs, query_len or key_len must be provided.")
 
-        mask = self.build_mask(q_len, k_len, **kwargs)
+        mask = self.build_mask(q_len, k_len, inputs=inputs, *args, **kwargs)
         mask_value = tf.constant(-1e9, dtype=inputs.dtype)
         print("mask and inputs shape: ", mask.shape, inputs.shape)
 
         if isinstance(mask, tf.Tensor):
             mask = mask_value * tf.cast(mask, dtype=inputs.dtype)
         elif isinstance(mask, tf.SparseTensor):
-            mask = tf.sparse.TensorSparseValue(
+            mask = tf.SparseTensor(
                 mask.indices, mask.values * mask_value, mask.dense_shape
             )
         else:
@@ -82,26 +87,19 @@ class PaddingMask(BaseMask):
         **kwargs,
     ):
         if padding_mask is not None:
-            mask = tf.cast(padding_mask, dtype=self.input_dtype)
+            mask = tf.cast(
+                tf.math.logical_not(tf.cast(padding_mask, dtype=tf.bool)),
+                dtype=self.input_dtype,
+            )
         elif valid_lens is not None:
             mask = tf.sequence_mask(valid_lens, k_len, dtype=self.input_dtype)
         elif inputs is not None:
+            print("inputs is not none", inputs[:3, :3, :3])
             mask = tf.cast(
-                tf.math.equal(inputs, self.padding_value), dtype=inputs.dtype
+                tf.math.not_equal(inputs, self.padding_value), dtype=inputs.dtype
             )
         else:
             raise ValueError("Either 'valid_lens' or 'padding_mask' must be provided.")
-
-        if self.use_sparse_tensor_mask:
-            if isinstance(mask, tf.SparseTensor):
-                return mask
-            # Create a sparse mask tensor
-            mask_indices = tf.where(tf.not_equal(mask, self.padding_value))
-            mask_values = tf.ones(tf.shape(mask_indices)[0], dtype=self.input_dtype)
-            mask_shape = tf.convert_to_tensor([q_len, k_len], dtype=self.input_dtype)
-            mask = tf.sparse.SparseTensor(mask_indices, mask_values, mask_shape)
-
-            return mask
 
         if self.multihead:
             mask = tf.expand_dims(tf.expand_dims(1 - mask, axis=1), axis=1)
@@ -175,3 +173,30 @@ if __name__ == "__main__":
 
     lad_mask = la_mask(input_tensor)
     # print(lad_mask.shape, lad_mask)
+
+    # Test with `padding_mask` option
+    padding_mask = tf.constant(
+        [[False, False, True, True], [False, False, False, True]]
+    )  # Example padding mask
+    masked_inputs = padding_mask_layer(
+        inputs, padding_mask=padding_mask, query_len=3, key_len=4
+    )
+    print("\nPadding Masked Inputs:")
+    print(masked_inputs)
+
+    # Test with `inputs` option
+    # Test with 3D tensor
+    inputs_3d = tf.random.normal(
+        (2, 3, 4)
+    )  # 3D input tensor (batch_size=2, query_len=3, key_dim=4)
+    masked_inputs_3d = padding_mask_layer(inputs_3d)
+    print("\n3D Inputs Masked Inputs:")
+    print(masked_inputs_3d)
+
+    # Test with 4D tensor
+    inputs_4d = tf.random.normal(
+        (2, 3, 4, 5)
+    )  # 4D input tensor (batch_size=2, query_len=3, key_dim=4, value_dim=5)
+    masked_inputs_4d = padding_mask_layer(inputs=inputs_4d)
+    print("\n4D Inputs Masked Inputs:")
+    print(masked_inputs_4d)

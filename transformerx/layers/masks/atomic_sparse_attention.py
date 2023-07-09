@@ -3,6 +3,7 @@ import tensorflow as tf
 from transformerx.layers.masks import BaseMask
 
 
+# todo: implement atomic sparse attention masks here
 class GlobalAttentionMask(BaseMask):
     def build_mask(self, inputs):
         input_shape = tf.shape(inputs)
