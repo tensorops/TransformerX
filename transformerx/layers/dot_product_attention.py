@@ -167,11 +167,11 @@ class DotProductAttention(tf.keras.layers.Layer):
         # apply global mask
         # gmask = self.global_mask.get_mask(keys.shape)
         # masked_attention_scores = tf.math.multiply(scores, gmask)
-        # attention_probs = tf.nn.softmax(masked_attention_scores, axis=-1)
+        self.attention_weights = tf.nn.softmax(scores, axis=-1)
         # uncomment until here
 
         # todo: remove this masked_softmax and use a simple softmax instead after integrating the new masking system
-        self.attention_weights = masked_softmax(scores, attention_mask)
+        # self.attention_weights = masked_softmax(scores, attention_mask)
         # self.attention_weights = tf.nn.softmax(scores, axis=-1, mask=attention_mask)
         # scores = tf.matmul(self.dropout(self.attention_weights, **kwargs), values)
         attention_output = tf.matmul(self.dropout(self.attention_weights), values)

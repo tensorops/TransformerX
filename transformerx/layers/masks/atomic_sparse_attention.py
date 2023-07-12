@@ -5,8 +5,8 @@ from transformerx.layers.masks import BaseMask
 
 # todo: implement atomic sparse attention masks here
 class GlobalAttentionMask(BaseMask):
-    def build_mask(self, inputs):
-        input_shape = tf.shape(inputs)
+    def build_mask(self, scores):
+        input_shape = tf.shape(scores)
         if input_shape.shape == 4:
             print("input shape: ", input_shape)
             q_length = input_shape[2]
