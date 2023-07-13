@@ -1,6 +1,6 @@
 import tensorflow as tf
 
-from transformerx.layers.core import BaseMask
+from transformerx.layers.masks.core import BaseMask
 
 
 class LookAheadMask(BaseMask):
