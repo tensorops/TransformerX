@@ -30,10 +30,13 @@ class PaddingMask(BaseMask):
         **kwargs,
     ):
         if padding_mask is not None:
-            mask = tf.cast(
-                tf.math.logical_not(tf.cast(padding_mask, dtype=tf.bool)),
-                dtype=self.scores_dtype,
-            )
+            print(padding_mask)
+            # mask = tf.cast(
+            #     padding_mask,
+            #     dtype=self.scores_dtype,
+            # )
+
+            mask = tf.cast(tf.not_equal(padding_mask, 0), dtype=self.scores_dtype)
         elif valid_lens is not None:
             max_len = tf.maximum(q_len, k_len)
             mask = tf.sequence_mask(valid_lens, max_len, dtype=self.scores_dtype)
@@ -42,8 +45,8 @@ class PaddingMask(BaseMask):
                 mask = 1 - mask
             else:
                 raise ValueError(
-                    "Currently, only padding  value '1' is supported. Please use '1' until "
-                    "we add support for '0' padding value in the upcoming versions of TransformerX"
+                    "Currently, only padding  value '1' is supported when passing in 'valid_lens'. Please use '1' "
+                    "until we add support for '0' padding value in the upcoming versions of TransformerX"
                 )
 
         elif scores is not None:
@@ -186,7 +189,28 @@ if __name__ == "__main__":
         [[[1, 2, 3, -1e9], [4, 5, 0, -1e9]], [[1, 2, -1e9, -1e9], [4, 5, -1e9, -1e9]]]
     )
 
-    print(masked)
     assert tf.reduce_all(tf.equal(masked, expected))
 
     print("All tests passed!")
+
+    # Test with padding mask
+    padding_mask_values = tf.constant([[0, 0, 1, 1], [0, 1, 1, 1]])
+    scores = tf.constant([[1, 2, 3, 4], [5, 6, 7, 8]], dtype=tf.float32)
+
+    padding_mask = PaddingMask()
+    masked = padding_mask(scores, padding_mask=padding_mask_values)
+
+    expected = tf.constant([[1, 2, -1e9, -1e9], [5, -1e9, -1e9, -1e9]])
+
+    print(masked)
+    assert tf.reduce_all(tf.equal(masked, expected))
+
+    # Test with scores
+    scores = tf.constant([[1, 2, 3, 0], [4, 5, 0, 0]], dtype=tf.float32)
+
+    padding_mask = PaddingMask(padding_value=0)
+    masked = padding_mask(scores=scores)
+
+    expected = tf.constant([[1, 2, 3, -1e9], [4, 5, -1e9, -1e9]])
+
+    assert tf.reduce_all(tf.equal(masked, expected))
