@@ -41,13 +41,10 @@ class PaddingMask(BaseMask):
             if self.padding_value == 1:
                 mask = 1 - mask
             else:
-                mask = tf.where(
-                    tf.cast(mask, dtype=tf.bool), self.padding_value, scores
+                raise ValueError(
+                    "Currently, only padding  value '1' is supported. Please use '1' until "
+                    "we add support for '0' padding value in the upcoming versions of TransformerX"
                 )
-                # print(
-                #     tf.where(mask, self.padding_value, scores),
-                #     tf.where(mask, self.padding_value),
-                # )
 
         elif scores is not None:
             mask = tf.cast(
