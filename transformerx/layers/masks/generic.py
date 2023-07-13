@@ -37,10 +37,18 @@ class PaddingMask(BaseMask):
         elif valid_lens is not None:
             max_len = tf.maximum(q_len, k_len)
             mask = tf.sequence_mask(valid_lens, max_len, dtype=self.scores_dtype)
+            print("here", self.padding_value)
             if self.padding_value == 1:
                 mask = 1 - mask
             else:
-                mask = tf.where(mask, self.padding_value, scores)
+                mask = tf.where(
+                    tf.cast(mask, dtype=tf.bool), self.padding_value, scores
+                )
+                # print(
+                #     tf.where(mask, self.padding_value, scores),
+                #     tf.where(mask, self.padding_value),
+                # )
+
         elif scores is not None:
             mask = tf.cast(
                 tf.math.equal(scores, self.padding_value), dtype=scores.dtype
@@ -52,6 +60,7 @@ class PaddingMask(BaseMask):
             mask = tf.expand_dims(mask, axis=1)
         # else:
         #     mask = tf.expand_dims(1 - mask, axis=1)
+        print("mask : ", mask)
         return mask
 
 
@@ -180,6 +189,7 @@ if __name__ == "__main__":
         [[[1, 2, 3, -1e9], [4, 5, 0, -1e9]], [[1, 2, -1e9, -1e9], [4, 5, -1e9, -1e9]]]
     )
 
+    print(masked)
     assert tf.reduce_all(tf.equal(masked, expected))
 
     print("All tests passed!")
