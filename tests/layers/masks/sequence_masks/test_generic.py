@@ -42,3 +42,11 @@ class TestPaddingMask:
             ]
         )
         assert tf.reduce_all(tf.equal(masked, expected))
+
+    def test_padding_mask(self):
+        padding_mask_values = tf.constant([[0, 0, 1, 1], [0, 1, 1, 1]])
+        scores = tf.constant([[1, 2, 3, 4], [5, 6, 7, 8]], dtype=tf.float32)
+        padding_mask = PaddingMask()
+        masked = padding_mask(scores=scores, padding_mask=padding_mask_values)
+        expected = tf.constant([[1, 2, -1e9, -1e9], [5, -1e9, -1e9, -1e9]])
+        assert tf.reduce_all(tf.equal(masked, expected))
