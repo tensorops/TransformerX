@@ -36,9 +36,12 @@ class PaddingMask(BaseMask):
             #     dtype=self.scores_dtype,
             # )
 
-            mask = tf.cast(tf.not_equal(padding_mask, 0), dtype=self.scores_dtype)
+            mask = tf.cast(
+                tf.equal(padding_mask, self.padding_value), dtype=self.scores_dtype
+            )
         elif valid_lens is not None:
             max_len = tf.maximum(q_len, k_len)
+            # max_len = tf.reduce_max(valid_lens)
             mask = tf.sequence_mask(valid_lens, max_len, dtype=self.scores_dtype)
             print("here", self.padding_value)
             if self.padding_value == 1:
@@ -174,6 +177,17 @@ if __name__ == "__main__":
     masked = padding_mask2(scores)
 
     expected = tf.constant([[1, 2, 3, -1e9], [4, 5, -1e9, -1e9]])
+
+    assert tf.reduce_all(tf.equal(masked, expected))
+
+    # Test with padding values
+    scores = tf.constant([[1, 2, 3, 0], [4, 5, 0, 0]], dtype=tf.float32)
+
+    padding_mask3 = PaddingMask(padding_value=1)
+    masked = padding_mask3(scores)
+
+    expected = tf.constant([[-1e9, 2, 3, 0], [4, 5, 0, 0]])
+    print("here is the padding 1: ", masked)
 
     assert tf.reduce_all(tf.equal(masked, expected))
 
