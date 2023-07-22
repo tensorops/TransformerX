@@ -30,34 +30,30 @@ class PaddingMask(BaseMask):
         **kwargs,
     ):
         if padding_mask is not None:
-            print(padding_mask)
+            print("padding mask: ", padding_mask)
             # mask = tf.cast(
             #     padding_mask,
             #     dtype=self.scores_dtype,
             # )
 
-            mask = tf.cast(
-                tf.equal(padding_mask, self.padding_value), dtype=self.scores_dtype
-            )
+            mask = tf.cast(padding_mask, dtype=self.scores_dtype)
+            mask = padding_mask
+            print("result padding mask: ", mask)
         elif valid_lens is not None:
             max_len = tf.maximum(q_len, k_len)
             # max_len = tf.reduce_max(valid_lens)
-            mask = tf.sequence_mask(valid_lens, max_len, dtype=self.scores_dtype)
             print("here", self.padding_value)
-            if self.padding_value == 1:
-                mask = 1 - mask
-            else:
-                raise ValueError(
-                    "Currently, only padding  value '1' is supported when passing in 'valid_lens'. Please use '1' "
-                    "until we add support for '0' padding value in the upcoming versions of TransformerX"
-                )
+            mask = 1 - tf.sequence_mask(valid_lens, max_len, dtype=self.scores_dtype)
 
         elif scores is not None:
             mask = tf.cast(
                 tf.math.equal(scores, self.padding_value), dtype=scores.dtype
             )
         else:
-            raise ValueError("Either 'valid_lens' or 'padding_mask' must be provided.")
+            raise ValueError(
+                "Either 'valid_lens', 'padding_mask' or \"'scores' along with the padding_value\" must be "
+                "provided."
+            )
 
         if self.multihead:
             mask = tf.expand_dims(mask, axis=1)
