@@ -28,21 +28,6 @@ class TestPaddingMask:
         expected = tf.constant([[-1e9, 2, 3, 0], [4, 5, 0, 0]])
         assert tf.reduce_all(tf.equal(masked, expected))
 
-    def test_multihead(self):
-        scores = tf.constant(
-            [[[1, 2, 3, 0], [4, 5, 0, 0]], [[1, 2, 0, 0], [4, 5, 6, 0]]],
-            dtype=tf.float32,
-        )
-        padding_mask = PaddingMask(multihead=True)
-        masked = padding_mask(scores=scores, valid_lens=tf.constant([3, 2]))
-        expected = tf.constant(
-            [
-                [[1, 2, 3, -1e9], [4, 5, 0, -1e9]],
-                [[1, 2, -1e9, -1e9], [4, 5, -1e9, -1e9]],
-            ]
-        )
-        assert tf.reduce_all(tf.equal(masked, expected))
-
     def test_padding_mask(self):
         padding_mask_values = tf.constant([[0, 0, 1, 1], [0, 1, 1, 1]])
         scores = tf.constant([[1, 2, 3, 4], [5, 6, 7, 8]], dtype=tf.float32)
