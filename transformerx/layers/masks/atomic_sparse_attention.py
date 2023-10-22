@@ -26,9 +26,19 @@ class DilatedAttentionMask(BaseMask):
     def build_mask(self, q_len, k_len, scores=None, *args, **kwargs):
         max_len = tf.maximum(q_len, k_len)
 
-        mask = 1 - tf.linalg.band_part(
-            tf.ones((max_len, max_len)), -1, self.dilation_rate
+        mask = tf.ones((max_len, max_len), dtype=tf.float32)
+
+        mask_bool = tf.math.logical_and(
+            tf.math.abs(tf.range(max_len) - tf.range(max_len)[:, tf.newaxis])
+            <= self.dilation_rate,
+            tf.math.not_equal(tf.range(max_len)[:, tf.newaxis], tf.range(max_len)),
         )
+
+        # Convert the boolean mask to float32
+        mask_float = tf.cast(mask_bool, dtype=tf.float32)
+
+        # Multiply the original mask with the dilated mask to apply the dilation
+        dilated_mask = mask * mask_float
 
         if self.multihead:
             mask = tf.expand_dims(mask, axis=0)
