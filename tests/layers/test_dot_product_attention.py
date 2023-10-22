@@ -118,3 +118,17 @@ class TestDotProductAttention:
         assert isinstance(config, dict)
         assert config["dropout_rate"] == 0.2
         assert config["scaled"] == True
+
+    def test_causal_masking(self, attention_layer):
+        # Test the attention with causal masking
+        queries = tf.constant([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=tf.float32)
+        keys = tf.constant([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=tf.float32)
+        values = tf.constant([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=tf.float32)
+        attention_mask = tf.constant([[1, 1], [0, 1]], dtype=tf.float32)
+
+        attention_layer = DotProductAttention(causal_mask=True)
+        # Call the attention layer with causal masking
+        output, attention_weights = attention_layer(queries, keys, values)
+
+        assert output.shape == values.shape, "Output shape mismatch"
+        assert attention_weights.shape == (2, 2, 2), "Attention weights shape mismatch"
