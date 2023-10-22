@@ -10,6 +10,23 @@ class BaseMask(tf.keras.layers.Layer):
         self.use_sparse_tensor_mask = False
 
     def build_mask(self, q_len, k_len, scores=None, *args, **kwargs):
+        """Build desired mask.
+
+        Build and return a mask with the same dimensions as the scores within which 1 indicates an index to be masked
+        and 0 otherwise.
+
+        Parameters
+        ----------
+        q_len
+        k_len
+        scores
+        args
+        kwargs
+
+        Returns
+        -------
+        Mask: A tensor with the same dimensions as the scores. 1 indicates to be masked and 0 otherwise.
+        """
         raise NotImplementedError("Subclasses must implement build_mask method")
 
     def call(self, scores=None, query_len=None, key_len=None, *args, **kwargs):
@@ -27,9 +44,13 @@ class BaseMask(tf.keras.layers.Layer):
                 q_len = query_len
                 if key_len is None:
                     k_len = q_len
+                else:
+                    k_len = key_len
             elif key_len is not None:
                 k_len = key_len
                 if query_len is None:
+                    q_len = k_len
+                else:
                     q_len = k_len
             else:
                 raise ValueError(

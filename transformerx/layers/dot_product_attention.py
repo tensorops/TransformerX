@@ -147,8 +147,8 @@ class DotProductAttention(tf.keras.layers.Layer):
             print("causal masked scores: ", scores)
 
             # todo: now add the newly implemented padding mask here
-            # padding_mask = PaddingMask()
-            # scores = padding_mask(scores)
+            padding_mask = PaddingMask()
+            scores = padding_mask(scores)
 
         # to be uncommented later
         # apply global mask
