@@ -1,4 +1,4 @@
-VERSION = (1, 0, 0, "beta", 3)
+VERSION = (0, 0, 1)
 
 if len(VERSION) < 3:
     raise ValueError("VERSION must have at least three elements")
