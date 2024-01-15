@@ -12,6 +12,10 @@ from transformerx.layers.masks.core import BaseMask
 
 class LookAheadMask(BaseMask):
     def build_mask(self, q_len, k_len, *args, **kwargs):
+        # Create a test mask manually using tf.linalg.band_part: this creates upper triangular boolean matrix which then
+        # will be multiplied by the mask_value which is 10-9, and then we add this new mask matrix which its upper
+        # triangle values are 10-9 with the scores (attention) matrix. Later when we pass this matrix to the softmax,
+        # they will become 0 since they are -inf numbers.
         mask = (
             1
             - tf.linalg.LinearOperatorLowerTriangular(
@@ -19,6 +23,28 @@ class LookAheadMask(BaseMask):
             ).to_dense()
         )
         return mask
+
+# class LookAheadMask(tf.keras.layers.Layer):
+#     def __init__(self, **kwargs):
+#         super(LookAheadMask, self).__init__(**kwargs)
+#
+#     def build(self, input_shape):
+#         super(LookAheadMask, self).build(input_shape)
+#
+#     def call(self, inputs, **kwargs):
+#         sequence_length = tf.shape(inputs)[1]
+#
+#         # Create a lower triangular matrix with ones
+#         mask = tf.linalg.band_part(tf.ones((sequence_length, sequence_length)), -1, 0)
+#
+#         # Expand the mask to the batch dimension
+#         mask = tf.expand_dims(mask, 0)
+#         mask = tf.tile(mask, [tf.shape(inputs)[0], 1, 1])
+#
+#         return mask
+
+    def compute_output_shape(self, input_shape):
+        return input_shape
 
 
 """Future features for PaddingMask:
@@ -58,7 +84,7 @@ class PaddingMask(BaseMask):
             #     dtype=self.scores_dtype,
             # )
 
-            mask = tf.cast(padding_mask, dtype=self.scores_dtype)
+            padding_mask = tf.cast(padding_mask, dtype=self.scores_dtype)
             mask = padding_mask
             print("result padding mask: ", mask)
         elif valid_lens is not None:
@@ -66,6 +92,7 @@ class PaddingMask(BaseMask):
             # max_len = tf.reduce_max(valid_lens)
             print("here", self.padding_value)
             mask = 1 - tf.sequence_mask(valid_lens, max_len, dtype=self.scores_dtype)
+            print("mask: ", mask)
 
         elif scores is not None:
             mask = tf.cast(

@@ -28,6 +28,8 @@ class DilatedAttentionMask(BaseMask):
 
         mask = tf.ones((max_len, max_len), dtype=tf.float32)
 
+        #todo: correct this. it must return the correct values for the dilated attention mask.
+
         mask_bool = tf.math.logical_and(
             tf.math.abs(tf.range(max_len) - tf.range(max_len)[:, tf.newaxis])
             <= self.dilation_rate,
@@ -42,6 +44,7 @@ class DilatedAttentionMask(BaseMask):
 
         if self.multihead:
             mask = tf.expand_dims(mask, axis=0)
+
 
         return mask
 

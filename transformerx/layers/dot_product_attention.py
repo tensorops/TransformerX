@@ -139,12 +139,12 @@ class DotProductAttention(tf.keras.layers.Layer):
         # apply causal mask
         if self.causal_mask:
             # todo: get different masks as a single or list of Callable or str objects and then invoke them in a loop
+            # todo: for performance reasons, first generate the boolean masks and then in the end add up them and then
+            #  multiply them once instead of generating masks and then multiply with 10-9 and add again etc.
 
             # New version of masking
             look_ahead_mask = LookAheadMask()
-            print("raw scores: ", scores)
             scores = look_ahead_mask(scores)
-            print("causal masked scores: ", scores)
 
             # todo: now add the newly implemented padding mask here
             padding_mask = PaddingMask()
