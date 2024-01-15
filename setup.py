@@ -141,7 +141,7 @@ setup(
     classifiers=CLASSIFIERS,
     python_requires=">=3.6",
     zip_safe=False,
-    license="Apache-2.0",
+    license="MIT",
     cmdclass={
         'upload': UploadCommand,
     },
