@@ -142,13 +142,14 @@ class DotProductAttention(tf.keras.layers.Layer):
             # todo: for performance reasons, first generate the boolean masks and then in the end add up them and then
             #  multiply them once instead of generating masks and then multiply with 10-9 and add again etc.
 
+            # todo: now add the newly implemented padding mask here
+            padding_mask = PaddingMask()
+            scores = padding_mask(scores)
+
             # New version of masking
             look_ahead_mask = LookAheadMask()
             scores = look_ahead_mask(scores)
 
-            # todo: now add the newly implemented padding mask here
-            padding_mask = PaddingMask()
-            scores = padding_mask(scores)
 
         # to be uncommented later
         # apply global mask

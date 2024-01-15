@@ -17,31 +17,31 @@ class LookAheadMask(BaseMask):
         # triangle values are 10-9 with the scores (attention) matrix. Later when we pass this matrix to the softmax,
         # they will become 0 since they are -inf numbers.
         mask = (
-            1
-            - tf.linalg.LinearOperatorLowerTriangular(
-                tf.ones((q_len, k_len)), -1, 0
-            ).to_dense()
+                1
+                - tf.linalg.LinearOperatorLowerTriangular(
+            tf.ones((q_len, k_len)), -1, 0
+        ).to_dense()
         )
         return mask
 
-# class LookAheadMask(tf.keras.layers.Layer):
-#     def __init__(self, **kwargs):
-#         super(LookAheadMask, self).__init__(**kwargs)
-#
-#     def build(self, input_shape):
-#         super(LookAheadMask, self).build(input_shape)
-#
-#     def call(self, inputs, **kwargs):
-#         sequence_length = tf.shape(inputs)[1]
-#
-#         # Create a lower triangular matrix with ones
-#         mask = tf.linalg.band_part(tf.ones((sequence_length, sequence_length)), -1, 0)
-#
-#         # Expand the mask to the batch dimension
-#         mask = tf.expand_dims(mask, 0)
-#         mask = tf.tile(mask, [tf.shape(inputs)[0], 1, 1])
-#
-#         return mask
+    # class LookAheadMask(tf.keras.layers.Layer):
+    #     def __init__(self, **kwargs):
+    #         super(LookAheadMask, self).__init__(**kwargs)
+    #
+    #     def build(self, input_shape):
+    #         super(LookAheadMask, self).build(input_shape)
+    #
+    #     def call(self, inputs, **kwargs):
+    #         sequence_length = tf.shape(inputs)[1]
+    #
+    #         # Create a lower triangular matrix with ones
+    #         mask = tf.linalg.band_part(tf.ones((sequence_length, sequence_length)), -1, 0)
+    #
+    #         # Expand the mask to the batch dimension
+    #         mask = tf.expand_dims(mask, 0)
+    #         mask = tf.tile(mask, [tf.shape(inputs)[0], 1, 1])
+    #
+    #         return mask
 
     def compute_output_shape(self, input_shape):
         return input_shape
@@ -68,32 +68,64 @@ class PaddingMask(BaseMask):
         self.padding_value = padding_value
 
     def build_mask(
-        self,
-        q_len,
-        k_len,
-        valid_lens=None,
-        padding_mask=None,
-        scores=None,
-        *args,
-        **kwargs,
+            self,
+            q_len,
+            k_len,
+            valid_lens=None,
+            padding_mask=None,
+            scores=None,
+            input_shape=None,
+            *args,
+            **kwargs,
     ):
+        """Build padding mask.
+
+        This method expects a padded input sequence such that they all have the same length.
+
+        Parameters
+        ----------
+        q_len
+        k_len
+        valid_lens
+        padding_mask
+        scores
+        input_shape
+        args
+        kwargs
+
+        Returns
+        -------
+
+        """
+
         if padding_mask is not None:
-            print("padding mask: ", padding_mask)
-            # mask = tf.cast(
-            #     padding_mask,
-            #     dtype=self.scores_dtype,
-            # )
+            mask = tf.cast(
+                padding_mask,
+                dtype=self.scores_dtype,
+            )
 
-            padding_mask = tf.cast(padding_mask, dtype=self.scores_dtype)
-            mask = padding_mask
-            print("result padding mask: ", mask)
-        elif valid_lens is not None:
-            max_len = tf.maximum(q_len, k_len)
-            # max_len = tf.reduce_max(valid_lens)
-            print("here", self.padding_value)
-            mask = 1 - tf.sequence_mask(valid_lens, max_len, dtype=self.scores_dtype)
-            print("mask: ", mask)
+            # mask = tf.cast(padding_mask, dtype=self.scores_dtype)
 
+        # fixme: later these functionality will be added again.
+        #  problem: it should construct a padding mask based on the valid_lens(valid lengths) tensor where each
+        #  sequence in the batch should be padded wrt the valid_lens tensor such that the final mask has the same
+        #  shape as the scores matrix so they can be added up together in the `call()` method in the BaseMask class.
+
+        # elif valid_lens is not None:
+        #     max_len = tf.maximum(q_len, k_len)
+        #     # max_len = tf.reduce_max(valid_lens)
+        #     print("here", self.padding_value)
+        #     mask = 1 - tf.sequence_mask(valid_lens, max_len, dtype=self.scores_dtype)
+        #     if input_shape:
+        #         if len(input_shape) == 3:
+        #             mask = tf.reshape(padding_mask, (input_shape[0], 1, input_shape[-1]))
+        #         elif len(input_shape) == 4:
+        #             mask = tf.reshape(padding_mask, (input_shape[0], 1, 1, input_shape[-1]))
+        #     else:
+        #         raise Exception("Input shape must be provided to reconstruct the mask with the same shape")
+        #     print("mask: ", mask)
+
+        # receives the scores matrix and derive the padding mask before passing to the softmax
         elif scores is not None:
             mask = tf.cast(
                 tf.math.equal(scores, self.padding_value), dtype=scores.dtype
