@@ -281,8 +281,8 @@ class MultiHeadAttention(tf.keras.layers.Layer):
         -------
         Tuple[tf.Tensor, Optional[tf.Tensor]]
             The final output tensor and the attention weights tensor. The output tensor has
-            shape (batch_size, no. of queries, depth), and the attention weights tensor has
-            shape (batch_size, no. of queries, no. of key-value pairs).
+            shape (batch_size, sequence_length, d_model), and the attention weights tensor has
+            shape (batch_size, num_heads, sequence_length, sequence_length).
 
         Raises
         ------
@@ -333,7 +333,8 @@ class MultiHeadAttention(tf.keras.layers.Layer):
 
         # Shape of output: (batch_size * num_heads, no. of queries,
         # depth / num_heads)
-        print("multihead q: ", queries.shape)
+        # The reason that the 4d tensors are passed to the attention layer is to enable vectorization
+        # in the matmul(qk.T)
         attention_output, attention_weights = self.attention(
             queries, keys, values, attention_mask, **kwargs
         )

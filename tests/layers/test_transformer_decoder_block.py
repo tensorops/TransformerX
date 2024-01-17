@@ -129,8 +129,8 @@ class TestTransformerDecoderBlock:
         values = tf.ones(shape=(2, 10, 512))
         valid_lens = tf.constant([5, 7])
         output, attn_weights = transformer_block.attention1(queries, queries, queries)
-        assert output.shape == (2, 5, 512)
-        assert attn_weights.shape == (2, 8, 5, 5)
+        assert output.shape == (2, 5, 512)  # (batch_size, sequence_length, d_model
+        assert attn_weights.shape == (2, 8, 5, 5)  # (batch_size, num_heads, sequence_length, sequence_length)
 
     def test_positionwise_ffn(self, transformer_block):
         # Test that the output of the position-wise feedforward network is correct

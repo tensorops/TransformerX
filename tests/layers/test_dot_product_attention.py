@@ -23,6 +23,13 @@ class TestDotProductAttention:
         assert output_scaled.shape == (2, 3, 2)
         assert output_unscaled.shape == (2, 3, 2)
 
+        q_in = tf.cast(np.random.random([2, 8, 10, 20]), dtype=tf.float32)
+        k_in = tf.cast(np.random.random([2, 8, 15, 20]), dtype=tf.float32)
+        v_in = tf.cast(np.random.random([2, 8, 15, 20]), dtype=tf.float32)
+        queries, keys, values = q_in, k_in, v_in
+        output_scaled, _ = self.dot_product_scaled(queries, keys, values)
+        assert output_scaled.shape == (2, 8, 10, 20)
+
     # Test that the `call` method computes the correct dot-product attention
     def test_dot_product_attention(self):
         dot_product = DotProductAttention()
@@ -111,3 +118,17 @@ class TestDotProductAttention:
         assert isinstance(config, dict)
         assert config["dropout_rate"] == 0.2
         assert config["scaled"] == True
+
+    def test_causal_masking(self, attention_layer):
+        # Test the attention with causal masking
+        queries = tf.constant([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=tf.float32)
+        keys = tf.constant([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=tf.float32)
+        values = tf.constant([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=tf.float32)
+        attention_mask = tf.constant([[1, 1], [0, 1]], dtype=tf.float32)
+
+        attention_layer = DotProductAttention(causal_mask=True)
+        # Call the attention layer with causal masking
+        output, attention_weights = attention_layer(queries, keys, values)
+
+        assert output.shape == values.shape, "Output shape mismatch"
+        assert attention_weights.shape == (2, 2, 2), "Attention weights shape mismatch"
