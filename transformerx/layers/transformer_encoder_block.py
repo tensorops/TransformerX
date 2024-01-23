@@ -324,9 +324,9 @@ class TransformerEncoderBlock(tf.keras.layers.Layer):
         assert (
             len(queries.shape) == 3
         ), f"Input tensor should have rank 3, got {len(queries.shape)}, {queries.shape}"
-        assert (
-            queries.shape[-1] == self.d_model
-        ), "Last dimension of input tensor should be equal to d_model"
+        # assert (
+        #     queries.shape[-1] == self.d_model
+        # ), f"Last dimension of input tensor {queries.shape} should be equal to d_model {self.d_model}"
         # if attention_mask is not None:
         # attention_mask = tf.cast(attention_mask, tf.int32)
         # assert (

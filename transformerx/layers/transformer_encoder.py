@@ -231,6 +231,14 @@ class TransformerEncoder(tf.keras.layers.Layer):
                 embeddings, attention_mask=attention_mask, **kwargs
             )
             self.attention_weights[i] = attn_weights
+
+            # if attn_weights is not None:
+            #     mean_attention = tf.reduce_mean(attn_weights)
+            #     std_attention = tf.math.reduce_std(attn_weights)
+            #     print(
+            #         f"Mean Attention Weights: {mean_attention}, Std Attention Weights: {std_attention}"
+            #     )
+
         return embeddings, self.attention_weights
 
 
