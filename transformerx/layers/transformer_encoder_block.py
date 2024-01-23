@@ -222,30 +222,33 @@ class TransformerEncoderBlock(tf.keras.layers.Layer):
             Callable
         ] = None,  # Learning rate schedule function
         use_bias: bool = False,  # Whether to include bias terms in the attention computation
-        contextualized_embeddings: bool = None,  # incorporate pre-trained language models such as BERT or GPT-2 into the model (feedforward networks)
+        contextualized_embeddings: bool = None,
+        # incorporate pre-trained language models such as BERT or GPT-2 into the model (feedforward networks)
         name: str = "transformer_encoder_block",
         dtype: Optional[tf.dtypes.DType] = None,
         **kwargs,
     ):
         super(TransformerEncoderBlock, self).__init__(name=name, dtype=dtype, **kwargs)
-        assert isinstance(d_model, int) and d_model > 0, "Invalid d_model: {}".format(
-            d_model
-        )
+        assert (
+            isinstance(d_model, int) and d_model > 0
+        ), f"Invalid d_model: {d_model}. It must be integer and greater than 0."
         assert (
             isinstance(input_hidden_units_ffn, int) and input_hidden_units_ffn > 0
-        ), "Invalid ffn_num_hiddens: {}".format(input_hidden_units_ffn)
+        ), f"Invalid ffn_num_hiddens: {input_hidden_units_ffn}. It must be integer and greater than 0."
         assert (
             isinstance(num_heads, int) and num_heads > 0 and d_model % num_heads == 0
-        ), "Invalid num_heads: {}".format(num_heads)
+        ), f"Invalid num_heads: {num_heads}. The d_model {d_model} must be divisible by num_heads"
         assert (
             isinstance(dropout_rate, float) and 0.0 <= dropout_rate <= 1.0
-        ), "Invalid dropout rate: {}".format(dropout_rate)
+        ), f"Invalid dropout rate: {dropout_rate}.  It must be between 0.0 and 1.0."
         assert norm_type in [
             "layer",
             "batch",
             "instance",
-        ], "Invalid norm_type: {}".format(norm_type)
-        assert isinstance(use_bias, bool), "Invalid bias: {}".format(use_bias)
+        ], f"Invalid norm_type: {norm_type}. Valid types: 'layer', 'batch', and 'instance'."
+        assert isinstance(
+            use_bias, bool
+        ), f"Invalid bias: {use_bias}. It must be a boolean."
         if residual_connections is not None:
             assert (
                 len(residual_connections) == 2
@@ -255,7 +258,7 @@ class TransformerEncoderBlock(tf.keras.layers.Layer):
         if clip_norm is not None:
             assert (
                 isinstance(clip_norm, float) and clip_norm > 0.0
-            ), "Invalid clip_norm: {}".format(clip_norm)
+            ), f"Invalid clip_norm: {clip_norm}"
         if kernel_initializer is not None:
             assert callable(
                 kernel_initializer
