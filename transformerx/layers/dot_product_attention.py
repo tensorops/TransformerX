@@ -90,7 +90,8 @@ class DotProductAttention(tf.keras.layers.Layer):
         scaled: bool = True,
         kernel_initializer: str = "ones",
         kernel_regularizer: str = None,
-        causal_mask: bool = None,
+        causal_mask: bool = False,
+        padding_mask: bool = False,
         mask_type="dilated",
         mask_prob=0.0,
         dilation_rate=1,
@@ -104,7 +105,7 @@ class DotProductAttention(tf.keras.layers.Layer):
         self.kernel_initializer = kernel_initializer
         self.kernel_regularizer = kernel_regularizer
         self.causal_mask = causal_mask
-
+        self.padding_mask = padding_mask
         self.mask_type = mask_type
         self.mask_prob = mask_prob
         self.dilation_rate = dilation_rate
@@ -138,18 +139,17 @@ class DotProductAttention(tf.keras.layers.Layer):
 
         # apply causal mask
         if self.causal_mask:
+            # New version of masking
+            look_ahead_mask = LookAheadMask()
+            scores = look_ahead_mask(scores)
             # todo: get different masks as a single or list of Callable or str objects and then invoke them in a loop
             # todo: for performance reasons, first generate the boolean masks and then in the end add up them and then
             #  multiply them once instead of generating masks and then multiply with 10-9 and add again etc.
 
-            # todo: now add the newly implemented padding mask here
+        # todo: pass the padding mask object or a string denoting it to the __init__()
+        if self.padding_mask:
             padding_mask = PaddingMask()
             scores = padding_mask(scores)
-
-            # New version of masking
-            look_ahead_mask = LookAheadMask()
-            scores = look_ahead_mask(scores)
-
 
         # to be uncommented later
         # apply global mask
@@ -192,7 +192,7 @@ def main():
         [[[1.0, 0.0, 0.0], [1.0, 1.0, 0.0], [1.0, 1.0, 1.0]]], dtype=tf.float32
     )
 
-    # assert mask.shape == expected_mask_shape
+    assert expected_mask_values.shape == expected_mask_shape
     # assert tf.reduce_all(tf.equal(mask, expected_mask_values))
 
     print("Global attention mask test passed successfully!")

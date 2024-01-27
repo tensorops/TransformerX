@@ -193,6 +193,9 @@ class PositionwiseFFN(tf.keras.layers.Layer):
             x = self.dropout(x)
             if self.non_linear_proj == "glu":
                 gate = tf.keras.activations.sigmoid(self.glu(x))
+                if not x.shape[-1] == self.input_hidden_units:
+                    raise Exception(f"Please make ensure the number of input_hidden_units: {self.input_hidden_units} equals to the "
+                                    f"input's {x.shape} last dimension")
                 return x * gate
             elif self.non_linear_proj == "selu":
                 gate = tf.keras.activations.sigmoid(self.selu(x))
